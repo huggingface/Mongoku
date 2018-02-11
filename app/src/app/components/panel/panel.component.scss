@@ -1,0 +1,24 @@
+@import '../../../sass/variables';
+
+:host {
+	width: 100%;
+	
+	border: none;
+	border-radius: 5px;
+	
+	position: relative;
+	margin-bottom: 24px;
+	
+	.panel-title {
+		background-color: $panel-title;
+		border-radius: 5px 5px 0 0;
+		padding: 14px 22px;
+		text-transform: uppercase;
+	}
+	
+	.panel-body {
+		background-color: $panel-body;
+		border-radius: 0 0 5px 5px;
+		padding: 14px 22px;
+	}
+}

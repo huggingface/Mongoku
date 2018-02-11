@@ -17,7 +17,7 @@
       "tsconfig": "tsconfig.app.json",
       "prefix": "app",
       "styles": [
-        "styles.less"
+        "styles.scss"
       ],
       "scripts": [],
       "environmentSource": "environments/environment.ts",
@@ -38,7 +38,7 @@
     }
   ],
   "defaults": {
-    "styleExt": "less",
+    "styleExt": "scss",
     "component": {}
   }
 }

@@ -1,0 +1,18 @@
+<div class="row databases-component">
+  <panel title="{{ server }} Databases">
+    <table class="table">
+      <thead>
+        <th>name</th>
+        <th>collections</th>
+        <th>size</th>
+      </thead>
+      <tbody>
+        <tr *ngFor="let database of databases">
+          <td><a routerLink="/servers/{{ server }}/databases/{{ database.name }}/collections">{{ database.name }}</a></td>
+          <td>{{ database.collections.length }}</td>
+          <td>{{ database.size | bytes }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </panel>
+</div>
