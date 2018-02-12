@@ -1,4 +1,4 @@
 <div class="panel-title" [hidden]="!title">{{ title }}</div>
-<div class="panel-body">
+<div class="panel-body" [class.full-width]="fullWidth">
   <ng-content></ng-content>
 </div>

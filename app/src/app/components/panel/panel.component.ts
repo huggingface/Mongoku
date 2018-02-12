@@ -6,7 +6,8 @@ import { Component, OnInit, Input } from '@angular/core';
   styleUrls: ['./panel.component.scss']
 })
 export class PanelComponent implements OnInit {
-  @Input() title?: string;
+  @Input() title?:     string;
+  @Input('full-width') fullWidth?: boolean;
   
   constructor() { }
 

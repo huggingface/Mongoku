@@ -3,7 +3,7 @@
 :host {
 	width: 100%;
 	
-	border: none;
+	border: 1px solid $color3;
 	border-radius: 5px;
 	
 	position: relative;
@@ -11,15 +11,20 @@
 	
 	.panel-title {
 		background-color: $panel-title;
-		color: white;
-		border-radius: 5px 5px 0 0;
-		padding: 14px 22px;
+		color: $text-light;
+		border-radius: 4px 4px 0 0;
+		padding: 15px 22px;
+		font-size: 18px;
 		text-transform: uppercase;
 	}
 	
 	.panel-body {
 		background-color: $panel-body;
-		border-radius: 0 0 5px 5px;
+		border-radius: 0 0 4px 4px;
 		padding: 22px;
+		
+		&.full-width {
+			padding: 0;
+		}
 	}
 }

@@ -8,6 +8,28 @@ body {
 }
 
 
+nav.navbar {
+	border-bottom: 1px solid $color3;
+}
+
 .navbar-brand {
 	font-size: 25px;
+}
+
+.bg-dark {
+	background-color: $color2 !important;
+}
+
+.table {
+	thead th {
+		border-bottom: none;
+	}
+	
+	th,td {
+		border-color: $color3;
+	}
+}
+
+a {
+	color: $link-color;
 }

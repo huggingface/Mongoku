@@ -1,5 +1,16 @@
+@import '../../../sass/variables';
+
 .row.servers-component {
 	.table {
 		margin-bottom: 0;
+		color: $text-light;
+		
+		th, td {
+			padding: 14px 22px;
+		}
+		
+		thead {
+			background-color: $color3;
+		}
 	}
 }

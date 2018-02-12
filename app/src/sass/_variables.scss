@@ -1,7 +1,14 @@
-$background-color: #1b1b1b;
+$color1 :rgb(28, 36, 48);
+$color2: rgb(41, 49, 65);
+$color3: rgb(51, 61, 77);
 
-$panel-title: #2e3036;
-$panel-body:  #535763;
+$background-color: $color1;
+
+$panel-title: $color2;
+$panel-body:  $color2;
+
+$text-light: white;
+$link-color: #c8e3ff;
 
 // Override bootstrap variables as following:
 // $primary: red;
