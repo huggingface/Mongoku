@@ -10,7 +10,7 @@
       <tbody>
         <tr *ngFor="let collection of collections">
           <td><a routerLink="/servers/{{ server }}/databases/{{ database }}/collections/{{ collection.name }}">{{ collection.name }}</a></td>
-          <td>{{ collection.count }}</td>
+          <td>{{ collection.count | number }}</td>
           <td>{{ collection.nIndexes }}</td>
           <td>{{ collection.size | bytes }}</td>
         </tr>
