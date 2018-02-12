@@ -11,6 +11,7 @@
 	
 	.panel-title {
 		background-color: $panel-title;
+		color: white;
 		border-radius: 5px 5px 0 0;
 		padding: 14px 22px;
 		text-transform: uppercase;
@@ -19,6 +20,6 @@
 	.panel-body {
 		background-color: $panel-body;
 		border-radius: 0 0 5px 5px;
-		padding: 14px 22px;
+		padding: 22px;
 	}
 }

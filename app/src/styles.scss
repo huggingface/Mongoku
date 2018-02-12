@@ -1,6 +1,13 @@
 @import 'sass/variables';
 @import '../node_modules/bootstrap/scss/bootstrap';
+@import url('https://fonts.googleapis.com/css?family=Cuprum|Rajdhani');
 
 body {
 	background-color: $background-color;
+	font-family: 'Rajdhani', sans-serif;
+}
+
+
+.navbar-brand {
+	font-size: 25px;
 }
