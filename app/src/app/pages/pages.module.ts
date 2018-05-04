@@ -1,5 +1,8 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+
+import { MonacoEditorModule } from 'ngx-monaco-editor';
 
 import { AppRoutingModule } from '../app-routing.module';
 
@@ -14,6 +17,8 @@ import { FiltersModule } from '../filters/filters.module';
 
 @NgModule({
   imports: [
+    MonacoEditorModule,
+    FormsModule,
     CommonModule,
     AppRoutingModule,
     ComponentsModule,
