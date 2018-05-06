@@ -1,6 +1,8 @@
 @import 'sass/variables';
 @import '../node_modules/bootstrap/scss/bootstrap';
 @import url('https://fonts.googleapis.com/css?family=Cuprum|Rajdhani');
+@import "~codemirror/lib/codemirror.css";
+@import "~codemirror/theme/neo.css";
 
 body {
 	background-color: $background-color;

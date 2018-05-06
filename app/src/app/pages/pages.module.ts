@@ -2,7 +2,10 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-import { MonacoEditorModule } from 'ngx-monaco-editor';
+import { CodemirrorModule } from '@ctrl/ngx-codemirror';
+// Import the required language
+// see https://codemirror.net/mode/index.html
+import 'codemirror/mode/javascript/javascript';
 
 import { AppRoutingModule } from '../app-routing.module';
 
@@ -17,9 +20,9 @@ import { FiltersModule } from '../filters/filters.module';
 
 @NgModule({
   imports: [
-    MonacoEditorModule,
     FormsModule,
     CommonModule,
+    CodemirrorModule,
     AppRoutingModule,
     ComponentsModule,
     ServicesModule,
