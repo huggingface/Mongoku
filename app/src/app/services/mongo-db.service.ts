@@ -25,4 +25,21 @@ export class MongoDbService {
     return this.http.get<CollectionJSON[]>(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections`);
   }
 
+  query(server: string, database: string, collection: string, query: any, skip: number = 0, limit: number = 20) {
+    return this.http.get(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/query`, {
+      params: {
+        q:     query,
+        skip:  `${skip}`,
+        limit: `${limit}`
+      }
+    });
+  }
+  
+  count(server: string, database: string, collection: string, query: any) {
+    return this.http.get(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/count`, {
+      params: {
+        q: query
+      }
+    });
+  }
 }

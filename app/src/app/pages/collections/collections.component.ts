@@ -13,7 +13,7 @@ export class CollectionsComponent implements OnInit {
   database: string;
   collections: CollectionJSON[];
   
-  constructor(public activatedRoute: ActivatedRoute, private mongoDb: MongoDbService) { }
+  constructor(private activatedRoute: ActivatedRoute, private mongoDb: MongoDbService) { }
 
   ngOnInit() {
     this.activatedRoute.paramMap.subscribe((d) => {

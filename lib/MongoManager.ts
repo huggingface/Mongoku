@@ -63,7 +63,7 @@ export class MongoManager {
 	}
 	
 	async getDatabasesJson(serverName: string): Promise<DatabaseJSON[]> {
-		const server = this._servers[serverName]
+		const server = this._servers[serverName];
 		if (server instanceof Error) {
 			return [];
 		}
@@ -73,7 +73,7 @@ export class MongoManager {
 	}
 	
 	async getCollectionsJson(serverName: string, databaseName: string): Promise<CollectionJSON[]> {
-		const server = this._servers[serverName]
+		const server = this._servers[serverName];
 		if (server instanceof Error) {
 			return [];
 		}
@@ -84,5 +84,16 @@ export class MongoManager {
 		
 		const json = await database.toJson();
 		return json.collections;
+	}
+	
+	async getCollection(serverName: string, databaseName: string, collectionName: string): Promise<MongoDb.Collection | undefined> {
+		const server = this._servers[serverName];
+		if (server instanceof Error) { return ; }
+		
+		const database = await server.database(databaseName);
+		if (!database) { return ; }
+		
+		const collection = await database.collection(collectionName);
+		return collection;
 	}
 }

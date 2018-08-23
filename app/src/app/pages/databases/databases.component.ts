@@ -12,7 +12,7 @@ export class DatabasesComponent implements OnInit {
   server:    string;
   databases: DatabaseJSON[];
 
-  constructor(public activatedRoute: ActivatedRoute, private mongoDb: MongoDbService) { }
+  constructor(private activatedRoute: ActivatedRoute, private mongoDb: MongoDbService) { }
 
   ngOnInit() {
     this.activatedRoute.paramMap.subscribe((d) => {

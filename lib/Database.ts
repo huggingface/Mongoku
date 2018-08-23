@@ -35,6 +35,11 @@ export class Database {
 		return collections;
 	}
 	
+	collection(name: string) {
+		const c = this._db.collection(name);
+		return c;
+	}
+	
 	async toJson() {
 		const collections = await this.collections();
 		const csJson: CollectionJSON[] = [];
