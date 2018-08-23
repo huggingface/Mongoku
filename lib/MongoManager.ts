@@ -22,7 +22,9 @@ export class MongoManager {
 		const hostname = url.hostname || host.path;
 		
 		try {
-			const client = await MongoDb.MongoClient.connect(urlStr);
+			const client = await MongoDb.MongoClient.connect(urlStr, {
+				useNewUrlParser: true
+			});
 			const server = new Server(hostname, client);
 			this._servers[hostname] = server;
 			console.info(`[${hostname}] Connected to ${urlStr}`);
