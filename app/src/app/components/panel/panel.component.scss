@@ -1,17 +1,15 @@
-@import '../../../sass/variables';
-
 :host {
 	width: 100%;
 	
-	border: 1px solid $color3;
+	border: 1px solid var(--color-3);
 	border-radius: 5px;
 	
 	position: relative;
 	margin-bottom: 24px;
 	
 	.panel-title {
-		background-color: $panel-title;
-		color: $text-light;
+		background-color: var(--panel-title);
+		color: var(--text);
 		border-radius: 4px 4px 0 0;
 		padding: 15px 22px;
 		font-size: 18px;
@@ -19,10 +17,10 @@
 	}
 	
 	.panel-body {
-		background-color: $panel-body;
+		background-color: var(--panel-body);
 		border-radius: 0 0 4px 4px;
 		padding: 22px;
-		color: $text-light;
+		color: var(--text);
 		
 		&.full-width {
 			padding: 0;

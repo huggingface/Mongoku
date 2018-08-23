@@ -3,7 +3,11 @@
 	
 	a {
 		text-decoration: none;
-		color: white;
+		color: var(--text);
+	}
+	
+	.breadcrumb-item.active {
+		color: var(--text-darker);
 	}
 }
 

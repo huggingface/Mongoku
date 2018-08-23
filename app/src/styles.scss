@@ -1,17 +1,26 @@
-@import 'sass/variables';
+// Themes
+@import 'sass/themes/dark-default';
+@import 'sass/themes/light';
+
+// Bootstrap
 @import '../node_modules/bootstrap/scss/bootstrap';
+
+// Fonts
 @import url('https://fonts.googleapis.com/css?family=Cuprum|Rajdhani');
+
+// Code Mirror
 @import "~codemirror/lib/codemirror.css";
 @import "~codemirror/theme/neo.css";
 
+
 body {
-	background-color: $background-color;
+	background-color: var(--background-color);
 	font-family: 'Rajdhani', sans-serif;
 }
 
 
 nav.navbar {
-	border-bottom: 1px solid $color3;
+	border-bottom: 1px solid var(--color-3);
 }
 
 .navbar-brand {
@@ -19,7 +28,7 @@ nav.navbar {
 }
 
 .bg-dark {
-	background-color: $color2 !important;
+	background-color: var(--color-2) !important;
 }
 
 .table {
@@ -28,10 +37,10 @@ nav.navbar {
 	}
 	
 	th,td {
-		border-color: $color3;
+		border-color: var(--color-3);
 	}
 }
 
-a {
-	color: $link-color;
+a, pre {
+	color: var(--text);
 }
