@@ -7,7 +7,7 @@ import { MongoDbService, ServerJSON } from '../../services/mongo-db.service';
   styleUrls: ['./servers.component.scss']
 })
 export class ServersComponent implements OnInit {
-  servers: ServerJSON[];
+  private servers: ServerJSON[];
   
   constructor(private mongoDb: MongoDbService) { }
 

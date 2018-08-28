@@ -9,9 +9,9 @@ import { MongoDbService, CollectionJSON } from '../../services/mongo-db.service'
   styleUrls: ['./collections.component.scss']
 })
 export class CollectionsComponent implements OnInit {
-  server:   string;
-  database: string;
-  collections: CollectionJSON[];
+  private server:   string;
+  private database: string;
+  private collections: CollectionJSON[];
   
   constructor(private activatedRoute: ActivatedRoute, private mongoDb: MongoDbService) { }
 

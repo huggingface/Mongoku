@@ -9,8 +9,8 @@ import { MongoDbService, DatabaseJSON } from '../../services/mongo-db.service';
   styleUrls: ['./databases.component.scss']
 })
 export class DatabasesComponent implements OnInit {
-  server:    string;
-  databases: DatabaseJSON[];
+  private server:    string;
+  private databases: DatabaseJSON[];
 
   constructor(private activatedRoute: ActivatedRoute, private mongoDb: MongoDbService) { }
 
