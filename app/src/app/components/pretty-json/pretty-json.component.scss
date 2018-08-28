@@ -1,0 +1,125 @@
+.pretty-json {
+	font-family: 'Source Code Pro',monospace;
+	color: white;
+	position: relative;
+	white-space: pre;
+	
+	.null, .bool {
+		color: #0086b3;
+	}
+	
+	.number {
+		color: #40A070;
+	}
+	
+	.quoted {
+		color: #DD2200;
+		
+		.string {
+			color: #DD1144;
+			a:link, a:visited {
+				color: #DD1144;
+				text-decoration: underline;
+			}
+			a:hover, a:active {
+				color: #0058E1;
+			}
+		}
+	}
+	
+	var {
+		font-style: normal;
+	}
+	
+	.prop {
+		position: relative;
+		
+		.e {
+			display: none;
+			cursor: pointer;
+			
+			.summary, q {
+				color: grey;
+				font-style: italic;
+			}
+		}
+	
+		.collapser, button {
+			display: block;
+			cursor: pointer;
+			position: absolute;
+			height: 16px;
+			width: 16px;
+			left: -16px;
+			top: 0;
+			padding: 0;
+			font-size: 0;
+			line-height: 0;
+			color: transparent;
+			overflow: hidden;
+			
+			&:after {
+				display: block;
+				position: absolute;
+				left: 4px;
+				top: 6px;
+				height: 0;
+				width: 0;
+				content: ' ';
+				
+				border: 4px solid transparent;
+				border-top-color: lighten(grey, 20%);
+			}
+			&:hover:after, &:active:after {
+				border-top-color: grey;
+			}
+		}
+		
+		button {
+			border: none;
+			background-color: transparent;
+		}
+		
+		&.collapsed {
+			button {
+				&:after {
+					left: 6px;
+					top:  4px;
+
+					border-top-color: transparent;
+					border-left-color: lighten(grey, 20%);
+				}
+				&:hover:after, &:active:after {
+					border-top-color: transparent;
+					border-left-color: grey;
+				}
+			}
+			.e {
+				display: inline;
+			}
+			.collapser,
+			.c {
+				&:after {
+					top:  4px;
+
+					border-top-color:  transparent;
+					border-left-color: lighten(grey, 20%);
+				}
+				&:hover, &:active {
+					&:after {
+						border-top-color:  transparent;
+						border-left-color: grey;
+					}
+				}
+			}
+
+			> .value {
+				height: 0px;
+				width: 0px;
+				overflow: hidden;
+				display: inline-block;
+				visibility: hidden;
+			}
+		}
+	}
+}
