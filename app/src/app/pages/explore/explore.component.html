@@ -1,6 +1,17 @@
-<div class="row search-component">
-  <!--ngx-codemirror [(ngModel)]="search" [options]="searchOptions"></ngx-codemirror-->
-  <panel *ngFor="let item of items">
-    <pre>{{ item | json }}</pre>
-  </panel>
+<div class="row loading" *ngIf="loading">
+  <div class="col">
+    <panel>
+      <h1>
+        Loading...
+      </h1>
+    </panel>
+  </div>
+</div>
+<div class="row search-component" *ngIf="!loading">
+  <div class="col-md-12">
+    <!--ngx-codemirror [(ngModel)]="search" [options]="searchOptions"></ngx-codemirror-->
+    <panel *ngFor="let item of items">
+      <pretty-json [json]="item"></pretty-json>
+    </panel>
+  </div>
 </div>

@@ -9,31 +9,23 @@ import { MongoDbService } from '../../services/mongo-db.service';
   styleUrls: ['./explore.component.scss']
 })
 export class ExploreComponent implements OnInit {
-  server:     string;
-  database:   string;
-  collection: string;
+  private server:     string;
+  private database:   string;
+  private collection: string;
   
-  //   search = 
-  // `{ 
-  //   content: "Your message here",
-  //   _id: "1234566",
-  //   b: true
-  // }`;
-
+  // CODEMIRROR OPTIONS
   //   searchOptions = {
   //     mode: 'application/json',
   //     theme: 'neo'
   //   }
   
-  query = "{}";
-  skip  = 0;
-  limit = 20;
+  private query      = "{}";
+  private skip       = 0;
+  private limit      = 20;
+  private order      = "";
   
-  items = [ {
-    title: "TOTO"
-  }, {
-    title: "TATA"
-  } ]
+  private loading    = false;
+  private items      = [];
   
   constructor(private activatedRoute: ActivatedRoute, private mongoDb: MongoDbService) { }
   
@@ -48,8 +40,12 @@ export class ExploreComponent implements OnInit {
   }
   
   update() {
+    this.loading = true;
+    
     const s = this.mongoDb.query(this.server, this.database, this.collection, this.query, this.skip, this.limit)
       .subscribe((res: any) => {
+        this.loading = false;
+          
         if (res.ok) {
           this.items = res.results;
         }
