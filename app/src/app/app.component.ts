@@ -1,4 +1,4 @@
-import { Component, AfterViewChecked } from '@angular/core';
+import { Component, AfterViewChecked, Renderer2, OnInit } from '@angular/core';
 import { Router, RoutesRecognized } from '@angular/router';
 import { PACKAGE_ROOT_URL } from '@angular/core/src/application_tokens';
 
@@ -13,10 +13,17 @@ interface Breadcrumb {
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements AfterViewChecked {
-  breadcrumbs: Breadcrumb[] = [];
+export class AppComponent implements AfterViewChecked, OnInit {
+  private breadcrumbs: Breadcrumb[] = [];
   
-  constructor(private route: Router) { }
+  constructor(private route: Router, private renderer: Renderer2) { }
+  
+  ngOnInit() {
+    const currentTheme = localStorage.getItem("theme");
+    if (currentTheme == this.otherTheme) {
+      this.switchTheme(this.otherTheme);
+    }
+  }
   
   ngAfterViewChecked() {
     const d = this.route.events.subscribe((data) => {
@@ -58,6 +65,22 @@ export class AppComponent implements AfterViewChecked {
         this.breadcrumbs = breadcrumbs;
        }
      });
+  }
+  
+  get otherTheme() {
+    const isLight = document.body.classList.contains("theme-light");
+    return isLight
+      ? "Dark"
+      : "Light";
+  }
+  
+  switchTheme(theme: string) {
+    if (theme === "Dark") {
+      this.renderer.removeClass(document.body, "theme-light");
+    } else {
+      this.renderer.addClass(document.body, "theme-light");
+    }
+    localStorage.setItem("theme", theme);
   }
   
 }
