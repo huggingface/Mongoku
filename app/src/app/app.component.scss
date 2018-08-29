@@ -11,6 +11,14 @@
 	}
 }
 
+.navbar-brand {
+	color: var(--text);
+	
+	&:hover {
+		color: var(--text-lighter);
+	}
+}
+
 .container-fluid .content {
 	padding-top: 50px;
 }

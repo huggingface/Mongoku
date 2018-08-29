@@ -1,33 +1,36 @@
 .pretty-json {
 	font-family: 'Source Code Pro',monospace;
-	color: white;
 	position: relative;
 	white-space: pre;
 	
-	.null, .bool {
-		color: #0086b3;
+	.null {
+		color: var(--code-null);
+	}
+	.boolean {
+		color: var(--code-boolean);
 	}
 	
 	.number {
-		color: #40A070;
+		color: var(--code-numbers);
 	}
 	
 	.quoted {
-		color: #DD2200;
+		color: var(--code-string);
 		
 		.string {
-			color: #DD1144;
+			color: var(--code-string);
 			a:link, a:visited {
-				color: #DD1144;
+				color: var(--code-string);
 				text-decoration: underline;
 			}
 			a:hover, a:active {
-				color: #0058E1;
+				color: var(--code-links);
 			}
 		}
 	}
 	
 	var {
+		color: var(--code-namespace);
 		font-style: normal;
 	}
 	
@@ -39,7 +42,7 @@
 			cursor: pointer;
 			
 			.summary, q {
-				color: grey;
+				color: var(--code-summary);
 				font-style: italic;
 			}
 		}
@@ -68,10 +71,10 @@
 				content: ' ';
 				
 				border: 4px solid transparent;
-				border-top-color: lighten(grey, 20%);
+				border-top-color: var(--text);
 			}
 			&:hover:after, &:active:after {
-				border-top-color: grey;
+				border-top-color: var(--text);
 			}
 		}
 		
@@ -87,11 +90,11 @@
 					top:  4px;
 
 					border-top-color: transparent;
-					border-left-color: lighten(grey, 20%);
+					border-left-color: var(--text)
 				}
 				&:hover:after, &:active:after {
 					border-top-color: transparent;
-					border-left-color: grey;
+					border-left-color: var(--text);
 				}
 			}
 			.e {
@@ -103,12 +106,12 @@
 					top:  4px;
 
 					border-top-color:  transparent;
-					border-left-color: lighten(grey, 20%);
+					border-left-color: var(--text);
 				}
 				&:hover, &:active {
 					&:after {
 						border-top-color:  transparent;
-						border-left-color: grey;
+						border-left-color: var(--text);
 					}
 				}
 			}

@@ -229,7 +229,7 @@ export class PrettyJsonComponent implements OnInit {
                 const isObj = view.classList.contains('object');
                 const child = this.span('e');
                 this.renderer.appendChild(child, this.text(isObj ? '{ ' : '[ '));
-                this.renderer.appendChild(child, this.element('Q', null, this.text('...')));
+                this.renderer.appendChild(child, this.span("summary", this.text('...')));
                 this.renderer.appendChild(child, this.text(isObj ? ' }' : ' ]'));
                 this.renderer.appendChild(prop, child);
               }

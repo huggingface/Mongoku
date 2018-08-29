@@ -2,15 +2,11 @@
   <div class="col-md-12">
     <!--ngx-codemirror [(ngModel)]="search" [options]="searchOptions"></ngx-codemirror-->
     <search-box (search)="search($event)"></search-box>
-    <div class="row loading" *ngIf="loading">
-      <div class="col">
-        <panel>
-          <h1 class="center">
-              Loading...
-          </h1>
-        </panel>
-      </div>
-    </div>
+    <panel [hidden]="!loading">
+      <h1 class="center loading">
+        Loading...
+      </h1>
+    </panel>
     <panel *ngFor="let item of items" [hidden]="loading">
       <pretty-json [json]="item"></pretty-json>
     </panel>

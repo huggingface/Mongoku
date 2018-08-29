@@ -1,14 +1,23 @@
 .theme-light {
-	--color-1: rgb(28, 36, 48);
-	--color-2: rgb(41, 49, 65);
-	--color-3: rgb(51, 61, 77);
+	--color-1: hsl(228, 26%, 90%);
+	--color-2: hsl(232, 23%, 84%);
+	--color-3: hsl(229, 20%, 80%);
+	--color-4: hsl(232, 20%, 75%);
 	
 	--background-color: var(--color-1);
 	--panel-title:      var(--color-2);
 	--panel-body:       var(--color-2);
 	
-	--text: rgb(224, 224, 224);
-	--text-darker: rgb(146, 146, 146);
-	--text-ligher: white;
-	--link: #c8e3ff;
+	--text:           hsl(0, 0%, 12%);
+	--text-darker:    hsl(0, 0%, 43%);
+	--text-lighter:   hsl(0, 0%, 100%);
+	--link:           hsl(211, 100%, 89%);
+	
+	--code-namespace: black;
+	--code-boolean:   #0086b3;
+	--code-null:      #0086b3;
+	--code-numbers:   #40A070;
+	--code-string:    #DD1144;
+	--code-links:     #0058E1;
+	--code-summary:   grey;
 }
