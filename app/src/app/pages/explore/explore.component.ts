@@ -3,6 +3,8 @@ import { ActivatedRoute } from '@angular/router';
 
 import { MongoDbService } from '../../services/mongo-db.service';
 
+import { SearchParams } from '../../components/search-box/search-box.component';
+
 @Component({
   selector: 'app-explore',
   templateUrl: './explore.component.html',
@@ -13,17 +15,17 @@ export class ExploreComponent implements OnInit {
   private database:   string;
   private collection: string;
   
+  private ready = false;
+  
   // CODEMIRROR OPTIONS
   //   searchOptions = {
   //     mode: 'application/json',
   //     theme: 'neo'
   //   }
   
-  private query      = "{}";
-  private skip       = 0;
-  private limit      = 20;
-  private order      = "";
+  private lastReq    = "";
   
+  private params?: SearchParams;
   private loading    = false;
   private items      = [];
   
@@ -35,21 +37,34 @@ export class ExploreComponent implements OnInit {
       this.database   = d.get("database");
       this.collection = d.get("collection");
       
+      this.ready = true;
       this.update();
     });
   }
   
   update() {
-    this.loading = true;
+    if (!this.params || !this.ready) { return; }
     
-    const s = this.mongoDb.query(this.server, this.database, this.collection, this.query, this.skip, this.limit)
+    const req = Object.values(this.params).sort().join('|');
+    if (req === this.lastReq) {
+      return;
+    }
+    this.lastReq = req;
+    
+    this.loading = true;
+    this.mongoDb.query(this.server, this.database, this.collection, this.params.query, this.params.sort, this.params.skip, this.params.limit)
       .subscribe((res: any) => {
         this.loading = false;
-          
+        
         if (res.ok) {
           this.items = res.results;
         }
       });
+  }
+  
+  search(params) {
+    this.params = params;
+    this.update();
   }
 
 }

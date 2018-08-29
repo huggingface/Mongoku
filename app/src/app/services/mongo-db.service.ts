@@ -25,10 +25,11 @@ export class MongoDbService {
     return this.http.get<CollectionJSON[]>(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections`);
   }
 
-  query(server: string, database: string, collection: string, query: any, skip: number = 0, limit: number = 20) {
+  query(server: string, database: string, collection: string, query: any, sort: any, skip: number = 0, limit: number = 20) {
     return this.http.get(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/query`, {
       params: {
         q:     query,
+        sort:  sort,
         skip:  `${skip}`,
         limit: `${limit}`
       }

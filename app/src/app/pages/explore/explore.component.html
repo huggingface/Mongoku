@@ -1,16 +1,17 @@
-<div class="row loading" *ngIf="loading">
-  <div class="col">
-    <panel>
-      <h1>
-        Loading...
-      </h1>
-    </panel>
-  </div>
-</div>
-<div class="row search-component" *ngIf="!loading">
+<div class="row search-component">
   <div class="col-md-12">
     <!--ngx-codemirror [(ngModel)]="search" [options]="searchOptions"></ngx-codemirror-->
-    <panel *ngFor="let item of items">
+    <search-box (search)="search($event)"></search-box>
+    <div class="row loading" *ngIf="loading">
+      <div class="col">
+        <panel>
+          <h1 class="center">
+              Loading...
+          </h1>
+        </panel>
+      </div>
+    </div>
+    <panel *ngFor="let item of items" [hidden]="loading">
       <pretty-json [json]="item"></pretty-json>
     </panel>
   </div>

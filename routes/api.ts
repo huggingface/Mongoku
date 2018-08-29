@@ -38,6 +38,14 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
 			return next(new Error(`Invalid query: ${query}`));
 		}
 	}
+	let sort = req.query.sort || "{}";
+	if (sort && typeof sort !== "object") {
+		try {
+			sort = JSON.parse(sort);
+		} catch (err) {
+			return next(new Error(`Invalid order: ${sort}`));
+		}
+	}
 	let limit = parseInt(req.query.limit, 10);
 	if (isNaN(limit)) { limit = 20; }
 	let skip  = parseInt(req.query.skip, 10);
@@ -48,7 +56,7 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
 		return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
 	}
 	
-	const results = await c.find(query).limit(limit).skip(skip).toArray();
+	const results = await c.find(query).limit(limit).skip(skip).sort(sort).toArray();
 	
 	return res.json({
 		ok:      true,
