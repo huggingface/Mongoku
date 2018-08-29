@@ -52,3 +52,9 @@ a:hover {
 .center {
 	text-align: center;
 }
+
+.btn.btn-default {
+	background-color: var(--color-1);
+	color: var(--text);
+	border-color: var(--color-4);
+}

@@ -17,16 +17,21 @@ export class ExploreComponent implements OnInit {
   
   private ready = false;
   
-  // CODEMIRROR OPTIONS
-  //   searchOptions = {
-  //     mode: 'application/json',
-  //     theme: 'neo'
-  //   }
+  private params: SearchParams = {
+    query:  "{}",
+    limit:  20,
+    skip:   0,
+    sort:   ""
+  };
+  private loading    = {
+    content: true,
+    count:   true
+  };
   
-  private lastReq    = "";
-  
-  private params?: SearchParams;
-  private loading    = false;
+  private count      = {
+    total: 0,
+    start: 0
+  }
   private items      = [];
   
   constructor(private activatedRoute: ActivatedRoute, private mongoDb: MongoDbService) { }
@@ -45,25 +50,45 @@ export class ExploreComponent implements OnInit {
   update() {
     if (!this.params || !this.ready) { return; }
     
-    const req = Object.values(this.params).sort().join('|');
-    if (req === this.lastReq) {
-      return;
-    }
-    this.lastReq = req;
-    
-    this.loading = true;
+    // Content
+    this.loading.content = true;
     this.mongoDb.query(this.server, this.database, this.collection, this.params.query, this.params.sort, this.params.skip, this.params.limit)
       .subscribe((res: any) => {
-        this.loading = false;
+        this.loading.content = false;
         
         if (res.ok) {
           this.items = res.results;
         }
       });
+    
+    // Count
+    this.loading.count = true;
+    this.mongoDb.count(this.server, this.database, this.collection, this.params.query)
+      .subscribe((res: any) => {
+        this.loading.count = false;
+        
+        if (res.ok) {
+          this.count.total = res.count;
+          this.count.start = this.params.skip;
+        }
+      });
   }
   
-  search(params) {
-    this.params = params;
+  get hasNext() {
+    return this.count.start + this.items.length < this.count.total;
+  }
+  
+  next() {
+    this.params.skip = this.params.skip + this.params.limit;
+    this.update();
+  }
+  
+  get hasPrevious() {
+    return this.count.start > 0;
+  }
+  
+  previous() {
+    this.params.skip = Math.max(0, this.params.skip - this.params.limit);
     this.update();
   }
 

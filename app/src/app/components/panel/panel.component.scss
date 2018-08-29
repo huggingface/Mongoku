@@ -29,5 +29,9 @@
 		&.full-width {
 			padding: 0;
 		}
+		
+		&.no-title {
+			border-radius: 4px;
+		}
 	}
 }

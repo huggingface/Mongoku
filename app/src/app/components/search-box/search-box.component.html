@@ -1,9 +1,9 @@
 <div ngbDropdown #dropdwn="ngbDropdown" class="search-box">
   <button hidden ngbDropdownAnchor id="addQueryParamDropdown"></button>
   <div ngbDropdownMenu aria-labelledby="addQueryParamDropdown">
-    <a class="dropdown-item" [hidden]="show.limit" (click)="toggle(true, 'limit')">Limit</a>
-    <a class="dropdown-item" [hidden]="show.skip"  (click)="toggle(true, 'skip')" >Skip</a>
     <a class="dropdown-item" [hidden]="show.sort"  (click)="toggle(true, 'sort')" >Sort</a>
+    <a class="dropdown-item" [hidden]="show.skip"  (click)="toggle(true, 'skip')" >Skip</a>
+    <a class="dropdown-item" [hidden]="show.limit" (click)="toggle(true, 'limit')">Limit</a>
   </div>
 </div>
 <panel>
@@ -11,22 +11,22 @@
     <div class="params-group">
       <div class="input-group">
         <div class="label">Query:</div>
-        <input type="text" [(ngModel)]="params.query" />
+        <input type="text" [(ngModel)]="params.query" (keypress)="keyPress($event)"/>
+      </div>
+      <div class="input-group" *ngIf="show.sort">
+        <div class="label">Sort:</div>
+        <input type="text" [(ngModel)]="params.sort" (keypress)="keyPress($event)"/>
+        <div class="close" (click)="toggle(false, 'sort')">&times;</div>
       </div>
       <div class="input-group" *ngIf="show.skip">
         <div class="label">Skip:</div>
-        <input type="number" [(ngModel)]="params.skip" />
+        <input type="number" [(ngModel)]="params.skip" (keypress)="keyPress($event)"/>
         <div class="close" (click)="toggle(false, 'skip')">&times;</div>
       </div>
       <div class="input-group" *ngIf="show.limit">
         <div class="label">Limit:</div>
-        <input type="number" [(ngModel)]="params.limit" />
+        <input type="number" [(ngModel)]="params.limit" (keypress)="keyPress($event)"/>
         <div class="close" (click)="toggle(false, 'limit')">&times;</div>
-      </div>
-      <div class="input-group" *ngIf="show.sort">
-        <div class="label">Sort:</div>
-        <input type="text" [(ngModel)]="params.sort" />
-        <div class="close" (click)="toggle(false, 'sort')">&times;</div>
       </div>
     </div>
     <div class="add-param btn" (click)="$event.stopPropagation(); dropdwn.open();" [hidden]="!canAddParams()">

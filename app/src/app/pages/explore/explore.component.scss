@@ -1,3 +1,19 @@
-h1.loading {
-	margin: 0;
+.row.explore-component {
+	h1.loading {
+		margin: 0;
+	}
+
+	.summary {
+		float: left;
+		font-size:  1.5em;
+		color: var(--text);
+	}
+
+	.actions {
+		float: right;
+		
+		& > .btn {
+			margin-left: 10px;
+		}
+	}
 }

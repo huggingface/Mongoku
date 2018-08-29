@@ -1,13 +1,24 @@
-<div class="row search-component">
+<div class="row explore-component">
   <div class="col-md-12">
     <!--ngx-codemirror [(ngModel)]="search" [options]="searchOptions"></ngx-codemirror-->
-    <search-box (search)="search($event)"></search-box>
-    <panel [hidden]="!loading">
+    <search-box (search)="update()" [(params)]="params"></search-box>
+    <panel [hidden]="!loading.content">
       <h1 class="center loading">
         Loading...
       </h1>
     </panel>
-    <panel *ngFor="let item of items" [hidden]="loading">
+    <panel *ngIf="params && !loading.count">
+      <div class="summary"><span [hidden]="count.total == 0">{{ count.start + 1 }} - {{ count.start + items.length }} of </span>{{ count.total }} Documents</div>
+      <div class="actions">
+        <button class="btn btn-default" *ngIf="hasPrevious" (click)="previous()">
+          Previous
+        </button>
+        <button class="btn btn-default" *ngIf="hasNext" (click)="next()">
+          Next
+        </button>
+      </div>
+    </panel>
+    <panel *ngFor="let item of items" [hidden]="loading.content">
       <pretty-json [json]="item"></pretty-json>
     </panel>
   </div>

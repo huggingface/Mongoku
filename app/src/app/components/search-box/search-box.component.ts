@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter, AfterViewInit, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 
 export interface SearchParams {
   query: string;
@@ -13,21 +13,15 @@ export interface SearchParams {
   styleUrls: ['./search-box.component.scss']
 })
 export class SearchBoxComponent implements OnInit {
-  @Output() search = new EventEmitter<SearchParams>();
-  
-  private defaults = {
+  @Output() search = new EventEmitter();
+  @Input()  params: SearchParams = {
+    query: "{}",
     limit: 20,
     skip:  0,
     sort:  ""
-  }
-  
-  private params = {
-    query: "{}",
-    limit: this.defaults.limit,
-    skip:  this.defaults.skip,
-    sort:  this.defaults.sort
   };
   
+  private defaults = {};
   private show = {
     limit: false,
     skip:  false,
@@ -35,6 +29,11 @@ export class SearchBoxComponent implements OnInit {
   };
   
   ngOnInit() {
+    // Keep original params
+    for (const [k, v] of Object.entries(this.params)) {
+      this.defaults[k] = v;
+    }
+    
     // Launch the initial update after the current change cycle
     setTimeout(() => {
       this.go();
@@ -53,6 +52,12 @@ export class SearchBoxComponent implements OnInit {
   }
 
   go() {
-    this.search.emit(this.params);
+    this.search.emit();
+  }
+  
+  keyPress(event) {
+    if (event.keyCode === 13) {
+      this.go();
+    }
   }
 }
