@@ -8,7 +8,7 @@
       </h1>
     </panel>
     <panel *ngIf="params && !loading.count">
-      <div class="summary"><span [hidden]="count.total == 0">{{ count.start + 1 }} - {{ count.start + items.length }} of </span>{{ count.total }} Documents</div>
+      <div class="summary"><span [hidden]="count.total == 0">{{ count.start + 1 | number }} - {{ count.start + items.length | number }} of </span>{{ count.total | number }} Documents</div>
       <div class="actions">
         <button class="btn btn-default" *ngIf="hasPrevious" (click)="previous()">
           Previous
