@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 
 import { MongoDbService } from './mongo-db.service';
+import { NotificationsService } from './notifications.service';
 
 @NgModule({
   imports: [
@@ -10,6 +11,6 @@ import { MongoDbService } from './mongo-db.service';
     HttpClientModule
   ],
   declarations: [],
-  providers: [ MongoDbService ]
+  providers: [ MongoDbService, NotificationsService ]
 })
 export class ServicesModule { }

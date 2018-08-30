@@ -52,6 +52,10 @@ export class SearchBoxComponent implements OnInit {
   }
 
   go() {
+    if (this.params.query === "") {
+      this.params.query = "{}";
+    }
+    
     this.search.emit();
   }
   

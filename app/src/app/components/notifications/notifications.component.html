@@ -1,0 +1,6 @@
+<div class="notifications-manager">
+  <div class="notification {{ notif.type }}" *ngFor="let notif of notifications" [class.show]="notif.show">
+    <div class="content">{{ notif.message }}</div>
+    <div class="close" (click)="dismiss(notif)">&times;</div>
+  </div>
+</div>

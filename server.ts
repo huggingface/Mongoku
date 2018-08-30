@@ -34,6 +34,15 @@ const setupServer = () => {
 			});
 		});
 	});
+	
+	app.use((err, req, res: express.Response, next) => {
+		res.status(500);
+		
+		return res.json({
+			ok:      false,
+			message: err.message
+		});
+	})
 
 	app.listen(3000, () => console.log(`[Mongoku] listening on port 3000`));
 }
