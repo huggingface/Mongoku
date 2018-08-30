@@ -1,4 +1,5 @@
 import * as MongoDb from 'mongodb';
+import JsonEncoder from '../lib/JsonEncoder';
 
 export interface CollectionJSON {
 	name: string;
@@ -23,6 +24,22 @@ export class Collection {
 	
 	constructor(collection: MongoDb.Collection) {
 		this._collection = collection;
+	}
+	
+	find(query: any, sort: any, limit: number, skip: number) {
+		console.log("Find:", JsonEncoder.decode(query), JsonEncoder.decode(sort), limit, skip);
+		return this._collection.find(JsonEncoder.decode(query))
+			.sort(JsonEncoder.decode(sort))
+			.limit(limit)
+			.skip(skip)
+			.map((obj) => {
+				return JsonEncoder.encode(obj);
+			})
+			.toArray();
+	}
+	
+	count(query) {
+		return this._collection.estimatedDocumentCount(JsonEncoder.decode(query));
 	}
 	
 	async toJson(): Promise<CollectionJSON> {

@@ -37,7 +37,7 @@ export class Database {
 	
 	collection(name: string) {
 		const c = this._db.collection(name);
-		return c;
+		return new Collection(c);
 	}
 	
 	async toJson() {

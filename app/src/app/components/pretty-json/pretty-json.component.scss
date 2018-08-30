@@ -29,6 +29,14 @@
 		}
 	}
 	
+	.regexp {
+		color: var(--code-regexp);
+	}
+	
+	.function {
+		color: var(--code-function);
+	}
+	
 	var {
 		color: var(--code-namespace);
 		font-style: normal;

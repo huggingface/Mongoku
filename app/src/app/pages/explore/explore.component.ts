@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { MongoDbService } from '../../services/mongo-db.service';
 
 import { SearchParams } from '../../components/search-box/search-box.component';
+import { JsonParserService } from '../../services/json-parser.service';
 
 @Component({
   selector: 'app-explore',
@@ -34,7 +35,7 @@ export class ExploreComponent implements OnInit {
   }
   private items      = [];
   
-  constructor(private activatedRoute: ActivatedRoute, private mongoDb: MongoDbService) { }
+  constructor(private activatedRoute: ActivatedRoute, private mongoDb: MongoDbService, private jsonParser: JsonParserService) { }
   
   ngOnInit() {
     this.activatedRoute.paramMap.subscribe((d) => {
@@ -50,9 +51,15 @@ export class ExploreComponent implements OnInit {
   update() {
     if (!this.params || !this.ready) { return; }
     
+    const query = JSON.stringify(this.jsonParser.parse(this.params.query));
+    const sort  = (this.params.sort !== "")
+      ? JSON.stringify(this.jsonParser.parse(this.params.sort))
+      : "{}";
+    if (!query || !sort) { return ; }
+    
     // Content
     this.loading.content = true;
-    this.mongoDb.query(this.server, this.database, this.collection, this.params.query, this.params.sort, this.params.skip, this.params.limit)
+    this.mongoDb.query(this.server, this.database, this.collection, query, sort, this.params.skip, this.params.limit)
       .subscribe((res: any) => {
         this.loading.content = false;
         
@@ -63,7 +70,7 @@ export class ExploreComponent implements OnInit {
     
     // Count
     this.loading.count = true;
-    this.mongoDb.count(this.server, this.database, this.collection, this.params.query)
+    this.mongoDb.count(this.server, this.database, this.collection, query)
       .subscribe((res: any) => {
         this.loading.count = false;
         

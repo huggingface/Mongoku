@@ -56,7 +56,7 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
 		return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
 	}
 	
-	const results = await c.find(query).limit(limit).skip(skip).sort(sort).toArray();
+	const results = await c.find(query, sort, limit, skip);
 	
 	return res.json({
 		ok:      true,

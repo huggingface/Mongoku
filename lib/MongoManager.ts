@@ -88,7 +88,7 @@ export class MongoManager {
 		return json.collections;
 	}
 	
-	async getCollection(serverName: string, databaseName: string, collectionName: string): Promise<MongoDb.Collection | undefined> {
+	async getCollection(serverName: string, databaseName: string, collectionName: string): Promise<Collection | undefined> {
 		const server = this._servers[serverName];
 		if (server instanceof Error) { return ; }
 		

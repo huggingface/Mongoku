@@ -165,7 +165,15 @@ export class PrettyJsonComponent implements OnInit {
         }
         
         // Handle serialized Mongoku objects here
-        // TODO: (for ObjectId, Date, ...)
+        if (value.$type === 'ObjectId') {
+          return this.fnCall('ObjectId', [ this.quote(value.$value) ], 'function');
+        }
+        if (value.$type === 'Date') {
+          return this.fnCall('Date', [ this.quote(value.$value) ], 'function');
+        }
+        if (value.$type === 'RegExp') {
+          return this.span('value regexp', `/${value.$value.$pattern}/${value.$value.$flags}`);
+        }
         
         this.gap += indent;
         
@@ -199,23 +207,13 @@ export class PrettyJsonComponent implements OnInit {
         // Iterate through all the keys in the object.
         const partial = [];
         const cologn = this.text(': ');
-        // const isDbRef = !!(value.$ref && value.$id);
         for (const k in value) {
           if (Object.hasOwnProperty.call(value, k)) {
             const view = this.createView(k, value);
             if (view) {
               spanClass = 'prop' + (view.collapsible && this.autoCollapse ? ' collapsed' : '');
-              // if (isDbRef) {
-              //   if (k == '$ref' || k == '$id' || k == '$db') {
-              //     spanClass += ' ref-' + k.substr(1);
-              //   }
-              // }
               
               const prop = this.span(spanClass);
-              
-              // if (isDbRef && k == '$id') {
-              //   this.renderer.setAttribute(p, 'data-document-id', value[k]);
-              // }
               
               if (view.collapsible) {
                 this.renderer.appendChild(prop, this.element('button'));
@@ -246,8 +244,6 @@ export class PrettyJsonComponent implements OnInit {
         if (partial.length === 0) {
           this.gap = mind;
           return this.span(spanClass, this.text('{}'));
-        // } else if (isDbRef) {
-        //   spanClass += ' ref';
         }
         
         const el = this.span(spanClass);
