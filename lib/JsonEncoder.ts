@@ -6,7 +6,7 @@ export default class JsonEncoder {
 			return {
 				$type:  'ObjectId',
 				$value: obj.toHexString(),
-				$date:  obj.generationTime
+				$date:  obj.generationTime * 1000
 			};
 		}
 		if (obj instanceof Date) {

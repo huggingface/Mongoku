@@ -19,7 +19,7 @@
       </div>
     </panel>
     <panel *ngFor="let item of items" [hidden]="loading.content">
-      <pretty-json [json]="item"></pretty-json>
+      <pretty-json autoCollapse="true" [json]="item"></pretty-json>
     </panel>
   </div>
 </div>

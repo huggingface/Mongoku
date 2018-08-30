@@ -1,1 +1,9 @@
-<!-- This must stay empty -->
+<div class="object-info">
+	<div class="objectid">
+		<a [href]="href">{{ json._id.$value }}</a>
+	</div>
+	<div class="date">
+		{{ json._id.$date | date:'long' }}
+	</div>
+</div>
+<!-- pretty-json will be appended here -->

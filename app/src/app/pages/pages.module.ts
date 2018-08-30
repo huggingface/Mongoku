@@ -12,6 +12,7 @@ import { AppRoutingModule } from '../app-routing.module';
 import { ServersComponent } from './servers/servers.component';
 import { DatabasesComponent } from './databases/databases.component';
 import { CollectionsComponent } from './collections/collections.component';
+import { DocumentComponent } from './document/document.component';
 import { ExploreComponent } from './explore/explore.component';
 
 import { ComponentsModule } from '../components/components.module';
@@ -32,7 +33,8 @@ import { FiltersModule } from '../filters/filters.module';
     ServersComponent,
     DatabasesComponent,
     CollectionsComponent,
-    ExploreComponent
+    ExploreComponent,
+    DocumentComponent
   ],
   providers: [ ServicesModule ]
 })

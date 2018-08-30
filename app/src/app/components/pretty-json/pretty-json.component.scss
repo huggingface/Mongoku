@@ -1,3 +1,14 @@
+.object-info {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+	
+	.objectid {
+		font-size: 1.5em;
+	}
+}
+
 .pretty-json {
 	font-family: 'Source Code Pro',monospace;
 	position: relative;

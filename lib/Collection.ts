@@ -26,6 +26,14 @@ export class Collection {
 		this._collection = collection;
 	}
 	
+	findOne(document: string) {
+		return this._collection.findOne({
+			_id: new MongoDb.ObjectId(document)
+		}).then((obj) => {
+			return JsonEncoder.encode(obj);
+		})
+	}
+	
 	find(query: any, sort: any, limit: number, skip: number) {
 		console.log("Find:", JsonEncoder.decode(query), JsonEncoder.decode(sort), limit, skip);
 		return this._collection.find(JsonEncoder.decode(query))

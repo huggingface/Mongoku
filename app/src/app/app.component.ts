@@ -51,8 +51,17 @@ export class AppComponent implements AfterViewChecked, OnInit {
               const collection = params.collection;
               breadcrumbs.push({
                 name:   collection,
+                href:   `/servers/${server}/databases/${database}/collections/${collection}`,
                 active: false
-              })
+              });
+              
+              if (params.document) {
+                const document = params.document;
+                breadcrumbs.push({
+                  name:   document,
+                  active: false
+                });
+              }
             }
           }
         }

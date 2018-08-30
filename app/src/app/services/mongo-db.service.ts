@@ -43,6 +43,10 @@ export class MongoDbService {
   getCollections(server: string, database: string) {
     return this.get<CollectionJSON[]>(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections`);
   }
+  
+  getDocument(server: string, database: string, collection: string, document: string) {
+    return this.get(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/documents/${document}`);
+  }
 
   query(server: string, database: string, collection: string, query: any, sort: any, skip: number = 0, limit: number = 20) {
     return this.get(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/query`, {

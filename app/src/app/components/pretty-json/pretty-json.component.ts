@@ -32,10 +32,17 @@ const ESCAPE = (a) => {
 })
 export class PrettyJsonComponent implements OnInit {
   @Input() json: any;
+  @Input() autoCollapse = false;
+  @Input() sameLink = false;
   
   private gap          = '';
   private listener     = null;
-  private autoCollapse = true;
+  
+  private get href() {
+    return this.sameLink
+      ? document.URL
+      : document.URL + '/documents/' + this.json._id.$value;
+  }
   
   constructor(private el: ElementRef, private renderer: Renderer2) { }
 
