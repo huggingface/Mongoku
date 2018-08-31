@@ -12,28 +12,28 @@ import { JsonParserService } from '../../services/json-parser.service';
   styleUrls: ['./explore.component.scss']
 })
 export class ExploreComponent implements OnInit {
-  private server:     string;
-  private database:   string;
-  private collection: string;
+  server:     string;
+  database:   string;
+  collection: string;
   
   private ready = false;
   
-  private params: SearchParams = {
+  params: SearchParams = {
     query:  "{}",
     limit:  20,
     skip:   0,
     sort:   ""
   };
-  private loading    = {
+  loading    = {
     content: true,
     count:   true
   };
   
-  private count      = {
+  count      = {
     total: 0,
     start: 0
   }
-  private items      = [];
+  items      = [];
   
   constructor(private activatedRoute: ActivatedRoute, private mongoDb: MongoDbService, private jsonParser: JsonParserService) { }
   

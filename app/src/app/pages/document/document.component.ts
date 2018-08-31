@@ -10,12 +10,12 @@ import { JsonParserService } from '../../services/json-parser.service';
   styleUrls: ['./document.component.scss']
 })
 export class DocumentComponent implements OnInit {
-  private server:     string;
-  private database:   string;
-  private collection: string;
-  private document:   string;
+  server:     string;
+  database:   string;
+  collection: string;
+  document:   string;
   
-  private item;
+  item;
   
   constructor(private activatedRoute: ActivatedRoute, private mongodb: MongoDbService, private jsonParser: JsonParserService) { }
 

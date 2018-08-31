@@ -9,7 +9,7 @@ import { NotificationsService } from '../../services/notifications.service';
 export class NotificationsComponent implements OnInit {
   private _notifications = [];
   
-  private get notifications() {
+  get notifications() {
     return Object.values(this._notifications);
   }
   

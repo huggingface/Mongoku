@@ -38,7 +38,7 @@ export class PrettyJsonComponent implements OnInit {
   private gap          = '';
   private listener     = null;
   
-  private get href() {
+  get href() {
     return this.sameLink
       ? document.URL
       : document.URL + '/documents/' + this.json._id.$value;

@@ -22,7 +22,7 @@ export class SearchBoxComponent implements OnInit {
   };
   
   private defaults = {};
-  private show = {
+  show = {
     limit: false,
     skip:  false,
     sort:  false

@@ -14,7 +14,7 @@ interface Breadcrumb {
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements AfterViewChecked, OnInit {
-  private breadcrumbs: Breadcrumb[] = [];
+  breadcrumbs: Breadcrumb[] = [];
   
   constructor(private route: Router, private renderer: Renderer2) { }
   
