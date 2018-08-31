@@ -44,7 +44,7 @@ const setupServer = () => {
 		});
 	})
 
-	app.listen(3000, () => console.log(`[Mongoku] listening on port 3000`));
+	app.listen(3100, () => console.log(`[Mongoku] listening on port 3100`));
 }
 
 factory.load((err) => {
