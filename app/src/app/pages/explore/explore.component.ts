@@ -65,6 +65,8 @@ export class ExploreComponent implements OnInit {
         
         if (res.ok) {
           this.items = res.results;
+        } else {
+          this.items = [];
         }
       });
     
@@ -77,6 +79,8 @@ export class ExploreComponent implements OnInit {
         if (res.ok) {
           this.count.total = res.count;
           this.count.start = this.params.skip;
+        } else {
+          this.count.total = 0;
         }
       });
   }

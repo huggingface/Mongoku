@@ -103,7 +103,7 @@ api.get('/servers/:server/databases/:database/collections/:collection/count', as
 	}
 	
 	const count = await c.count(query);
-	
+	console.log("Count:", query, count);
 	return res.json({
 		ok:    true,
 		count: count

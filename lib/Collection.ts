@@ -47,7 +47,7 @@ export class Collection {
 	}
 	
 	count(query) {
-		return this._collection.estimatedDocumentCount(JsonEncoder.decode(query));
+		return this._collection.countDocuments(JsonEncoder.decode(query));
 	}
 	
 	async toJson(): Promise<CollectionJSON> {
