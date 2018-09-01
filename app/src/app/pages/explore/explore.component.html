@@ -2,11 +2,6 @@
   <div class="col-md-12">
     <!--ngx-codemirror [(ngModel)]="search" [options]="searchOptions"></ngx-codemirror-->
     <search-box (search)="update()" [(params)]="params"></search-box>
-    <panel [hidden]="!loading.content">
-      <h1 class="center loading">
-        Loading...
-      </h1>
-    </panel>
     <panel *ngIf="params && !loading.count">
       <div class="summary"><span [hidden]="count.total == 0">{{ count.start + 1 | number }} - {{ count.start + items.length | number }} of </span>{{ count.total | number }} Documents</div>
       <div class="actions">
@@ -17,6 +12,11 @@
           Next
         </button>
       </div>
+    </panel>
+    <panel [hidden]="!loading.content">
+      <h1 class="center loading">
+        Loading...
+      </h1>
     </panel>
     <panel *ngFor="let item of items" [hidden]="loading.content">
       <pretty-json autoCollapse="true" [json]="item"></pretty-json>
