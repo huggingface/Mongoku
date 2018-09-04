@@ -33,11 +33,6 @@ export class SearchBoxComponent implements OnInit {
     for (const [k, v] of Object.entries(this.params)) {
       this.defaults[k] = v;
     }
-    
-    // Launch the initial update after the current change cycle
-    setTimeout(() => {
-      this.go();
-    }, 0);
   }
   
   toggle(add: boolean, type: "limit" | "skip" | "sort") {
