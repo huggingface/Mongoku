@@ -35,7 +35,6 @@ export class Collection {
 	}
 	
 	find(query: any, sort: any, limit: number, skip: number) {
-		console.log("Find:", JsonEncoder.decode(query), JsonEncoder.decode(sort), limit, skip);
 		return this._collection.find(JsonEncoder.decode(query))
 			.sort(JsonEncoder.decode(sort))
 			.limit(limit)
