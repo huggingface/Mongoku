@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
-import { throwError, Observable } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
-import { ServerJSON, ServerErrorJSON } from '../../../../lib/Server';
+import { ServerJSON } from '../../../../lib/Server';
 import { DatabaseJSON } from '../../../../lib/Database';
 import { CollectionJSON } from '../../../../lib/Collection';
 
@@ -18,8 +18,12 @@ export class MongoDbService {
   constructor(private http: HttpClient, private notifService: NotificationsService) { }
   
   private handleError(error: HttpErrorResponse) {
-    this.notifService.notifyError(error.error.message);
-    return throwError(error.error.message);
+    const message = error.error.message || `${error.name}: ${error.statusText}`;
+    this.notifService.notifyError(message);
+    return of({
+      ok:      false,
+      message: message
+    });
   }
   
   private get<T>(path: string, options?: any) {
