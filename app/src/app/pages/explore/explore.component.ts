@@ -57,21 +57,25 @@ export class ExploreComponent implements OnInit {
       : "{}";
     if (!query || !sort) { return ; }
     
-    // Content
+    // Set loading status
     this.loading.content = true;
+    this.loading.count = true;
+    
+    // Reset status
+    this.items = [];
+    this.count.total = 0;
+    
+    // Load Content
     this.mongoDb.query(this.server, this.database, this.collection, query, sort, this.params.skip, this.params.limit)
       .subscribe((res: any) => {
         this.loading.content = false;
         
         if (res.ok) {
           this.items = res.results;
-        } else {
-          this.items = [];
         }
       });
     
-    // Count
-    this.loading.count = true;
+    // Count documents
     this.mongoDb.count(this.server, this.database, this.collection, query)
       .subscribe((res: any) => {
         this.loading.count = false;
@@ -79,8 +83,6 @@ export class ExploreComponent implements OnInit {
         if (res.ok) {
           this.count.total = res.count;
           this.count.start = this.params.skip;
-        } else {
-          this.count.total = 0;
         }
       });
   }
