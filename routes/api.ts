@@ -75,12 +75,16 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
 		return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
 	}
 	
-	const results = await c.find(query, sort, limit, skip);
+	try {
+		const results = await c.find(query, sort, limit, skip);
 	
-	return res.json({
-		ok:      true,
-		results: results
-	});
+		return res.json({
+			ok:      true,
+			results: results
+		});
+	} catch(err) {
+		return next(err);
+	}
 });
 
 api.get('/servers/:server/databases/:database/collections/:collection/count', async (req, res, next) => {
@@ -102,9 +106,14 @@ api.get('/servers/:server/databases/:database/collections/:collection/count', as
 		return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
 	}
 	
-	const count = await c.count(query);
-	return res.json({
-		ok:    true,
-		count: count
-	});
+	try {
+		const count = await c.count(query);
+		
+		return res.json({
+			ok:    true,
+			count: count
+		});
+	} catch (err) {
+		return next(err);
+	}
 });
