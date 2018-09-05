@@ -7,13 +7,15 @@ import { MongoDbService, ServerJSON } from '../../services/mongo-db.service';
   styleUrls: ['./servers.component.scss']
 })
 export class ServersComponent implements OnInit {
-  servers: ServerJSON[];
+  servers: ServerJSON[] = [];
+  loading = true;
   
   constructor(private mongoDb: MongoDbService) { }
 
   ngOnInit() {
     this.mongoDb.getServers()
       .subscribe(data => {
+        this.loading = false;
         this.servers = data;
       });
   }

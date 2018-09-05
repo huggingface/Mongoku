@@ -12,6 +12,16 @@
           <td>{{ server.databases.length }}</td>
           <td>{{ server.size | bytes }}</td>
         </tr>
+        <tr *ngIf="servers.length == 0 && !loading">
+          <td colspan="3">
+            <div class="center">No servers...</div>
+          </td>
+        </tr>
+        <tr *ngIf="loading">
+          <td colspan="3">
+            <div class="center">Loading...</div>
+          </td>
+        </tr>
       </tbody>
     </table>
   </panel>

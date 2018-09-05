@@ -10,7 +10,8 @@ import { MongoDbService, DatabaseJSON } from '../../services/mongo-db.service';
 })
 export class DatabasesComponent implements OnInit {
   server:    string;
-  databases: DatabaseJSON[];
+  databases: DatabaseJSON[] = [];
+  loading = true;
 
   constructor(private activatedRoute: ActivatedRoute, private mongoDb: MongoDbService) { }
 
@@ -20,6 +21,7 @@ export class DatabasesComponent implements OnInit {
       
       this.mongoDb.getDatabases(this.server)
         .subscribe((databases) => {
+          this.loading = false;
           this.databases = databases;
         });
     });

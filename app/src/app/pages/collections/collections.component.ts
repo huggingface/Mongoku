@@ -11,7 +11,8 @@ import { MongoDbService, CollectionJSON } from '../../services/mongo-db.service'
 export class CollectionsComponent implements OnInit {
   server:      string;
   database:    string;
-  collections: CollectionJSON[];
+  collections: CollectionJSON[] = [];
+  loading = true;
   
   constructor(private activatedRoute: ActivatedRoute, private mongoDb: MongoDbService) { }
 
@@ -22,6 +23,7 @@ export class CollectionsComponent implements OnInit {
       
       this.mongoDb.getCollections(this.server, this.database)
         .subscribe((collections) => {
+          this.loading = false;
           this.collections = collections;
         });
     });

@@ -12,6 +12,16 @@
           <td>{{ database.collections.length }}</td>
           <td>{{ database.size | bytes }}</td>
         </tr>
+         <tr *ngIf="databases.length == 0 && !loading">
+          <td colspan="3">
+            <div class="center">No databases...</div>
+          </td>
+        </tr>
+        <tr *ngIf="loading">
+          <td colspan="3">
+            <div class="center">Loading...</div>
+          </td>
+        </tr>
       </tbody>
     </table>
   </panel>

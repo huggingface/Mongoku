@@ -14,6 +14,16 @@
           <td>{{ collection.nIndexes }}</td>
           <td>{{ collection.size | bytes }}</td>
         </tr>
+         <tr *ngIf="collections.length == 0 && !loading">
+          <td colspan="3">
+            <div class="center">No collections...</div>
+          </td>
+        </tr>
+        <tr *ngIf="loading">
+          <td colspan="3">
+            <div class="center">Loading...</div>
+          </td>
+        </tr>
       </tbody>
     </table>
   </panel>

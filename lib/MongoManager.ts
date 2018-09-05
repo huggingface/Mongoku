@@ -5,6 +5,7 @@ import { Host, HostsManager } from './HostsManager';
 import { Server, ServerJSON, ServerErrorJSON } from './Server';
 import { Database, DatabaseJSON } from './Database';
 import { Collection, CollectionJSON } from './Collection';
+import { Utils } from './Utils';
 
 const DEFAULT_HOST = 'localhost:27017';
 
@@ -61,6 +62,7 @@ export class MongoManager {
 				servers.push(json);
 			}
 		}
+		Utils.fieldSort(servers, "name");
 		return servers;
 	}
 	

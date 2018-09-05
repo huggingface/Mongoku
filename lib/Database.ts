@@ -1,6 +1,7 @@
 import * as MongoDb from 'mongodb';
 
 import { Collection, CollectionJSON } from './Collection';
+import { Utils } from './Utils';
 
 export interface DatabaseJSON {
 	name:        string;
@@ -47,6 +48,7 @@ export class Database {
 			const json = await collection.toJson();
 			csJson.push(json);
 		}
+		Utils.fieldSort(csJson, 'name');
 		
 		return {
 			name:        this.name,
