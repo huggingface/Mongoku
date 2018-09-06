@@ -3,6 +3,11 @@ import { parseScript } from 'esprima';
 import { Expression, Pattern, SpreadElement, Node } from 'estree';
 import { NotificationsService } from './notifications.service';
 
+// Use the Type definition from 'estree' for development but
+// must use the `any` for `ng build --prod` for some reason
+// type EsTreeNode = Expression | Pattern | SpreadElement;
+type EsTreeNode = any;
+
 @Injectable()
 export class JsonParserService {
 
@@ -12,7 +17,7 @@ export class JsonParserService {
     this.notifService.notifyError(message);
   }
   
-  private buildObject(node: Expression | Pattern | SpreadElement) {
+  private buildObject(node: EsTreeNode) {
     switch (node.type) {
       case 'ObjectExpression': {
         const obj: any = {};
