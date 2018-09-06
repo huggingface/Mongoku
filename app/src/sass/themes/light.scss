@@ -15,13 +15,24 @@
 	
 	--error:          hsl(0, 78%, 28%);
 	
-	--code-namespace: black;
-	--code-boolean:   #0086b3;
-	--code-null:      #0086b3;
-	--code-numbers:   #40A070;
-	--code-string:    #DD1144;
-	--code-links:     #0058E1;
-	--code-summary:   grey;
-	--code-regexp:    #009926;
+	// Genghis colors
+	// --code-namespace: black;
+	// --code-boolean:   #0086b3;
+	// --code-null:      #0086b3;
+	// --code-numbers:   #40A070;
+	// --code-string:    #DD1144;
+	// --code-links:     #0058E1;
+	// --code-summary:   grey;
+	// --code-regexp:    #009926;
+	// --code-function:  var(--text);
+	
+	--code-namespace: #001080;
+	--code-boolean:   #0000ff;
+	--code-null:      #0000ff;
+	--code-numbers:   #09885a;
+	--code-string:    #a31515;
+	--code-links:     #4e94ce;
+	--code-summary:   #008000;
+	--code-regexp:    #811f3f;
 	--code-function:  var(--text);
 }
