@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnChanges } from '@angular/core';
 
 export interface SearchParams {
   query: string;
@@ -12,16 +12,17 @@ export interface SearchParams {
   templateUrl: './search-box.component.html',
   styleUrls: ['./search-box.component.scss']
 })
-export class SearchBoxComponent implements OnInit {
+export class SearchBoxComponent implements OnInit, OnChanges {
   @Output() search = new EventEmitter();
-  @Input()  params: SearchParams = {
+  @Input()  params: SearchParams;
+  
+  private ready = false;
+  private defaults = {
     query: "{}",
     limit: 20,
     skip:  0,
     sort:  ""
   };
-  
-  private defaults = {};
   show = {
     limit: false,
     skip:  false,
@@ -30,9 +31,28 @@ export class SearchBoxComponent implements OnInit {
   
   ngOnInit() {
     // Keep original params
-    for (const [k, v] of Object.entries(this.params)) {
-      this.defaults[k] = v;
+    for (const [k, v] of Object.entries(this.defaults)) {
+      if (typeof this.params[k] !== typeof v) {
+        // Bad value, use default
+        this.params[k] = v;
+      } else {
+        // good value, update default
+        this.defaults[k] = this.params[k];
+      }
+      
+      if (this.params[k] !== v) {
+        this.show[k] = true;
+      }
     }
+    
+    this.ready = true;
+    this.go();
+  }
+  
+  ngOnChanges() {
+    if (!this.ready) { return; }
+    
+    this.go();
   }
   
   toggle(add: boolean, type: "limit" | "skip" | "sort") {

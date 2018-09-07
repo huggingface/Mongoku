@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { combineLatest } from 'rxjs';
 
 import { MongoDbService } from '../../services/mongo-db.service';
 
@@ -16,14 +17,7 @@ export class ExploreComponent implements OnInit {
   database:   string;
   collection: string;
   
-  private ready = false;
-  
-  params: SearchParams = {
-    query:  "{}",
-    limit:  20,
-    skip:   0,
-    sort:   ""
-  };
+  params: Partial<SearchParams>;
   loading    = {
     content: true,
     count:   true
@@ -35,27 +29,60 @@ export class ExploreComponent implements OnInit {
   }
   items      = [];
   
-  constructor(private activatedRoute: ActivatedRoute, private mongoDb: MongoDbService, private jsonParser: JsonParserService) { }
+  constructor(
+    private activatedRoute: ActivatedRoute,
+    private router:         Router,
+    private mongoDb:        MongoDbService,
+    private jsonParser:     JsonParserService
+  ) { }
   
   ngOnInit() {
-    this.activatedRoute.paramMap.subscribe((d) => {
-      this.server     = d.get("server");
-      this.database   = d.get("database");
-      this.collection = d.get("collection");
+    combineLatest(
+      this.activatedRoute.paramMap,
+      this.activatedRoute.queryParamMap
+    ).subscribe(([params, queryParams]) => {
+      this.server     = params.get("server");
+      this.database   = params.get("database");
+      this.collection = params.get("collection");
       
-      this.ready = true;
-      this.update();
+      let query;
+      let sort;
+      let limit;
+      let skip;
+      if (queryParams.has('query')) {
+        query = queryParams.get('query');
+      }
+      if (queryParams.has('sort')) {
+        sort = queryParams.get('sort');
+      }
+      if (queryParams.has('skip')) {
+        skip = parseInt(queryParams.get('skip'), 10);
+      }
+      if (queryParams.has('limit')) {
+        limit = parseInt(queryParams.get('limit'), 10);
+      }
+      
+      this.params = {
+        query, sort, limit, skip
+      }
     });
   }
   
-  update() {
-    if (!this.params || !this.ready) { return; }
+  update(upd: boolean = true) {
+    if (!this.params || !this.params.query) { return; }
     
     const query = JSON.stringify(this.jsonParser.parse(this.params.query));
     const sort  = (this.params.sort !== "")
       ? JSON.stringify(this.jsonParser.parse(this.params.sort))
       : "{}";
     if (!query || !sort) { return ; }
+    
+    if (upd) {
+      this.router.navigate([], {
+        relativeTo:  this.activatedRoute,
+        queryParams: this.params
+      });
+    }
     
     // Set loading status
     this.loading.content = true;
