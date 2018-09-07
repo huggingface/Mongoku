@@ -54,8 +54,9 @@ export class SearchBoxComponent implements OnInit, OnChanges {
   
   toggle(add: boolean, type: "limit" | "skip" | "sort") {
     this.show[type] = add;
-    if (!add) {
+    if (!add && this.params[type] !== this.defaults[type]) {
       this.params[type] = this.defaults[type];
+      this.go();
     }
   }
 
