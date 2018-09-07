@@ -35,9 +35,6 @@ export class SearchBoxComponent implements OnInit, OnChanges {
       if (typeof this.params[k] !== typeof v) {
         // Bad value, use default
         this.params[k] = v;
-      } else {
-        // good value, update default
-        this.defaults[k] = this.params[k];
       }
       
       if (this.params[k] !== v) {
