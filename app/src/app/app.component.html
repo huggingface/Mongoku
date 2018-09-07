@@ -1,24 +1,24 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" href="/">Mongoku</a>
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb bg-dark">
-        <li *ngFor="let b of breadcrumbs" class="breadcrumb-item" [class.active]="b.active">
-          <a *ngIf="b.href" [href]="b.href">{{ b.name }}</a>
-          <span *ngIf="!b.href">{{ b.name }}</span>
-        </li>
-      </ol>
-    </nav>
-    <button class="ml-auto btn btn-default btn-sm" (click)="switchTheme(otherTheme)">
-      Switch to {{ otherTheme }}
-    </button>
+  <a class="navbar-brand" href="/">Mongoku</a>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb bg-dark">
+      <li *ngFor="let b of breadcrumbs" class="breadcrumb-item" [class.active]="b.active">
+        <a *ngIf="b.href" [href]="b.href">{{ b.name }}</a>
+        <span *ngIf="!b.href">{{ b.name }}</span>
+      </li>
+    </ol>
   </nav>
-  
-  <notifications></notifications>
-  
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-md-10 offset-md-1 col-xs-12 content">
-        <router-outlet></router-outlet>
-      </div>
+  <button class="ml-auto btn btn-default btn-sm" (click)="switchTheme(otherTheme)">
+    Switch to {{ otherTheme }}
+  </button>
+</nav>
+
+<notifications></notifications>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-10 offset-md-1 col-xs-12 content">
+      <router-outlet></router-outlet>
     </div>
   </div>
+</div>
