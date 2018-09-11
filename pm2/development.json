@@ -1,0 +1,9 @@
+{
+	"apps": [ {
+		"name"      : "mongoku",
+		"script"    : "./dist/server.js",
+		"env"       : {
+			"NODE_ENV": "development"
+		}
+	} ]
+}
