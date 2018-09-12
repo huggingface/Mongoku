@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ElementRef, Renderer2 } from '@angular/core';
+import { Component, OnInit, Input, ElementRef, Renderer2, Output, EventEmitter } from '@angular/core';
 
 // All of this is heavily inspired by the Genghis app `pretty-print`
 // and adapted to angular
@@ -31,18 +31,12 @@ const ESCAPE = (a) => {
   styleUrls: ['./pretty-json.component.scss']
 })
 export class PrettyJsonComponent implements OnInit {
-  @Input() json: any;
-  @Input() autoCollapse = false;
-  @Input() sameLink = false;
+  @Input()  json: any;
+  @Input()  autoCollapse = false;
+  @Output() go = new EventEmitter();
   
   private gap          = '';
   private listener     = null;
-  
-  get href() {
-    return this.sameLink
-      ? document.URL
-      : document.URL + '/documents/' + this.json._id.$value;
-  }
   
   constructor(private el: ElementRef, private renderer: Renderer2) { }
 
@@ -56,6 +50,11 @@ export class PrettyJsonComponent implements OnInit {
   
   ngOnDestroy() {
     this.listener && this.listener();
+  }
+  
+  goToDocument(event) {
+    event.preventDefault();
+    this.go.emit(this.json._id.$value);
   }
   
   private isObject(obj: any) {

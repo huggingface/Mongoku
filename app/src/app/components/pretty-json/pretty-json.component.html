@@ -1,6 +1,6 @@
 <div class="object-info">
 	<div class="objectid">
-		<a [href]="href">{{ json._id.$value }}</a>
+		<a href="#" (click)="goToDocument($event)">{{ json._id.$value }}</a>
 	</div>
 	<div class="date">
 		{{ json._id.$date | date:'long' }}

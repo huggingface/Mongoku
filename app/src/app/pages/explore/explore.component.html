@@ -21,7 +21,7 @@
       </h1>
     </panel>
     <panel *ngFor="let item of items" [hidden]="loading.content">
-      <pretty-json autoCollapse="true" [json]="item"></pretty-json>
+      <pretty-json autoCollapse="true" [json]="item" (go)="go($event)"></pretty-json>
     </panel>
   </div>
 </div>

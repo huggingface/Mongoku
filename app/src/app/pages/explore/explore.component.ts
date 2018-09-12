@@ -114,6 +114,15 @@ export class ExploreComponent implements OnInit {
       });
   }
   
+  go(documentId) {
+    this.router.navigate([
+      "servers",     this.server,
+      "databases",   this.database,
+      "collections", this.collection,
+      "documents",   documentId
+    ]);
+  }
+  
   get hasNext() {
     return this.count.start + this.items.length < this.count.total;
   }
