@@ -6,34 +6,32 @@
     <a class="dropdown-item" [hidden]="show.limit" (click)="toggle(true, 'limit')">Limit</a>
   </div>
 </div>
-<panel>
-  <div class="search-box">
-    <div class="params-group">
-      <div class="input-group">
-        <div class="label">Query:</div>
-        <input type="text" [(ngModel)]="params.query" (keypress)="keyPress($event)"/>
-      </div>
-      <div class="input-group" *ngIf="show.sort">
-        <div class="label">Sort:</div>
-        <input type="text" [(ngModel)]="params.sort" (keypress)="keyPress($event)"/>
-        <div class="close" (click)="toggle(false, 'sort')">&times;</div>
-      </div>
-      <div class="input-group" *ngIf="show.skip">
-        <div class="label">Skip:</div>
-        <input type="number" [(ngModel)]="params.skip" (keypress)="keyPress($event)"/>
-        <div class="close" (click)="toggle(false, 'skip')">&times;</div>
-      </div>
-      <div class="input-group" *ngIf="show.limit">
-        <div class="label">Limit:</div>
-        <input type="number" [(ngModel)]="params.limit" (keypress)="keyPress($event)"/>
-        <div class="close" (click)="toggle(false, 'limit')">&times;</div>
-      </div>
+<div class="search-box">
+  <div class="params-group">
+    <div class="input-group">
+      <div class="label">Query:</div>
+      <input type="text" [(ngModel)]="params.query" (keypress)="keyPress($event)"/>
     </div>
-    <div class="add-param btn" (click)="$event.stopPropagation(); dropdwn.open();" [hidden]="!canAddParams()">
-      +
+    <div class="input-group" *ngIf="show.sort">
+      <div class="label">Sort:</div>
+      <input type="text" [(ngModel)]="params.sort" (keypress)="keyPress($event)"/>
+      <div class="close" (click)="toggle(false, 'sort')">&times;</div>
     </div>
-    <div class="confirm-search btn" (click)="go()">
-      GO!
+    <div class="input-group" *ngIf="show.skip">
+      <div class="label">Skip:</div>
+      <input type="number" [(ngModel)]="params.skip" (keypress)="keyPress($event)"/>
+      <div class="close" (click)="toggle(false, 'skip')">&times;</div>
+    </div>
+    <div class="input-group" *ngIf="show.limit">
+      <div class="label">Limit:</div>
+      <input type="number" [(ngModel)]="params.limit" (keypress)="keyPress($event)"/>
+      <div class="close" (click)="toggle(false, 'limit')">&times;</div>
     </div>
   </div>
-</panel>
+  <div class="add-param btn" (click)="$event.stopPropagation(); dropdwn.open();" [hidden]="!canAddParams()">
+    +
+  </div>
+  <div class="confirm-search btn" (click)="go()">
+    GO!
+  </div>
+</div>

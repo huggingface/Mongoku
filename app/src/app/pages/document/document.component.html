@@ -1,7 +1,5 @@
 <div class="row explore-component">
   <div class="col-md-12">
-    <panel *ngIf="item">
-      <pretty-json [json]="item"></pretty-json>
-    </panel>
+    <pretty-json *ngIf="item" [json]="item"></pretty-json>
   </div>
 </div>

@@ -1,9 +1,15 @@
-<div class="object-info">
-	<div class="objectid">
-		<a href="#" (click)="goToDocument($event)">{{ json._id.$value }}</a>
+<panel full-width="true">
+	<div class="title">
+		<div class="object-info">
+			<div class="objectid">
+				<a href="#" (click)="goToDocument($event)">{{ json._id.$value }}</a>
+			</div>
+			<div class="date">
+				{{ json._id.$date | date:'long' }}
+			</div>
+		</div>
 	</div>
-	<div class="date">
-		{{ json._id.$date | date:'long' }}
+	<div class="pretty-json">
+		<!-- pretty-json will be appended here -->
 	</div>
-</div>
-<!-- pretty-json will be appended here -->
+</panel>

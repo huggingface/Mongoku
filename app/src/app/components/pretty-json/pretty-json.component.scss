@@ -2,7 +2,6 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	margin-bottom: 20px;
 	
 	.objectid {
 		font-size: 1.3em;
@@ -14,6 +13,7 @@
 	position: relative;
 	white-space: pre;
 	font-size: 0.9em;
+	padding: 0 22px 22px;
 	
 	display: block; // For line-height below
 	line-height: 1.3;

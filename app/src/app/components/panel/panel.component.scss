@@ -9,6 +9,10 @@
 	position: relative;
 	margin-bottom: 24px;
 	
+	&[border=false] {
+		border: 0;
+	}
+	
 	.panel-title {
 		background-color: var(--panel-title);
 		color: var(--text);
@@ -21,14 +25,9 @@
 	.panel-body {
 		background-color: var(--panel-body);
 		border-radius: 0 0 4px 4px;
-		padding: 22px;
 		color: var(--text);
 		
 		overflow-x: auto;
-		
-		&.full-width {
-			padding: 0;
-		}
 		
 		&.no-title {
 			border-radius: 4px;

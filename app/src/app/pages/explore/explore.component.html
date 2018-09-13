@@ -3,16 +3,18 @@
     <!--ngx-codemirror [(ngModel)]="search" [options]="searchOptions"></ngx-codemirror-->
     <search-box (search)="update()" [(params)]="params"></search-box>
     <panel *ngIf="params && !loading.count">
-      <div class="summary">
-        <span [hidden]="count.total == 0">{{ count.start + 1 | number }} - {{ count.start + items.length | number }} of </span>{{ count.total | number }} Documents
-      </div>
-      <div class="actions">
-        <button class="btn btn-default" *ngIf="hasPrevious" (click)="previous()">
-          Previous
-        </button>
-        <button class="btn btn-default" *ngIf="hasNext" (click)="next()">
-          Next
-        </button>
+      <div class="infos">
+        <div class="summary">
+          <span [hidden]="count.total == 0">{{ count.start + 1 | number }} - {{ count.start + items.length | number }} of </span>{{ count.total | number }} Documents
+        </div>
+        <div class="actions">
+          <button class="btn btn-default" *ngIf="hasPrevious" (click)="previous()">
+            Previous
+          </button>
+          <button class="btn btn-default" *ngIf="hasNext" (click)="next()">
+            Next
+          </button>
+        </div>
       </div>
     </panel>
     <panel [hidden]="!loading.content">
@@ -20,8 +22,11 @@
         Loading...
       </h1>
     </panel>
-    <panel *ngFor="let item of items" [hidden]="loading.content">
-      <pretty-json autoCollapse="true" [json]="item" (go)="go($event)"></pretty-json>
-    </panel>
+    <pretty-json  *ngFor="let item of items"
+                  [hidden]="loading.content"
+                  autoCollapse="true"
+                  [json]="item"
+                  (go)="go($event)">
+    </pretty-json>
   </div>
 </div>

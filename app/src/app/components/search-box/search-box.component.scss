@@ -3,11 +3,18 @@
 	flex-direction: row;
 	align-items: stretch;
 	width: 100%;
+	color: var(--text);
+	position: relative;
+	margin-bottom: 24px;
+	
+	&.dropdown {
+		margin: 0;
+	}
 	
 	.dropdown-menu {
 		left: 70% !important;
 		right: 22px !important;
-		top: 70px !important;
+		top: 40px !important;
 	}
 	
 	.params-group {

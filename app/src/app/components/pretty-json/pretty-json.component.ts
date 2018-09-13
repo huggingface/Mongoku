@@ -42,8 +42,9 @@ export class PrettyJsonComponent implements OnInit {
 
   ngOnInit() {
     const v = this.createView('_', {'_': this.json });
-    this.renderer.addClass(v, 'pretty-json');
-    this.renderer.appendChild(this.el.nativeElement, v);
+   
+    const container = this.el.nativeElement.querySelector(".pretty-json");
+    this.renderer.appendChild(container, v);
     
     this.listener = this.renderer.listen(this.el.nativeElement, 'click', this.collapse.bind(this));
   }
