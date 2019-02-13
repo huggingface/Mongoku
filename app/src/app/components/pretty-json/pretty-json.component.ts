@@ -257,7 +257,7 @@ export class PrettyJsonComponent implements OnInit {
         el.collapsible = true;
         this.renderer.appendChild(el, this.text('{\n' + this.gap));
         
-        const glue = this.text('\n' + this.gap);
+        const glue = this.text(',\n' + this.gap);
         for (let i = 0; i < partial.length; i++) {
           if (i > 0) {
             this.renderer.appendChild(el, glue.cloneNode(true));
