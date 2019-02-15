@@ -4,7 +4,51 @@
 	align-items: center;
 	
 	.objectid {
-		font-size: 1.3em;
+		font-size: 1.2em;
+	}
+	
+	.date {
+		margin-left: 20px;
+		font-size: 0.7em;
+		color: var(--text-darker);
+	}
+	
+	.actions {
+		display: none;
+		
+		& > .btn {
+			margin-left: 10px;
+			padding: 2px 5px 0;
+		}
+	}
+}
+
+:host:hover .object-info .actions {
+	display: initial;
+}
+
+.editor {
+	display: none;
+	position: absolute;
+	height: 100%;
+	z-index: 100;
+	width: 100%;
+	top: 0;
+
+	&.visible {
+		display: block;
+	}
+}
+
+.editor-actions {
+	position: absolute;
+	z-index: 10;
+	right: 20px;
+	top: 15px;
+	
+	& > .btn {
+		margin-left: 10px;
+		padding: 2px 5px 0;
 	}
 }
 

@@ -1,4 +1,6 @@
-import { Component, OnInit, Input, ElementRef, Renderer2, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, ElementRef, Renderer2, Output, EventEmitter, NgZone } from '@angular/core';
+import { JsonParserService } from '../../services/json-parser.service';
+import { NotificationsService } from '../../services/notifications.service';
 
 // All of this is heavily inspired by the Genghis app `pretty-print`
 // and adapted to angular
@@ -34,15 +36,35 @@ export class PrettyJsonComponent implements OnInit {
   @Input()  json: any;
   @Input()  autoCollapse = false;
   @Output() go = new EventEmitter();
+  @Output() edit = new EventEmitter();
   
-  private gap          = '';
-  private listener     = null;
+  private gap           = '';
+  private listener      = null;
+  editJson      = "";
+  editorVisible = false;
   
-  constructor(private el: ElementRef, private renderer: Renderer2) { }
+  editorOptions = {
+    lineNumbers: true,
+    theme:       'mongoku',
+    mode:        'javascript',
+    smartIndent: false,
+    extraKeys:   {
+      'Ctrl-Enter': this.outsideSave.bind(this),
+      'Cmd-Enter':  this.outsideSave.bind(this),
+    }
+  }
+  
+  constructor(
+    private el: ElementRef,
+    private renderer: Renderer2,
+    private jsonParser: JsonParserService,
+    private notifService: NotificationsService,
+    private zone: NgZone,
+  ) { }
 
   ngOnInit() {
     const v = this.createView('_', {'_': this.json });
-   
+    
     const container = this.el.nativeElement.querySelector(".pretty-json");
     this.renderer.appendChild(container, v);
     
@@ -51,6 +73,45 @@ export class PrettyJsonComponent implements OnInit {
   
   ngOnDestroy() {
     this.listener && this.listener();
+  }
+  
+  enableEditor() {
+    this.collapseAll(false);
+    this.editJson = this.el.nativeElement.querySelector(".pretty-json").innerText;
+    this.editorVisible = true;
+  }
+  
+  disableEditor() {
+    this.editorVisible = false;
+    this.editJson = "";
+  }
+  
+  updateEditor() {
+    this.el.nativeElement
+      .querySelectorAll(`.CodeMirror-lines .CodeMirror-code > div.error`)
+      .forEach(e => this.renderer.removeClass(e, 'error'));
+  }
+  
+  outsideSave() {
+    this.zone.run(() => {
+      this.save();
+    })
+  }
+  
+  save() {
+    try {
+      const updatedJson = this.jsonParser.parse(this.editJson, false);
+      this.disableEditor();
+      this.edit.emit(updatedJson);
+    } catch (err) {
+      if (typeof err.lineNumber === 'number') {
+        const line = this.el.nativeElement
+          .querySelector(`.CodeMirror-lines .CodeMirror-code > div:nth-child(${err.lineNumber})`);
+        this.renderer.addClass(line, 'error');
+      }
+      const message = `"${err.description}" at column ${err.column}`;
+      this.notifService.notifyError(message);
+    }
   }
   
   goToDocument(event) {
@@ -218,7 +279,9 @@ export class PrettyJsonComponent implements OnInit {
           if (Object.hasOwnProperty.call(value, k)) {
             const view = this.createView(k, value);
             if (view) {
-              spanClass = 'prop' + (view.collapsible && this.autoCollapse ? ' collapsed' : '');
+              spanClass = 'prop'
+                + (view.collapsible ? ' collapsible' : '')
+                + (view.collapsible && this.autoCollapse ? ' collapsed' : '');
               
               const prop = this.span(spanClass);
               
@@ -272,6 +335,17 @@ export class PrettyJsonComponent implements OnInit {
     }
   }
   
+  private collapseAll(state: boolean = true) {
+    const items = this.el.nativeElement.querySelectorAll('.collapsible');
+    items.forEach(i => {
+      if (state) {
+        this.renderer.addClass(i, 'collapsed');
+      } else {
+        this.renderer.removeClass(i, 'collapsed');
+      }
+    });
+  }
+  
   private collapse(event) {
     let item = event.target.parentNode;
     
@@ -280,7 +354,7 @@ export class PrettyJsonComponent implements OnInit {
       item = item.parentNode;
     }
     // If the user clicked on something not collapsible
-    if (!item.querySelector('.e')) { return; }
+    if (!item.classList.contains('collapsible')) { return; }
     
     const collapsed = item.classList.contains('collapsed');
     if (collapsed) {

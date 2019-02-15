@@ -26,7 +26,8 @@
                   [hidden]="loading.content"
                   autoCollapse="true"
                   [json]="item"
-                  (go)="go($event)">
+                  (go)="go($event)"
+                  (edit)="editDocument(item._id, $event)">
     </pretty-json>
   </div>
 </div>

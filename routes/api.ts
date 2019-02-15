@@ -1,4 +1,5 @@
 import * as express from 'express';
+import * as bodyParser from 'body-parser';
 
 import factory from '../lib/Factory';
 
@@ -43,6 +44,24 @@ api.get('/servers/:server/databases/:database/collections/:collection/documents/
 		document: doc
 	});
 });
+
+api.post('/servers/:server/databases/:database/collections/:collection/documents/:document', bodyParser.json(), async (req, res, next) => {
+	const server     = req.params.server;
+	const database   = req.params.database;
+	const collection = req.params.collection;
+	const document   = req.params.document;
+	
+	const c = await factory.mongoManager.getCollection(server, database, collection);
+	if (!c) {
+		return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
+	}
+	const update = await c.updateOne(document, req.body);
+	
+	return res.json({
+		ok:     true,
+		update: update
+	});
+})
 
 api.get('/servers/:server/databases/:database/collections/:collection/query', async (req, res, next) => {
 	const server     = req.params.server;

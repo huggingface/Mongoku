@@ -1,5 +1,5 @@
 <div class="row explore-component">
-  <div class="col-md-12">
-    <pretty-json *ngIf="item" [json]="item"></pretty-json>
+  <div class="col-md-12" *ngIf="!loading">
+    <pretty-json *ngIf="item" [json]="item" (edit)="editDocument($event)"></pretty-json>
   </div>
 </div>

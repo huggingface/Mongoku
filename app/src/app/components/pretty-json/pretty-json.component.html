@@ -3,11 +3,24 @@
 		<div class="object-info">
 			<div class="objectid">
 				<a href="#" (click)="goToDocument($event)">{{ json._id.$value }}</a>
+				<span class="date">{{ json._id.$date | date:'long' }}</span>
 			</div>
-			<div class="date">
-				{{ json._id.$date | date:'long' }}
+			<div class="actions">
+				<div class="btn btn-outline-light btn-sm" (click)="enableEditor()">Edit</div>
+				<div class="btn btn-outline-danger btn-sm">Remove</div>
 			</div>
 		</div>
+	</div>
+	<div class="editor" [class.visible]="editorVisible">
+		<div class="editor-actions">
+			<div class="btn btn-outline-success btn-sm" (click)="save()">Save</div>
+			<div class="btn btn-outline-light btn-sm" (click)="disableEditor()">Cancel</div>
+		</div>
+		<ngx-codemirror
+			[(ngModel)]="editJson"
+			(cursorActivity)="updateEditor()"
+			[options]="editorOptions"
+		></ngx-codemirror>
 	</div>
 	<div class="pretty-json">
 		<!-- pretty-json will be appended here -->

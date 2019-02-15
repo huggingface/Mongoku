@@ -6,6 +6,7 @@ import { MongoDbService } from '../../services/mongo-db.service';
 
 import { SearchParams } from '../../components/search-box/search-box.component';
 import { JsonParserService } from '../../services/json-parser.service';
+import { NotificationsService } from '../../services/notifications.service';
 
 @Component({
   selector: 'app-explore',
@@ -33,7 +34,8 @@ export class ExploreComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
     private router:         Router,
     private mongoDb:        MongoDbService,
-    private jsonParser:     JsonParserService
+    private jsonParser:     JsonParserService,
+    private notifService:   NotificationsService,
   ) { }
   
   ngOnInit() {
@@ -121,6 +123,25 @@ export class ExploreComponent implements OnInit {
       "collections", this.collection,
       "documents",   documentId
     ]);
+  }
+  
+  editDocument(_id, json) {
+    const newId = json && json._id && json._id.$value;
+    const oldId = _id && _id.$value;
+    if (newId !== oldId) {
+      this.notifService.notifyError("ObjectId changed. This is not supported, updated canceled.");
+      return ;
+    }
+    
+    this.mongoDb.update(this.server, this.database, this.collection, oldId, json)
+      .subscribe((res: any) => {
+        this.items.forEach((item, index) => {
+          const _id = item && item._id && item._id.$value;
+          if (_id === oldId) {
+            this.items[index] = res.update;
+          }
+        });
+      });
   }
   
   get hasNext() {

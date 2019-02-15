@@ -45,6 +45,15 @@ export class Collection {
 			.toArray();
 	}
 	
+	updateOne(document: string, newObj: any) {
+		const update = JsonEncoder.decode(newObj);
+		return this._collection.replaceOne({
+			_id: new MongoDb.ObjectId(document)
+		}, update).then((_) => {
+			return JsonEncoder.encode(update);
+		});
+	}
+	
 	count(query) {
 		return this._collection.estimatedDocumentCount(JsonEncoder.decode(query));
 		// return this._collection.countDocuments(JsonEncoder.decode(query));

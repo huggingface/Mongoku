@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 import { MongoDbService } from '../../services/mongo-db.service';
-import { JsonParserService } from '../../services/json-parser.service';
+import { NotificationsService } from '../../services/notifications.service';
 
 @Component({
   selector: 'app-document',
@@ -17,7 +17,13 @@ export class DocumentComponent implements OnInit {
   
   item;
   
-  constructor(private activatedRoute: ActivatedRoute, private mongodb: MongoDbService, private jsonParser: JsonParserService) { }
+  loading = true;
+  
+  constructor(
+    private activatedRoute: ActivatedRoute,
+    private mongodb:        MongoDbService,
+    private notifService:   NotificationsService,
+  ) { }
 
   ngOnInit() {
     this.activatedRoute.paramMap.subscribe((d) => {
@@ -32,10 +38,27 @@ export class DocumentComponent implements OnInit {
   
   get() {
     this.mongodb.getDocument(this.server, this.database, this.collection, this.document).subscribe((res: any) => {
+      this.loading = false;
       if (res.ok) {
         this.item = res.document;
       }
     });
+  }
+  
+  editDocument(json) {
+    const newId = json && json._id && json._id.$value;
+    const oldId = this.item && this.item._id && this.item._id.$value;
+    if (newId !== oldId) {
+      this.notifService.notifyError("ObjectId changed. This is not supported, updated canceled.");
+      return ;
+    }
+    
+    this.loading = true;
+    this.mongodb.update(this.server, this.database, this.collection, oldId, json)
+      .subscribe((res: any) => {
+        this.loading = false;
+        this.item = res.update;
+      });
   }
 
 }

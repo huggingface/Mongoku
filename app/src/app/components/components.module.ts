@@ -8,11 +8,15 @@ import { PrettyJsonComponent } from './pretty-json/pretty-json.component';
 import { SearchBoxComponent } from './search-box/search-box.component';
 import { NotificationsComponent } from './notifications/notifications.component';
 
+import { CodemirrorModule } from '@ctrl/ngx-codemirror';
+import 'codemirror/mode/javascript/javascript';
+
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
-    NgbModule
+    NgbModule,
+    CodemirrorModule
   ],
   declarations: [ PanelComponent, PrettyJsonComponent, SearchBoxComponent, NotificationsComponent ],
   exports: [ PanelComponent, PrettyJsonComponent, SearchBoxComponent, NotificationsComponent ]

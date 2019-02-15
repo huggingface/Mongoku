@@ -1,16 +1,17 @@
+// Bootstrap
+@import '../node_modules/bootstrap/scss/bootstrap';
+
 // Themes
 @import 'sass/themes/dark-default';
 @import 'sass/themes/light';
-
-// Bootstrap
-@import '../node_modules/bootstrap/scss/bootstrap';
 
 // Fonts
 @import url('https://fonts.googleapis.com/css?family=Cuprum|Rajdhani');
 
 // Code Mirror
 @import "~codemirror/lib/codemirror.css";
-@import "~codemirror/theme/neo.css";
+// Our theme
+@import 'sass/themes/codemirror';
 
 
 body {
@@ -57,4 +58,37 @@ a:hover {
 	background-color: var(--color-1);
 	color: var(--text);
 	border-color: var(--color-4);
+}
+
+.btn.btn-outline-danger {
+	color:        var(--button-danger);
+	border-color: var(--button-danger);
+	
+	&:hover {
+		background-color: var(--button-danger-l);
+		color: var(--text-lighter);
+	}
+}
+
+.btn.btn-outline-success {
+	color:        var(--button-success);
+	border-color: var(--button-success);
+	
+	&:hover {
+		background-color: var(--button-success-l);
+		color: var(--text-lighter);
+	}
+}
+
+.btn.btn-outline-light {
+	color:        var(--button-light);
+	border-color: var(--button-light);
+	
+	// &:hover {
+	// 	color: var(--text-darker);
+	// }
+	&:hover {
+		background-color: var(--button-light);
+		color: var(--text-inverse);
+	}
 }

@@ -36,6 +36,16 @@ export class MongoDbService {
       ) as Observable<T>;
   }
   
+  private post<T>(path: string, body: any, options?: any) {
+    // The following cast is required to get the right typing
+    // since we expect and receive an Observable<T> and not a
+    // Observable<HttpEvent<T>>. Weird
+    return <any>this.http.post<T>(path, body, options)
+      .pipe(
+        catchError((err) => this.handleError(err))
+      ) as Observable<T>;
+  }
+  
   getServers() {
     return this.get<ServerJSON[]>(`${this.apiBaseUrl}/servers`);
   }
@@ -61,6 +71,10 @@ export class MongoDbService {
         limit: `${limit}`
       }
     });
+  }
+  
+  update(server: string, database: string, collection: string, document: string, update: any) {
+    return this.post(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/documents/${document}`, update);
   }
   
   count(server: string, database: string, collection: string, query: any) {

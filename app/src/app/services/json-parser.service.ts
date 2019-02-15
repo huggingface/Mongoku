@@ -102,12 +102,15 @@ export class JsonParserService {
     }
   }
   
-  parse(text: string) {
+  parse(text: string, reportError: boolean = true) {
     let tree;
     const error = (err?) => {
-      this.reportError(`Error while parsing: ${text}`);
-      console.log(err, tree);
-      return null;
+      if (reportError) {
+        this.reportError(`Error while parsing: ${text}`);
+        console.log(err, tree);
+        return null;
+      }
+      throw err;
     }
       
     try {
