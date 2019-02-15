@@ -14,16 +14,24 @@ api.get('/servers', async (req, res, next) => {
 api.get('/servers/:server/databases', async (req, res, next) => {
 	const server = req.params.server;
 	
-	const databases = await factory.mongoManager.getDatabasesJson(server);
-	return res.json(databases);
+	try {
+		const databases = await factory.mongoManager.getDatabasesJson(server);
+		return res.json(databases);
+	} catch (err) {
+		return next(err);
+	}
 });
 
 api.get('/servers/:server/databases/:database/collections', async (req, res, next) => {
 	const server   = req.params.server;
 	const database = req.params.database;
 	
-	const collections = await factory.mongoManager.getCollectionsJson(server, database);
-	return res.json(collections);
+	try {
+		const collections = await factory.mongoManager.getCollectionsJson(server, database);
+		return res.json(collections);
+	} catch (err) {
+		return next(err);
+	}
 });
 
 api.get('/servers/:server/databases/:database/collections/:collection/documents/:document', async (req, res, next) => {
@@ -32,17 +40,24 @@ api.get('/servers/:server/databases/:database/collections/:collection/documents/
 	const collection = req.params.collection;
 	const document   = req.params.document;
 	
-	const c = await factory.mongoManager.getCollection(server, database, collection);
-	if (!c) {
-		return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
+	try {
+		const c = await factory.mongoManager.getCollection(server, database, collection);
+		if (!c) {
+			return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
+		}
+		
+		const doc = await c.findOne(document);
+		if (!doc) {
+			return next(new Error("This document does not exist"));
+		}
+		
+		return res.json({
+			ok:       true,
+			document: doc
+		});
+	} catch (err) {
+		return next(err);
 	}
-	
-	const doc = await c.findOne(document);
-	
-	return res.json({
-		ok:       true,
-		document: doc
-	});
 });
 
 api.post('/servers/:server/databases/:database/collections/:collection/documents/:document', bodyParser.json(), async (req, res, next) => {
@@ -51,17 +66,43 @@ api.post('/servers/:server/databases/:database/collections/:collection/documents
 	const collection = req.params.collection;
 	const document   = req.params.document;
 	
-	const c = await factory.mongoManager.getCollection(server, database, collection);
-	if (!c) {
-		return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
+	try {
+		const c = await factory.mongoManager.getCollection(server, database, collection);
+		if (!c) {
+			return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
+		}
+		const update = await c.updateOne(document, req.body);
+		
+		return res.json({
+			ok:     true,
+			update: update
+		});
+	} catch (err) {
+		return next(err);
 	}
-	const update = await c.updateOne(document, req.body);
-	
-	return res.json({
-		ok:     true,
-		update: update
-	});
 })
+
+api.delete('/servers/:server/databases/:database/collections/:collection/documents/:document', async (req, res, next) => {
+	const server     = req.params.server;
+	const database   = req.params.database;
+	const collection = req.params.collection;
+	const document   = req.params.document;
+	
+	try {
+		const c = await factory.mongoManager.getCollection(server, database, collection);
+		if (!c) {
+			return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
+		}
+		
+		await c.removeOne(document);
+		
+		return res.json({
+			ok: true
+		});
+	} catch (err) {
+		return next(err);
+	}
+});
 
 api.get('/servers/:server/databases/:database/collections/:collection/query', async (req, res, next) => {
 	const server     = req.params.server;

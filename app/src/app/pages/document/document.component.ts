@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { MongoDbService } from '../../services/mongo-db.service';
 import { NotificationsService } from '../../services/notifications.service';
@@ -20,6 +20,7 @@ export class DocumentComponent implements OnInit {
   loading = true;
   
   constructor(
+    private router:         Router,
     private activatedRoute: ActivatedRoute,
     private mongodb:        MongoDbService,
     private notifService:   NotificationsService,
@@ -39,9 +40,7 @@ export class DocumentComponent implements OnInit {
   get() {
     this.mongodb.getDocument(this.server, this.database, this.collection, this.document).subscribe((res: any) => {
       this.loading = false;
-      if (res.ok) {
-        this.item = res.document;
-      }
+      this.item = res.document;
     });
   }
   
@@ -58,6 +57,18 @@ export class DocumentComponent implements OnInit {
       .subscribe((res: any) => {
         this.loading = false;
         this.item = res.update;
+      });
+  }
+  
+  remove() {
+    this.mongodb.remove(this.server, this.database, this.collection, this.document)
+      .subscribe((res: any) => {
+        this.item = null;
+        this.router.navigate([
+          "servers",     this.server,
+          "databases",   this.database,
+          "collections", this.collection,
+        ])
       });
   }
 

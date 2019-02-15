@@ -144,6 +144,17 @@ export class ExploreComponent implements OnInit {
       });
   }
   
+  remove(_id) {
+    const document = _id && _id.$value;
+    if (!document) { return; }
+    
+    this.mongoDb.remove(this.server, this.database, this.collection, document)
+      .subscribe((res: any) => {
+        const index = this.items.findIndex(v => v._id && v._id.$value && v._id.$value === document);
+        this.items.splice(index, 1);
+      })
+  }
+  
   get hasNext() {
     return this.count.start + this.items.length < this.count.total;
   }

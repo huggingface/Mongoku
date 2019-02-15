@@ -80,6 +80,18 @@ a:hover {
 	}
 }
 
+.btn.btn-danger {
+	border-color: var(--button-danger);
+	background-color: var(--button-danger-l);
+	color: var(--text-lighter);
+}
+
+.btn.btn-success {
+	border-color: var(--button-success);
+	background-color: var(--button-success-l);
+	color: var(--text-lighter);
+}
+
 .btn.btn-outline-light {
 	color:        var(--button-light);
 	border-color: var(--button-light);

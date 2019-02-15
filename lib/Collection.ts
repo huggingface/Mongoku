@@ -26,12 +26,11 @@ export class Collection {
 		this._collection = collection;
 	}
 	
-	findOne(document: string) {
-		return this._collection.findOne({
+	async findOne(document: string) {
+		const obj = await this._collection.findOne({
 			_id: new MongoDb.ObjectId(document)
-		}).then((obj) => {
-			return JsonEncoder.encode(obj);
 		})
+		return JsonEncoder.encode(obj);
 	}
 	
 	find(query: any, sort: any, limit: number, skip: number) {
@@ -45,12 +44,17 @@ export class Collection {
 			.toArray();
 	}
 	
-	updateOne(document: string, newObj: any) {
+	async updateOne(document: string, newObj: any) {
 		const update = JsonEncoder.decode(newObj);
-		return this._collection.replaceOne({
+		await this._collection.replaceOne({
 			_id: new MongoDb.ObjectId(document)
-		}, update).then((_) => {
-			return JsonEncoder.encode(update);
+		}, update);
+		return JsonEncoder.encode(update);
+	}
+	
+	async removeOne(document: string) {
+		await this._collection.deleteOne({
+			_id: new MongoDb.ObjectId(document)
 		});
 	}
 	

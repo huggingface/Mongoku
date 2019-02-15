@@ -37,11 +37,13 @@ export class PrettyJsonComponent implements OnInit {
   @Input()  autoCollapse = false;
   @Output() go = new EventEmitter();
   @Output() edit = new EventEmitter();
+  @Output() remove = new EventEmitter();
   
   private gap           = '';
   private listener      = null;
   editJson      = "";
   editorVisible = false;
+  removing      = false;
   
   editorOptions = {
     lineNumbers: true,
@@ -112,6 +114,18 @@ export class PrettyJsonComponent implements OnInit {
       const message = `"${err.description}" at column ${err.column}`;
       this.notifService.notifyError(message);
     }
+  }
+  
+  showRemove() {
+    this.removing = true;
+  }
+  
+  cancelRemove() {
+    this.removing = false;
+  }
+  
+  confirmRemove() {
+    this.remove.emit();
   }
   
   goToDocument(event) {
