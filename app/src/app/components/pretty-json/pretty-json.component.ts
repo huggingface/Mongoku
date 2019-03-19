@@ -79,7 +79,7 @@ export class PrettyJsonComponent implements OnInit {
   
   enableEditor() {
     this.collapseAll(false);
-    this.editJson = this.el.nativeElement.querySelector(".pretty-json").innerText;
+    this.editJson = this.el.nativeElement.querySelector(".pretty-json").innerText.replace(/(\s{2,})\n/g, "$1");
     this.editorVisible = true;
   }
   
