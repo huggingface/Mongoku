@@ -16,7 +16,7 @@
                   placement="right"
                   triggers="manual"
                   #p1="ngbPopover"
-                  (mouseenter)="toggle(p1, database.collections)"
+                  (mouseenter)="toggleCollection(p1, database.collections)"
                   (mouseleave)="toggle(p1)"
             >{{ database.collections.length }}</span>
           </td>
@@ -26,7 +26,7 @@
                   placement="left"
                   triggers="manual"
                   #p2="ngbPopover"
-                  (mouseenter)="toggle(p2, database)"
+                  (mouseenter)="toggleStats(p2, database)"
                   (mouseleave)="toggle(p2)"
                   >{{ database.size | bytes }}</span>
           </td>
@@ -72,7 +72,7 @@
         </tr>
         <tr>
           <td>Data size</td>
-          <td>{{ stats.size | bytes }}</td>
+          <td>{{ stats.dataSize | bytes }}</td>
         </tr>
         <tr>
           <td>Storage size</td>

@@ -19,7 +19,7 @@ export class DatabasesComponent implements OnInit {
   ngOnInit() {
     this.activatedRoute.paramMap.subscribe((d) => {
       this.server = d.get("server");
-      
+
       this.mongoDb.getDatabases(this.server)
         .subscribe((databases) => {
           this.loading = false;
@@ -28,37 +28,23 @@ export class DatabasesComponent implements OnInit {
     });
   }
 
-  toggle(popover: NgbPopover, object: any[] | DatabaseJSON) {
+  toggle(popover: NgbPopover, data: any) {
     if (popover.isOpen()) {
       popover.close();
-    } else if (Array.isArray(object)) {
-      const clippedCol = object.filter((_, i) => i < 10);
-      popover.open({
-        collection: clippedCol,
-        clipped: clippedCol.length < object.length
-      });
-    } else if (object !== undefined) {
-      let totalObjSize = 0;
-      let totalObjNr = 0;
-      const stats = object.collections.reduce((counts, obj) => {
-        totalObjSize += (obj.avgObjSize || 0) * obj.count;
-        totalObjNr += obj.count;
-
-        counts.size += obj.size;
-        counts.storageSize += obj.storageSize;
-        counts.totalIndexSize += obj.totalIndexSize;
-        return counts;
-      }, {
-        size: 0,
-        storageSize: 0,
-        totalIndexSize: 0
-      });
-      popover.open({
-        stats: {
-          ...stats,
-          avgObjSize: totalObjSize / totalObjNr
-        }
-      });
+    } else if (data !== undefined) {
+      popover.open(data);
     }
+  }
+
+  toggleStats(popover: NgbPopover, database: DatabaseJSON) {
+    this.toggle(popover, { stats: database });
+  }
+
+  toggleCollection(popover: NgbPopover, collection: any[]) {
+    const clippedCol = collection.filter((_, i) => i < 10);
+    this.toggle(popover, {
+      collection: clippedCol,
+      clipped: clippedCol.length < collection.length
+    });
   }
 }

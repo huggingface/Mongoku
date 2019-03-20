@@ -41,29 +41,29 @@ export class CollectionsComponent implements OnInit {
     return indexes;
   }
 
-  toggleIndexes(popover: NgbPopover, collection: CollectionJSON) {
+  toggle(popover: NgbPopover, data: any) {
     if (popover.isOpen()) {
       popover.close();
-    } else {
-      const indexes = Object.entries(collection.indexSizes);
-      const clippedIndexes = indexes.map(([name, size]) => {
-        return {
-          name: this.indexName(name),
-          size
-        };
-      }).filter((_, i) => i < 10);
-      popover.open({
-        indexes: clippedIndexes,
-        clipped: clippedIndexes.length < indexes.length
-      });
+    } else if (data !== undefined) {
+      popover.open(data);
     }
   }
 
-  toggle(popover: NgbPopover, object: CollectionJSON) {
-    if (popover.isOpen()) {
-      popover.close();
-    } else if (object !== undefined) {
-      popover.open({ stats: object });
-    }
+  toggleStats(popover: NgbPopover, collection: CollectionJSON) {
+    this.toggle(popover, { stats: collection });
+  }
+
+  toggleIndexes(popover: NgbPopover, collection: CollectionJSON) {
+    const indexes = Object.entries(collection.indexSizes);
+    const clippedIndexes = indexes.map(([name, size]) => {
+      return {
+        name: this.indexName(name),
+        size
+      };
+    }).filter((_, i) => i < 10);
+    this.toggle(popover, {
+      indexes: clippedIndexes,
+      clipped: clippedIndexes.length < indexes.length
+    });
   }
 }

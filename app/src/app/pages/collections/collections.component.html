@@ -19,7 +19,7 @@
                   triggers="manual"
                   #p1="ngbPopover"
                   (mouseenter)="toggleIndexes(p1, collection)"
-                  (mouseleave)="toggleIndexes(p1)"
+                  (mouseleave)="toggle(p1)"
             >{{ collection.nIndexes }}</span>
           </td>
           <td>
@@ -28,7 +28,7 @@
                   placement="left"
                   triggers="manual"
                   #p2="ngbPopover"
-                  (mouseenter)="toggle(p2, collection)"
+                  (mouseenter)="toggleStats(p2, collection)"
                   (mouseleave)="toggle(p2)"
             >{{ collection.size | bytes }}</span>
           </td>
@@ -74,7 +74,7 @@
         </tr>
         <tr>
           <td>Data size</td>
-          <td>{{ stats.size | bytes }}</td>
+          <td>{{ stats.dataSize | bytes }}</td>
         </tr>
         <tr>
           <td>Storage size</td>

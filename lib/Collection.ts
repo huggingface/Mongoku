@@ -4,6 +4,7 @@ import JsonEncoder from '../lib/JsonEncoder';
 export interface CollectionJSON {
 	name: string;
 	size: number;
+	dataSize: number;
 	count: number;
 	avgObjSize: number;
 	storageSize: number;
@@ -69,13 +70,14 @@ export class Collection {
 		return {
 			// ns:             stats.ns,
 			name:           this.name,
-			size:           stats.size,
+			size:           (stats.storageSize || 0) + (stats.totalIndexSize || 0),
+			dataSize:       stats.size,
 			count:          stats.count,
-			avgObjSize:     stats.avgObjSize,
-			storageSize:    stats.storageSize,
+			avgObjSize:     stats.avgObjSize || 0,
+			storageSize:    stats.storageSize || 0,
 			capped:         stats.capped,
 			nIndexes:       stats.nindexes,
-			totalIndexSize: stats.totalIndexSize,
+			totalIndexSize: stats.totalIndexSize || 0,
 			indexSizes:     stats.indexSizes
 		};
 	}
