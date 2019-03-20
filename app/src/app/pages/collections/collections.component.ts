@@ -62,7 +62,7 @@ export class CollectionsComponent implements OnInit {
   toggle(popover: NgbPopover, object: CollectionJSON) {
     if (popover.isOpen()) {
       popover.close();
-    } else {
+    } else if (object !== undefined) {
       popover.open({ stats: object });
     }
   }

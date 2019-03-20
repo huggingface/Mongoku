@@ -37,15 +37,16 @@ export class DatabasesComponent implements OnInit {
         collection: clippedCol,
         clipped: clippedCol.length < object.length
       });
-    } else {
+    } else if (object !== undefined) {
       const stats = {
-        size: object.size,
         ...object.collections.reduce((counts, obj) => {
+          counts.size += obj.size;
           counts.avgObjSize += obj.avgObjSize;
           counts.storageSize += obj.storageSize;
           counts.totalIndexSize += obj.totalIndexSize;
           return counts;
         }, {
+          size: 0,
           avgObjSize: 0,
           storageSize: 0,
           totalIndexSize: 0

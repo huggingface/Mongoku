@@ -24,7 +24,7 @@ export class ServersComponent implements OnInit {
   toggle(popover: NgbPopover, collection: any[]) {
     if (popover.isOpen()) {
       popover.close();
-    } else {
+    } else if (collection !== undefined) {
       const clippedCol = collection.filter((_, i) => i < 10);
       popover.open({
         collection: clippedCol,
