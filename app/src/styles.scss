@@ -17,6 +17,7 @@
 body {
 	background-color: var(--background-color);
 	font-family: 'Rajdhani', sans-serif;
+	cursor: default;
 }
 
 
@@ -103,4 +104,35 @@ a:hover {
 		background-color: var(--button-light);
 		color: var(--text-inverse);
 	}
+}
+
+.bs-popover-bottom .arrow::after {
+	border-bottom-color: var(--color-3);
+}
+.bs-popover-top .arrow::after {
+	border-top-color: var(--color-3);
+}
+.bs-popover-left .arrow::after {
+	border-left-color: var(--color-3);
+}
+.bs-popover-right .arrow::after {
+	border-right-color: var(--color-3);
+}
+
+.popover {
+	max-width: none;
+	color: var(--text);
+	border-radius: 5px;
+	border: 1px solid var(--color-3);
+
+	.popover-body {
+		background-color: var(--panel-body);
+		border-radius: 4px;
+		color: var(--text);
+		padding: 0;
+	}
+}
+
+span.dotted {
+	border-bottom: 1px dotted var(--text);
 }

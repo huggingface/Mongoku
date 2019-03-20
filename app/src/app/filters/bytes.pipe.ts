@@ -9,7 +9,7 @@ export class BytesPipe implements PipeTransform {
   ];
   
   transform(value: any): any {
-    let n = value;
+    let n = value || 0;
     let i = 0;
     for (const unit of this.units) {
       if (n / 1024 > 1) {

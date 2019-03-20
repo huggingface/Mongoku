@@ -10,7 +10,16 @@
       <tbody>
         <tr *ngFor="let server of servers">
           <td><a routerLink="/servers/{{ server.name }}/databases">{{ server.name }}</a></td>
-          <td>{{ server.databases.length }}</td>
+          <td>
+            <span class="dotted"
+                  [ngbPopover]="popContent"
+                  placement="right"
+                  triggers="manual"
+                  #p1="ngbPopover"
+                  (mouseenter)="toggle(p1, server.databases)"
+                  (mouseleave)="toggle(p1)"
+            >{{ server.databases.length }}</span>
+          </td>
           <td>{{ server.size | bytes }}</td>
         </tr>
         <tr *ngIf="servers.length == 0 && !loading">
@@ -25,5 +34,25 @@
         </tr>
       </tbody>
     </table>
+
+    <ng-template #popContent let-collection="collection" let-clipped="clipped">
+      <table>
+        <thead>
+          <th>Database</th>
+          <th>Collections</th>
+          <th>Size</th>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of collection">
+            <td>{{ item.name }}</td>
+            <td>{{ item.collections.length }}</td>
+            <td>{{ item.size | bytes }}</td>
+          </tr>
+          <tr *ngIf="clipped">
+            <td colspan=2>...</td>
+          </tr>
+        </tbody>
+      </table>
+    </ng-template>
   </panel>
 </div>

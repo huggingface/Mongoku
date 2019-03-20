@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { CodemirrorModule } from '@ctrl/ngx-codemirror';
 // Import the required language
@@ -23,6 +24,7 @@ import { FiltersModule } from '../filters/filters.module';
   imports: [
     FormsModule,
     CommonModule,
+    NgbModule,
     CodemirrorModule,
     AppRoutingModule,
     ComponentsModule,

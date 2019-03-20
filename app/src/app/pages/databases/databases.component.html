@@ -10,8 +10,26 @@
       <tbody>
         <tr *ngFor="let database of databases">
           <td><a routerLink="/servers/{{ server }}/databases/{{ database.name }}/collections">{{ database.name }}</a></td>
-          <td>{{ database.collections.length }}</td>
-          <td>{{ database.size | bytes }}</td>
+          <td>
+            <span class="dotted"
+                  [ngbPopover]="popCollection"
+                  placement="right"
+                  triggers="manual"
+                  #p1="ngbPopover"
+                  (mouseenter)="toggle(p1, database.collections)"
+                  (mouseleave)="toggle(p1)"
+            >{{ database.collections.length }}</span>
+          </td>
+          <td>
+            <span class="dotted"
+                  [ngbPopover]="popStats"
+                  placement="left"
+                  triggers="manual"
+                  #p2="ngbPopover"
+                  (mouseenter)="toggle(p2, database)"
+                  (mouseleave)="toggle(p2)"
+                  >{{ database.size | bytes }}</span>
+          </td>
         </tr>
          <tr *ngIf="databases.length == 0 && !loading">
           <td colspan="3">
@@ -26,4 +44,45 @@
       </tbody>
     </table>
   </panel>
+
+  <ng-template #popCollection let-collection="collection" let-clipped="clipped">
+    <table>
+      <thead>
+        <th>Collections</th>
+        <th>Size</th>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of collection">
+          <td>{{ item.name }}</td>
+          <td>{{ item.size | bytes }}</td>
+        </tr>
+        <tr *ngIf="clipped">
+          <td colspan=2>...</td>
+        </tr>
+      </tbody>
+    </table>
+  </ng-template>
+
+  <ng-template #popStats let-stats="stats">
+    <table>
+      <tbody>
+        <tr>
+          <td>Average obj. size</td>
+          <td>{{ stats.avgObjSize | bytes }}</td>
+        </tr>
+        <tr>
+          <td>Data size</td>
+          <td>{{ stats.size | bytes }}</td>
+        </tr>
+        <tr>
+          <td>Storage size</td>
+          <td>{{ stats.storageSize | bytes }}</td>
+        </tr>
+        <tr>
+          <td>Index size</td>
+          <td>{{ stats.totalIndexSize | bytes }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </ng-template>
 </div>

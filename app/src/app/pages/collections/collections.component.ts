@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 import { MongoDbService, CollectionJSON } from '../../services/mongo-db.service';
+import { NgbPopover } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-collections',
@@ -29,4 +30,40 @@ export class CollectionsComponent implements OnInit {
     });
   }
 
+  private indexName(raw: string): string {
+    let parts = raw.replace(/_id/g, "$id").split('_');
+    let indexes: any = {};
+    while (parts.length > 0) {
+      let field = parts.shift().replace(/\$id/g, "_id");
+      let direction = parseInt(parts.shift(), 10) || 1;
+      indexes[field] = direction;
+    }
+    return indexes;
+  }
+
+  toggleIndexes(popover: NgbPopover, collection: CollectionJSON) {
+    if (popover.isOpen()) {
+      popover.close();
+    } else {
+      const indexes = Object.entries(collection.indexSizes);
+      const clippedIndexes = indexes.map(([name, size]) => {
+        return {
+          name: this.indexName(name),
+          size
+        };
+      }).filter((_, i) => i < 10);
+      popover.open({
+        indexes: clippedIndexes,
+        clipped: clippedIndexes.length < indexes.length
+      });
+    }
+  }
+
+  toggle(popover: NgbPopover, object: CollectionJSON) {
+    if (popover.isOpen()) {
+      popover.close();
+    } else {
+      popover.open({ stats: object });
+    }
+  }
 }

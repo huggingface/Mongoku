@@ -1,6 +1,5 @@
 import { Component, AfterViewChecked, Renderer2, OnInit } from '@angular/core';
 import { Router, RoutesRecognized } from '@angular/router';
-import { PACKAGE_ROOT_URL } from '@angular/core/src/application_tokens';
 
 interface Breadcrumb {
   href?:   string;
@@ -26,7 +25,7 @@ export class AppComponent implements AfterViewChecked, OnInit {
   }
   
   ngAfterViewChecked() {
-    const d = this.route.events.subscribe((data) => {
+    this.route.events.subscribe((data) => {
        if (data instanceof RoutesRecognized) {
         const params = data.state.root.firstChild.params;
         const breadcrumbs: Breadcrumb[] = [];

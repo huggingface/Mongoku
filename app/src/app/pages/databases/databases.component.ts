@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 import { MongoDbService, DatabaseJSON } from '../../services/mongo-db.service';
+import { NgbPopover } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-databases',
@@ -27,4 +28,30 @@ export class DatabasesComponent implements OnInit {
     });
   }
 
+  toggle(popover: NgbPopover, object: any[] | DatabaseJSON) {
+    if (popover.isOpen()) {
+      popover.close();
+    } else if (Array.isArray(object)) {
+      const clippedCol = object.filter((_, i) => i < 10);
+      popover.open({
+        collection: clippedCol,
+        clipped: clippedCol.length < object.length
+      });
+    } else {
+      const stats = {
+        size: object.size,
+        ...object.collections.reduce((counts, obj) => {
+          counts.avgObjSize += obj.avgObjSize;
+          counts.storageSize += obj.storageSize;
+          counts.totalIndexSize += obj.totalIndexSize;
+          return counts;
+        }, {
+          avgObjSize: 0,
+          storageSize: 0,
+          totalIndexSize: 0
+        })
+      };
+      popover.open({ stats });
+    }
+  }
 }
