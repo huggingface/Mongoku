@@ -15,7 +15,7 @@
           <td>
             <span class="dotted"
                   [ngbPopover]="popIndexes"
-                  placement="right"
+                  placement="auto right"
                   triggers="manual"
                   #p1="ngbPopover"
                   (mouseenter)="toggleIndexes(p1, collection)"
@@ -25,7 +25,7 @@
           <td>
             <span class="dotted"
                   [ngbPopover]="popStats"
-                  placement="left"
+                  placement="auto right"
                   triggers="manual"
                   #p2="ngbPopover"
                   (mouseenter)="toggleStats(p2, collection)"

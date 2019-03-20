@@ -13,7 +13,7 @@
           <td>
             <span class="dotted"
                   [ngbPopover]="popCollection"
-                  placement="right"
+                  placement="auto right"
                   triggers="manual"
                   #p1="ngbPopover"
                   (mouseenter)="toggleCollection(p1, database.collections)"
@@ -23,7 +23,7 @@
           <td>
             <span class="dotted"
                   [ngbPopover]="popStats"
-                  placement="left"
+                  placement="auto right"
                   triggers="manual"
                   #p2="ngbPopover"
                   (mouseenter)="toggleStats(p2, database)"
