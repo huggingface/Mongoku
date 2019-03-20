@@ -38,21 +38,27 @@ export class DatabasesComponent implements OnInit {
         clipped: clippedCol.length < object.length
       });
     } else if (object !== undefined) {
-      const stats = {
-        ...object.collections.reduce((counts, obj) => {
-          counts.size += obj.size;
-          counts.avgObjSize += obj.avgObjSize;
-          counts.storageSize += obj.storageSize;
-          counts.totalIndexSize += obj.totalIndexSize;
-          return counts;
-        }, {
-          size: 0,
-          avgObjSize: 0,
-          storageSize: 0,
-          totalIndexSize: 0
-        })
-      };
-      popover.open({ stats });
+      let totalObjSize = 0;
+      let totalObjNr = 0;
+      const stats = object.collections.reduce((counts, obj) => {
+        totalObjSize += (obj.avgObjSize || 0) * obj.count;
+        totalObjNr += obj.count;
+
+        counts.size += obj.size;
+        counts.storageSize += obj.storageSize;
+        counts.totalIndexSize += obj.totalIndexSize;
+        return counts;
+      }, {
+        size: 0,
+        storageSize: 0,
+        totalIndexSize: 0
+      });
+      popover.open({
+        stats: {
+          ...stats,
+          avgObjSize: totalObjSize / totalObjNr
+        }
+      });
     }
   }
 }
