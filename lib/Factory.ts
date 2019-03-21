@@ -4,8 +4,11 @@ import { MongoManager } from './MongoManager';
 
 class Factory {
 	private _initialized = false;
-	private _initializedError = new Error("Factory.load() must be called first");
-	
+
+	private get _initializedError() {
+		return new Error("Factory.load() must be called first");
+	}
+
 	private _mongoManager: MongoManager;
 	
 	get mongoManager() {
@@ -14,7 +17,7 @@ class Factory {
 		}
 		return this._mongoManager;
 	}
-	
+
 	load(__callback: (err) => void) {
 		async.parallel([
 			// MongoManager
