@@ -60,7 +60,7 @@ export class Database {
 			totalObjNr   += json.count;
 			storageSize  += json.storageSize;
 			indexSize    += json.totalIndexSize;
-			dataSize    += json.size;
+			dataSize     += json.dataSize;
 			csJson.push(json);
 		}
 		Utils.fieldSort(csJson, 'name');
