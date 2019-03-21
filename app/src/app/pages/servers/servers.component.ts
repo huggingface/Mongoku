@@ -25,10 +25,10 @@ export class ServersComponent implements OnInit {
     if (popover.isOpen()) {
       popover.close();
     } else if (collection !== undefined) {
-      const clippedCol = collection.filter((_, i) => i < 10);
+      const clippedCol = collection.filter((_, i) => i < 20);
       popover.open({
         collection: clippedCol,
-        clipped: clippedCol.length < collection.length
+        clipped: collection.length - clippedCol.length
       });
     }
   }

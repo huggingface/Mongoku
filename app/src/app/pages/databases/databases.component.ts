@@ -41,10 +41,10 @@ export class DatabasesComponent implements OnInit {
   }
 
   toggleCollection(popover: NgbPopover, collection: any[]) {
-    const clippedCol = collection.filter((_, i) => i < 10);
+    const clippedCol = collection.filter((_, i) => i < 20);
     this.toggle(popover, {
       collection: clippedCol,
-      clipped: clippedCol.length < collection.length
+      clipped: collection.length - clippedCol.length
     });
   }
 }

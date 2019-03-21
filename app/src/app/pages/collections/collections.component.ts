@@ -14,14 +14,14 @@ export class CollectionsComponent implements OnInit {
   database:    string;
   collections: CollectionJSON[] = [];
   loading = true;
-  
+
   constructor(private activatedRoute: ActivatedRoute, private mongoDb: MongoDbService) { }
 
   ngOnInit() {
     this.activatedRoute.paramMap.subscribe((d) => {
       this.server   = d.get("server");
       this.database = d.get("database");
-      
+
       this.mongoDb.getCollections(this.server, this.database)
         .subscribe((collections) => {
           this.loading = false;
@@ -60,10 +60,10 @@ export class CollectionsComponent implements OnInit {
         name: this.indexName(name),
         size
       };
-    }).filter((_, i) => i < 10);
+    }).filter((_, i) => i < 20);
     this.toggle(popover, {
       indexes: clippedIndexes,
-      clipped: clippedIndexes.length < indexes.length
+      clipped: indexes.length - clippedIndexes.length
     });
   }
 }

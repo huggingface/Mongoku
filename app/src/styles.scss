@@ -131,6 +131,10 @@ a:hover {
 		color: var(--text);
 		padding: 0;
 	}
+
+	table.sm th, table.sm td {
+		padding: 5px 20px !important;
+	}
 }
 
 span.dotted {

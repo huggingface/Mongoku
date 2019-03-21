@@ -34,25 +34,25 @@
         </tr>
       </tbody>
     </table>
-
-    <ng-template #popContent let-collection="collection" let-clipped="clipped">
-      <table>
-        <thead>
-          <th>Database</th>
-          <th>Collections</th>
-          <th>Size</th>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of collection">
-            <td>{{ item.name }}</td>
-            <td>{{ item.collections.length }}</td>
-            <td>{{ item.size | bytes }}</td>
-          </tr>
-          <tr *ngIf="clipped">
-            <td colspan=2>...</td>
-          </tr>
-        </tbody>
-      </table>
-    </ng-template>
   </panel>
+
+  <ng-template #popContent let-collection="collection" let-clipped="clipped">
+    <table class="sm">
+      <thead>
+        <th>Database</th>
+        <th>Collections</th>
+        <th>Size</th>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of collection">
+          <td>{{ item.name }}</td>
+          <td>{{ item.collections.length }}</td>
+          <td>{{ item.size | bytes }}</td>
+        </tr>
+        <tr *ngIf="clipped">
+          <td colspan=3>{{ clipped }} more items...</td>
+        </tr>
+      </tbody>
+    </table>
+  </ng-template>
 </div>

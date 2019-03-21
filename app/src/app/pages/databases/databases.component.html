@@ -46,7 +46,7 @@
   </panel>
 
   <ng-template #popCollection let-collection="collection" let-clipped="clipped">
-    <table>
+    <table class="sm">
       <thead>
         <th>Collections</th>
         <th>Size</th>
@@ -57,14 +57,14 @@
           <td>{{ item.size | bytes }}</td>
         </tr>
         <tr *ngIf="clipped">
-          <td colspan=2>...</td>
+          <td colspan=2>{{ clipped }} more items...</td>
         </tr>
       </tbody>
     </table>
   </ng-template>
 
   <ng-template #popStats let-stats="stats">
-    <table>
+    <table class="sm">
       <tbody>
         <tr>
           <td>Average obj. size</td>
