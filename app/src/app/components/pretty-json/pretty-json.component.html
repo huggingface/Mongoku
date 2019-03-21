@@ -1,35 +1,35 @@
 <panel full-width="true">
-	<div class="title">
-		<div class="object-info">
-			<div class="objectid">
-				<a href="#" (click)="goToDocument($event)">{{ json._id.$value }}</a>
-				<span class="date">{{ json._id.$date | date:'long' }}</span>
-			</div>
-			<div class="actions">
-				<div class="btn btn-outline-light btn-sm" (click)="enableEditor()">Edit</div>
-				<div class="btn btn-outline-danger btn-sm" (click)="showRemove()">Remove</div>
-			</div>
-		</div>
-	</div>
-	<div class="editor" [class.visible]="editorVisible">
-		<div class="editor-actions">
-			<div class="btn btn-outline-success btn-sm" (click)="save()">Save</div>
-			<div class="btn btn-outline-light btn-sm" (click)="disableEditor()">Cancel</div>
-		</div>
-		<ngx-codemirror
-			[(ngModel)]="editJson"
-			(cursorActivity)="updateEditor()"
-			[options]="editorOptions"
-		></ngx-codemirror>
-	</div>
-	<div class="remove-layer" [hidden]="!removing">
-		<p>Are you sure?</p>
-		<div class="remove-actions">
-			<div class="btn btn-danger"  (click)="confirmRemove()">Yes - Remove</div>
-			<div class="btn btn-success" (click)="cancelRemove()">No - Cancel</div>
-		</div>
-	</div>
-	<div class="pretty-json">
-		<!-- pretty-json will be appended here -->
-	</div>
+  <div class="title">
+    <div class="object-info">
+      <div class="objectid">
+        <a href="#" (click)="goToDocument($event)">{{ json._id.$value }}</a>
+        <span class="date">{{ json._id.$date | date:'long' }}</span>
+      </div>
+      <div class="actions">
+        <div class="btn btn-outline-light btn-sm" (click)="enableEditor()">Edit</div>
+        <div class="btn btn-outline-danger btn-sm" (click)="showRemove()">Remove</div>
+      </div>
+    </div>
+  </div>
+  <div class="editor" [class.visible]="editorVisible">
+    <div class="editor-actions">
+      <div class="btn btn-outline-success btn-sm" (click)="save()">Save</div>
+      <div class="btn btn-outline-light btn-sm" (click)="disableEditor()">Cancel</div>
+    </div>
+    <ngx-codemirror
+      [(ngModel)]="editJson"
+      (cursorActivity)="updateEditor()"
+      [options]="editorOptions"
+    ></ngx-codemirror>
+  </div>
+  <div class="remove-layer" [hidden]="!removing">
+    <p>Are you sure?</p>
+    <div class="remove-actions">
+      <div class="btn btn-danger"  (click)="confirmRemove()">Yes - Remove</div>
+      <div class="btn btn-success" (click)="cancelRemove()">No - Cancel</div>
+    </div>
+  </div>
+  <div class="pretty-json">
+    <!-- pretty-json will be appended here -->
+  </div>
 </panel>
