@@ -28,7 +28,7 @@
                   #p2="ngbPopover"
                   (mouseenter)="toggleStats(p2, database)"
                   (mouseleave)="toggle(p2)"
-                  >{{ database.size | bytes }}</span>
+            >{{ database.size | bytes }}</span>
           </td>
         </tr>
          <tr *ngIf="databases.length == 0 && !loading">

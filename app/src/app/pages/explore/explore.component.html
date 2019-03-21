@@ -1,6 +1,5 @@
 <div class="row explore-component">
   <div class="col-md-12">
-    <!--ngx-codemirror [(ngModel)]="search" [options]="searchOptions"></ngx-codemirror-->
     <search-box (search)="update()" [(params)]="params"></search-box>
     <panel *ngIf="params && !loading.count">
       <div class="infos">

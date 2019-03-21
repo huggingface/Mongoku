@@ -37,7 +37,7 @@ nav.navbar {
 	thead th {
 		border-bottom: none;
 	}
-	
+
 	th,td {
 		border-color: var(--color-3);
 	}
@@ -64,7 +64,7 @@ a:hover {
 .btn.btn-outline-danger {
 	color:        var(--button-danger);
 	border-color: var(--button-danger);
-	
+
 	&:hover {
 		background-color: var(--button-danger-l);
 		color: var(--text-lighter);
@@ -74,7 +74,7 @@ a:hover {
 .btn.btn-outline-success {
 	color:        var(--button-success);
 	border-color: var(--button-success);
-	
+
 	&:hover {
 		background-color: var(--button-success-l);
 		color: var(--text-lighter);
@@ -96,10 +96,7 @@ a:hover {
 .btn.btn-outline-light {
 	color:        var(--button-light);
 	border-color: var(--button-light);
-	
-	// &:hover {
-	// 	color: var(--text-darker);
-	// }
+
 	&:hover {
 		background-color: var(--button-light);
 		color: var(--text-inverse);
