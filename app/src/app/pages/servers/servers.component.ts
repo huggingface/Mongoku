@@ -52,8 +52,7 @@ export class ServersComponent implements OnInit {
   }
 
   removeServer(server: ServerJSON) {
-    const id = `${server.name}:${server.port}`;
-    this.mongoDb.removeServer(id)
+    this.mongoDb.removeServer(server.name)
       .subscribe((data: any) => {
         if (data.ok) {
           this.refresh();

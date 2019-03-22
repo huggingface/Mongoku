@@ -32,11 +32,22 @@ export class MongoManager {
       });
       const server = new Server(hostname, client);
       this._servers[hostname] = server;
-      console.info(`[${hostname}] Connected to ${urlStr}`);
+      console.info(`[${hostname}] Connected to ${hostname}`);
     } catch (err) {
-      console.error(`Error while connecting to ${urlStr}:`, err.code, err.message);
+      console.error(`Error while connecting to ${hostname}:`, err.code, err.message);
       this._servers[hostname] = err;
     }
+  }
+
+  private getServer(name: string) {
+    if (name.indexOf(':') === -1) {
+      name = `${name}:27017`;
+    }
+    const server = this._servers[name];
+    if (!server) {
+      throw new Error('Server does not exist');
+    }
+    return server;
   }
 
   async load() {
@@ -50,12 +61,10 @@ export class MongoManager {
 
   async getServersJson(): Promise<Servers> {
     const servers: Servers = [];
-    for (const [host, server] of Object.entries(this._servers)) {
-      const [name, port] = host.split(':');
+    for (const [name, server] of Object.entries(this._servers)) {
       if (server instanceof Error) {
         servers.push({
           name: name,
-          port: port,
           error: {
             code:    server.code,
             name:    server.name,
@@ -72,7 +81,7 @@ export class MongoManager {
   }
 
   async getDatabasesJson(serverName: string): Promise<DatabaseJSON[]> {
-    const server = this._servers[serverName];
+    const server = this.getServer(serverName);
     if (server instanceof Error) {
       return [];
     }
@@ -82,7 +91,7 @@ export class MongoManager {
   }
 
   async getCollectionsJson(serverName: string, databaseName: string): Promise<CollectionJSON[]> {
-    const server = this._servers[serverName];
+    const server = this.getServer(serverName);
     if (server instanceof Error) {
       return [];
     }
@@ -96,7 +105,7 @@ export class MongoManager {
   }
 
   async getCollection(serverName: string, databaseName: string, collectionName: string): Promise<Collection | undefined> {
-    const server = this._servers[serverName];
+    const server = this.getServer(serverName);
     if (server instanceof Error) { return ; }
 
     const database = await server.database(databaseName);

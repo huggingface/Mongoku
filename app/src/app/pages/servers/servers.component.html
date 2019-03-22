@@ -28,10 +28,10 @@
       <tbody>
         <tr *ngFor="let server of servers" [hidden]="loading">
           <td>
-            <a *ngIf="!server.error" routerLink="/servers/{{ server.name }}/databases">{{ server.name }}</a>
+            <a *ngIf="!server.error" routerLink="/servers/{{ server.name | serverName }}/databases">{{ server.name | serverName }}</a>
             <span class="error" *ngIf="server.error">
               <span class="badge badge-danger" [ngbTooltip]="server.error.message" placement="bottom">Error</span>
-              {{server.name}}
+              {{ server.name | serverName }}
             </span>
           </td>
           <td>
