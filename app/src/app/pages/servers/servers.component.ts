@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MongoDbService, ServerJSON } from '../../services/mongo-db.service';
-import { NgbPopover } from '@ng-bootstrap/ng-bootstrap';
+import { NgbPopover, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-servers',
@@ -13,7 +13,7 @@ export class ServersComponent implements OnInit {
   adding = false;
   newServer = "";
 
-  constructor(private mongoDb: MongoDbService) { }
+  constructor(private mongoDb: MongoDbService, private modalService: NgbModal) { }
 
   ngOnInit() {
     this.refresh();
@@ -46,17 +46,23 @@ export class ServersComponent implements OnInit {
     this.mongoDb.addServer(this.newServer)
       .subscribe((data: any) => {
         if (data.ok) {
+          this.newServer = "";
+          this.adding = false;
           this.refresh();
         }
       });
   }
 
-  removeServer(server: ServerJSON) {
-    this.mongoDb.removeServer(server.name)
-      .subscribe((data: any) => {
-        if (data.ok) {
-          this.refresh();
-        }
-      });
+  removeServer(modal: NgbModal, server: ServerJSON) {
+    this.modalService.open(modal, { centered: true }).result.then(confirm => {
+      if (!confirm) { return; }
+
+      this.mongoDb.removeServer(server.name)
+        .subscribe((data: any) => {
+          if (data.ok) {
+            this.refresh();
+          }
+        });
+    });
   }
 }

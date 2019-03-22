@@ -137,3 +137,18 @@ a:hover {
 span.dotted {
 	border-bottom: 1px dotted var(--text);
 }
+
+.modal-content {
+	background-color: var(--color-2);
+	border-color: var(--color-3);
+	color: var(--text);
+
+	.modal-header {
+		padding: 1rem 1rem 0;
+		border-color: var(--color-3);
+	}
+
+	.modal-footer {
+		border-color: var(--color-3);
+	}
+}

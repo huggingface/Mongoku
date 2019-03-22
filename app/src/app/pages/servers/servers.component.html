@@ -47,7 +47,7 @@
           </td>
           <td><span *ngIf="server.databases">{{ server.size | bytes }}</span></td>
           <td class="actions">
-            <button type="button" class="btn btn-outline-danger btn-sm" (click)="removeServer(server)">
+            <button type="button" class="btn btn-outline-danger btn-sm" (click)="removeServer(confirmRemoval, server)">
               Remove from list
             </button>
           </td>
@@ -84,5 +84,18 @@
         </tr>
       </tbody>
     </table>
+  </ng-template>
+
+  <ng-template #confirmRemoval let-modal>
+    <div class="modal-body">
+      <p>
+        Are you sure you wan't to remove this server? This will only remove it from this list.
+        You can add it back
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-light" (click)="modal.close(false)">No</button>
+      <button type="button" class="btn btn-outline-danger" (click)="modal.close(true)">Yes</button>
+    </div>
   </ng-template>
 </div>
