@@ -14,9 +14,9 @@ export { ServerJSON, DatabaseJSON, CollectionJSON };
 @Injectable()
 export class MongoDbService {
   private apiBaseUrl: string = "/api";
-  
+
   constructor(private http: HttpClient, private notifService: NotificationsService) { }
-  
+
   private handleError(error: HttpErrorResponse) {
     const message = error.error.message || `${error.name}: ${error.statusText}`;
     this.notifService.notifyError(message);
@@ -25,7 +25,7 @@ export class MongoDbService {
       message: message
     });
   }
-  
+
   private get<T>(path: string, options?: any) {
     // The following cast is required to get the right typing
     // since we expect and receive an Observable<T> and not a
@@ -35,7 +35,7 @@ export class MongoDbService {
         catchError((err) => this.handleError(err))
       ) as Observable<T>;
   }
-  
+
   private post<T>(path: string, body: any, options?: any) {
     // The following cast is required to get the right typing
     // since we expect and receive an Observable<T> and not a
@@ -45,7 +45,17 @@ export class MongoDbService {
         catchError((err) => this.handleError(err))
       ) as Observable<T>;
   }
-  
+
+  private put<T>(path: string, body: any, options?: any) {
+    // The following cast is required to get the right typing
+    // since we expect and receive an Observable<T> and not a
+    // Observable<HttpEvent<T>>. Weird
+    return <any>this.http.put<T>(path, body, options)
+      .pipe(
+        catchError((err) => this.handleError(err))
+      ) as Observable<T>;
+  }
+
   private delete<T>(path: string, options?: any) {
     // The following cast is required to get the right typing
     // since we expect and receive an Observable<T> and not a
@@ -55,19 +65,27 @@ export class MongoDbService {
         catchError((err) => this.handleError(err))
       ) as Observable<T>;
   }
-  
+
   getServers() {
     return this.get<ServerJSON[]>(`${this.apiBaseUrl}/servers`);
   }
-  
+
+  addServer(url: string) {
+    return this.put(`${this.apiBaseUrl}/servers`, { url: url });
+  }
+
+  removeServer(server: string) {
+    return this.delete(`${this.apiBaseUrl}/servers/${server}`);
+  }
+
   getDatabases(server: string) {
     return this.get<DatabaseJSON[]>(`${this.apiBaseUrl}/servers/${server}/databases`)
   }
-  
+
   getCollections(server: string, database: string) {
     return this.get<CollectionJSON[]>(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections`);
   }
-  
+
   getDocument(server: string, database: string, collection: string, document: string) {
     return this.get(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/documents/${document}`);
   }
@@ -82,15 +100,15 @@ export class MongoDbService {
       }
     });
   }
-  
+
   update(server: string, database: string, collection: string, document: string, update: any) {
     return this.post(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/documents/${document}`, update);
   }
-  
+
   remove(server: string, database: string, collection: string, document: string) {
     return this.delete(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/documents/${document}`);
   }
-  
+
   count(server: string, database: string, collection: string, query: any) {
     return this.get(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/count`, {
       params: {

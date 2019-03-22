@@ -1,17 +1,42 @@
 <div class="row servers-component">
   <panel>
-    <div class="title">Servers</div>
+    <div class="title">
+      <span>Servers</span>
+      <div class="actions">
+        <button class="btn btn-outline-light btn-sm" (click)="adding = !adding">
+          <span *ngIf="adding">Cancel</span>
+          <span *ngIf="!adding">Add Server</span>
+        </button>
+        <div *ngIf="adding">
+          <input type="text" placeholder="user:password@hostname:port" [(ngModel)]="newServer"/>
+        </div>
+        <button *ngIf="adding"
+                class="btn btn-outline-success btn-sm"
+                (click)="addServer()"
+                [disabled]="!newServer.length">
+          Add
+        </button>
+      </div>
+    </div>
     <table class="table table-hover">
       <thead>
         <th>name</th>
         <th>databases</th>
         <th>size</th>
+        <th></th>
       </thead>
       <tbody>
-        <tr *ngFor="let server of servers">
-          <td><a routerLink="/servers/{{ server.name }}/databases">{{ server.name }}</a></td>
+        <tr *ngFor="let server of servers" [hidden]="loading">
+          <td>
+            <a *ngIf="!server.error" routerLink="/servers/{{ server.name }}/databases">{{ server.name }}</a>
+            <span class="error" *ngIf="server.error">
+              <span class="badge badge-danger" [ngbTooltip]="server.error.message" placement="bottom">Error</span>
+              {{server.name}}
+            </span>
+          </td>
           <td>
             <span class="dotted"
+                  *ngIf="server.databases"
                   [ngbPopover]="popContent"
                   placement="right"
                   triggers="manual"
@@ -20,15 +45,20 @@
                   (mouseleave)="toggle(p1)"
             >{{ server.databases.length }}</span>
           </td>
-          <td>{{ server.size | bytes }}</td>
+          <td><span *ngIf="server.databases">{{ server.size | bytes }}</span></td>
+          <td class="actions">
+            <button type="button" class="btn btn-outline-danger btn-sm" (click)="removeServer(server)">
+              Remove from list
+            </button>
+          </td>
         </tr>
         <tr *ngIf="servers.length == 0 && !loading">
-          <td colspan="3">
+          <td colspan="4">
             <div class="center">No servers...</div>
           </td>
         </tr>
         <tr *ngIf="loading">
-          <td colspan="3">
+          <td colspan="4">
             <div class="center">Loading...</div>
           </td>
         </tr>

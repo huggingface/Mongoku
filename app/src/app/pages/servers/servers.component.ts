@@ -10,10 +10,16 @@ import { NgbPopover } from '@ng-bootstrap/ng-bootstrap';
 export class ServersComponent implements OnInit {
   servers: ServerJSON[] = [];
   loading = true;
+  adding = false;
+  newServer = "";
 
   constructor(private mongoDb: MongoDbService) { }
 
   ngOnInit() {
+    this.refresh();
+  }
+
+  refresh() {
     this.mongoDb.getServers()
       .subscribe(data => {
         this.loading = false;
@@ -31,5 +37,22 @@ export class ServersComponent implements OnInit {
         clipped: collection.length - clippedCol.length
       });
     }
+  }
+
+  addServer() {
+    this.mongoDb.addServer(this.newServer)
+      .subscribe(data => {
+        this.loading = true;
+        this.refresh();
+      });
+  }
+
+  removeServer(server: ServerJSON) {
+    const id = `${server.name}:${server.port}`;
+    this.mongoDb.removeServer(id)
+      .subscribe(data => {
+        this.loading = true;
+        this.refresh();
+      });
   }
 }

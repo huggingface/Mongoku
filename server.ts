@@ -35,7 +35,7 @@ const setupServer = () => {
 		});
 	});
 	
-	app.use((err, req, res: express.Response, next) => {
+	app.use((err: Error, req: express.Request, res: express.Response, next) => {
 		res.status(500);
 		
 		return res.json({
@@ -47,11 +47,12 @@ const setupServer = () => {
 	app.listen(3100, () => console.log(`[Mongoku] listening on port 3100`));
 }
 
-factory.load((err) => {
-	if (err) {
+(async () => {
+	try {
+		await factory.load();
+		setupServer();
+	} catch (err) {
 		console.error(err);
 		process.exit(1);
 	}
-	
-	setupServer();
-});
+})();

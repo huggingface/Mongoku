@@ -5,11 +5,13 @@ import { Utils } from './Utils';
 
 export interface ServerJSON {
 	name:      string;
+	port:      string;
 	size:      number;
 	databases: DatabaseJSON[]
 }
 export interface ServerErrorJSON {
 	name:      string;
+	port:      string;
 	error:     {
 		code:    number | undefined;
 		name:    string;
@@ -59,9 +61,11 @@ export class Server {
 			dbsJson.push(json);
 		}
 		Utils.fieldSort(dbsJson, 'name');
-		
+		const [name, port] = this.name.split(':');
+
 		return {
-			name:      this.name,
+			name:      name,
+			port:      port,
 			size:      this.size,
 			databases: dbsJson
 		}

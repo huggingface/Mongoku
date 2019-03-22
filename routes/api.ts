@@ -11,6 +11,24 @@ api.get('/servers', async (req, res, next) => {
 	return res.json(servers);
 });
 
+api.put('/servers', bodyParser.json(), async (req, res, next) => {
+	await factory.hostsManager.add(req.body.url);
+	await factory.mongoManager.load();
+
+	return res.json({
+		ok: true
+	});
+});
+
+api.delete('/servers/:server', async (req, res, next) => {
+	await factory.hostsManager.remove(req.params.server);
+	factory.mongoManager.removeServer(req.params.server);
+
+	return res.json({
+		ok: true
+	});
+});
+
 api.get('/servers/:server/databases', async (req, res, next) => {
 	const server = req.params.server;
 	
