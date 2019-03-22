@@ -102,10 +102,6 @@ a:hover {
 		background-color: var(--button-light);
 		color: var(--text-inverse);
 	}
-
-	&:focus {
-		box-shadow: 0 0 0 0.2rem var(--button-light-transparent);
-	}
 }
 
 .bs-popover-bottom .arrow::after {

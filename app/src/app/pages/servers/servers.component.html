@@ -3,7 +3,7 @@
     <div class="title">
       <span>Servers</span>
       <div class="actions">
-        <button class="btn btn-outline-light btn-sm" (click)="adding = !adding">
+        <button class="btn btn-default btn-sm" (click)="adding = !adding">
           <span *ngIf="adding">Cancel</span>
           <span *ngIf="!adding">Add Server</span>
         </button>
@@ -94,8 +94,8 @@
       </p>
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-outline-light" (click)="modal.close(false)">No</button>
-      <button type="button" class="btn btn-outline-danger" (click)="modal.close(true)">Yes</button>
+      <button type="button" class="btn btn-default btn-sm" (click)="modal.close(false)">No</button>
+      <button type="button" class="btn btn-outline-danger btn-sm" (click)="modal.close(true)">Yes</button>
     </div>
   </ng-template>
 </div>
