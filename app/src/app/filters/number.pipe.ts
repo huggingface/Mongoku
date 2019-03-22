@@ -18,7 +18,7 @@ export class NumberPipe implements PipeTransform {
     if (typeof value === "string") {
       value = parseFloat(value);
     }
-    
+
     const parts: string[] = [];
     while (value > 1000) {
       const remainer = value % 1000;
@@ -26,7 +26,7 @@ export class NumberPipe implements PipeTransform {
       value -= remainer;
       value /= 1000;
     }
-    
+
     let text = `${value}`;
     if (parts.length > 0) {
       text += `,${parts.join(',')}`;

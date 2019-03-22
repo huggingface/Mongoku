@@ -38,13 +38,13 @@ export class PrettyJsonComponent implements OnInit {
   @Output() go = new EventEmitter();
   @Output() edit = new EventEmitter();
   @Output() remove = new EventEmitter();
-  
+
   private gap           = '';
   private listener      = null;
   editJson      = "";
   editorVisible = false;
   removing      = false;
-  
+
   editorOptions = {
     lineNumbers: true,
     theme:       'mongoku',
@@ -55,7 +55,7 @@ export class PrettyJsonComponent implements OnInit {
       'Cmd-Enter':  this.outsideSave.bind(this),
     }
   }
-  
+
   constructor(
     private el: ElementRef,
     private renderer: Renderer2,
@@ -66,40 +66,40 @@ export class PrettyJsonComponent implements OnInit {
 
   ngOnInit() {
     const v = this.createView('_', {'_': this.json });
-    
+
     const container = this.el.nativeElement.querySelector(".pretty-json");
     this.renderer.appendChild(container, v);
-    
+
     this.listener = this.renderer.listen(this.el.nativeElement, 'click', this.collapse.bind(this));
   }
-  
+
   ngOnDestroy() {
     this.listener && this.listener();
   }
-  
+
   enableEditor() {
     this.collapseAll(false);
     this.editJson = this.el.nativeElement.querySelector(".pretty-json").innerText.replace(/(\s{2,})\n/g, "$1");
     this.editorVisible = true;
   }
-  
+
   disableEditor() {
     this.editorVisible = false;
     this.editJson = "";
   }
-  
+
   updateEditor() {
     this.el.nativeElement
       .querySelectorAll(`.CodeMirror-lines .CodeMirror-code > div.error`)
       .forEach(e => this.renderer.removeClass(e, 'error'));
   }
-  
+
   outsideSave() {
     this.zone.run(() => {
       this.save();
     })
   }
-  
+
   save() {
     try {
       const updatedJson = this.jsonParser.parse(this.editJson, false);
@@ -115,59 +115,59 @@ export class PrettyJsonComponent implements OnInit {
       this.notifService.notifyError(message);
     }
   }
-  
+
   showRemove() {
     this.removing = true;
   }
-  
+
   cancelRemove() {
     this.removing = false;
   }
-  
+
   confirmRemove() {
     this.remove.emit();
   }
-  
+
   goToDocument(event) {
     event.preventDefault();
     this.go.emit(this.json._id.$value);
   }
-  
+
   private isObject(obj: any) {
     const type = typeof obj;
     return type === 'function' || type === 'object' && !!obj;
   }
-  
+
   private element(type: string, classes?: string, child?: any) {
     const el = this.renderer.createElement(type);
-    
+
     if (classes) {
       for (const c of classes.split(' ')) {
         this.renderer.addClass(el, c);
       }
     }
-    
+
     if (child) {
       if (typeof child === "string") {
         child = this.text(child);
       }
       this.renderer.appendChild(el, child);
     }
-    
+
     return el;
   }
-  
+
   private span(classes: string, child?: any) {
     return this.element("span", classes, child);
   }
-  
+
   private text(t: string) {
     return this.renderer.createText(t);
   }
-  
+
   private quote(str: string) {
     const el = this.span('value quoted');
-    
+
     // If the string contains no control characters, no quote characters,
     // and no backslash characters, then we can safely slap some quotes
     // around it. Otherwise we must replace the offending characters with
@@ -176,9 +176,9 @@ export class PrettyJsonComponent implements OnInit {
     if (RX_ESCAPABLE.test(str)) {
       str = str.replace(RX_ESCAPABLE, ESCAPE)
     }
-    
+
     let child;
-    
+
     // Link the string
     if (RX_LINKABLE.test(str)) {
       child = this.element('a', 'string');
@@ -186,27 +186,27 @@ export class PrettyJsonComponent implements OnInit {
     } else {
       child = this.span('string');
     }
-    
+
     this.renderer.appendChild(child, this.text(str));
-    
+
     this.renderer.appendChild(el, this.text('"'));
     this.renderer.appendChild(el, child);
     this.renderer.appendChild(el, this.text('"'));
-    
+
     return el;
   }
-  
+
   private prop(key: string) {
     if (REGEX_ES5_RES.test(key) || !REGEX_ID.test(key)) {
       key = '"' + key.replace(RX_ESCAPABLE, ESCAPE) + '"';
     }
-    
+
     return this.element('var', null, key);
   }
-  
+
   private fnCall(fn: string, values: any[], classes?: string) {
     const span = this.span('call ' + classes);
-    
+
     this.renderer.appendChild(span, this.text(fn + '('));
     values.forEach((value, i) => {
       this.renderer.appendChild(span, value);
@@ -214,38 +214,38 @@ export class PrettyJsonComponent implements OnInit {
         this.renderer.appendChild(span, this.text(', '));
       }
     });
-    
+
     this.renderer.appendChild(span, this.text(')'));
-    
+
     return span;
   }
-  
+
   private createView(key, holder) {
     let mind      = this.gap;
     let indent    = '    ';
     let value     = holder[key];
     let spanClass;
-    
+
     // If the value has a toJSON method, call it to obtain a replacement value.
     if (this.isObject(value) && typeof value.toJSON === 'function') {
       value = value.toJSON(key);
     }
-    
+
     switch (typeof value) {
       case 'string':
         return this.quote(value);
-      
+
       case 'number':
         return this.span('value number', isFinite(value) ? String(value) : 'non-finite');
-      
+
       case 'boolean':
         return this.span('value boolean', String(value));
-      
+
       case 'object':
         if (value === null) {
           return this.span('value null', 'null');
         }
-        
+
         // Handle serialized Mongoku objects here
         if (value.$type === 'ObjectId') {
           return this.fnCall('ObjectId', [ this.quote(value.$value) ], 'function');
@@ -256,36 +256,36 @@ export class PrettyJsonComponent implements OnInit {
         if (value.$type === 'RegExp') {
           return this.span('value regexp', `/${value.$value.$pattern}/${value.$value.$flags}`);
         }
-        
+
         this.gap += indent;
-        
+
         // If this is an Array
         if (Array.isArray(value)) {
           if (value.length === 0) {
             this.gap = mind;
             return this.span('value array', '[]');
           }
-          
+
           const el = this.span('value array');
           el.collapsible = true;
-          
+
           this.renderer.appendChild(el, this.text('[\n' + this.gap));
           const glue = this.text(',\n' + this.gap);
-          
+
           for (let i = 0; i < value.length; i ++) {
             if (i > 0) {
               this.renderer.appendChild(el, glue.cloneNode(false));
             }
-            
+
             this.renderer.appendChild(el, this.createView(i, value) || this.span('value null', 'null'));
           }
-          
+
           this.renderer.appendChild(el, this.text('\n' + mind + ']'));
           this.gap = mind;
-          
+
           return el;
         }
-        
+
         // Iterate through all the keys in the object.
         const partial = [];
         const cologn = this.text(': ');
@@ -296,17 +296,17 @@ export class PrettyJsonComponent implements OnInit {
               spanClass = 'prop'
                 + (view.collapsible ? ' collapsible' : '')
                 + (view.collapsible && this.autoCollapse ? ' collapsed' : '');
-              
+
               const prop = this.span(spanClass);
-              
+
               if (view.collapsible) {
                 this.renderer.appendChild(prop, this.element('button'));
               }
-              
+
               this.renderer.appendChild(prop, this.prop(k));
               this.renderer.appendChild(prop, cologn.cloneNode(false));
               this.renderer.appendChild(prop, view);
-              
+
               if (view.collapsible) {
                 const isObj = view.classList.contains('object');
                 const child = this.span('e');
@@ -315,25 +315,25 @@ export class PrettyJsonComponent implements OnInit {
                 this.renderer.appendChild(child, this.text(isObj ? ' }' : ' ]'));
                 this.renderer.appendChild(prop, child);
               }
-              
+
               partial.push(prop);
             }
           }
         }
-        
+
         // Join all of the member texts together, separated with commas,
         // and wrap them in braces.
         spanClass = 'value object';
-        
+
         if (partial.length === 0) {
           this.gap = mind;
           return this.span(spanClass, this.text('{}'));
         }
-        
+
         const el = this.span(spanClass);
         el.collapsible = true;
         this.renderer.appendChild(el, this.text('{\n' + this.gap));
-        
+
         const glue = this.text(',\n' + this.gap);
         for (let i = 0; i < partial.length; i++) {
           if (i > 0) {
@@ -341,14 +341,14 @@ export class PrettyJsonComponent implements OnInit {
           }
           this.renderer.appendChild(el, partial[i]);
         }
-        
+
         this.renderer.appendChild(el, this.text('\n' + mind + '}'));
         this.gap = mind;
-        
+
         return el;
     }
   }
-  
+
   private collapseAll(state: boolean = true) {
     const items = this.el.nativeElement.querySelectorAll('.collapsible');
     items.forEach(i => {
@@ -359,17 +359,17 @@ export class PrettyJsonComponent implements OnInit {
       }
     });
   }
-  
+
   private collapse(event) {
     let item = event.target.parentNode;
-    
+
     // If the user clicked on the `...`
     if (item.classList.contains("e")) {
       item = item.parentNode;
     }
     // If the user clicked on something not collapsible
     if (!item.classList.contains('collapsible')) { return; }
-    
+
     const collapsed = item.classList.contains('collapsed');
     if (collapsed) {
       this.renderer.removeClass(item, 'collapsed');

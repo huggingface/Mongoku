@@ -12,11 +12,11 @@ type EsTreeNode = any;
 export class JsonParserService {
 
   constructor(private notifService: NotificationsService) { }
-  
+
   private reportError(message: string) {
     this.notifService.notifyError(message);
   }
-  
+
   private buildObject(node: EsTreeNode) {
     switch (node.type) {
       case 'ObjectExpression': {
@@ -31,12 +31,12 @@ export class JsonParserService {
             this.reportError(`Expected "Identifier" but received: ${prop.key.type}`);
             return null;
           }
-          
+
           obj[name] = this.buildObject(prop.value);
         }
         return obj;
       }
-      
+
       case 'ArrayExpression': {
         const obj: any[] = [];
         for (const prop of node.elements) {
@@ -44,7 +44,7 @@ export class JsonParserService {
         }
         return obj;
       }
-      
+
       case 'Literal': {
         if (node.value instanceof RegExp) {
           return {
@@ -55,19 +55,19 @@ export class JsonParserService {
             }
           }
         }
-        
+
         return node.value;
       }
-      
+
       case 'UnaryExpression': {
         let arg = this.buildObject(node.argument);
         let exp = node.prefix
           ? `${node.operator}${arg}`
           : `${arg}${node.operator}`;
-          
+
         return eval(exp);
       }
-      
+
       case 'NewExpression':
       case 'CallExpression': {
         const authorizedCalls = [ 'ObjectId', 'Date', 'RegExp' ];
@@ -85,7 +85,7 @@ export class JsonParserService {
               }
             }
           }
-          
+
           return {
             $type:  callee,
             $value: this.buildObject(node.arguments[0])
@@ -95,13 +95,13 @@ export class JsonParserService {
           return null;
         }
       }
-      
+
       default:
         this.reportError(`Sorry but ${node.type} are not authorized`);
         return null;
     }
   }
-  
+
   parse(text: string, reportError: boolean = true) {
     let tree;
     const error = (err?) => {
@@ -112,26 +112,26 @@ export class JsonParserService {
       }
       throw err;
     }
-      
+
     try {
       tree = parseScript(`var __JSON__ = ${text};`, {
         tolerant: true
       });
-      
+
       if (tree.type !== "Program") {
         return error();
       }
-      
+
       const varDeclaration = tree.body[0];
       if (varDeclaration.type !== 'VariableDeclaration') {
         return error();
       }
-      
+
       const objExpression = varDeclaration.declarations[0].init;
       if (objExpression.type !== 'ObjectExpression') {
         return error();
       }
-      
+
       return this.buildObject(objExpression);
     } catch (err) {
       return error(err);

@@ -14,11 +14,11 @@ export class DocumentComponent implements OnInit {
   database:   string;
   collection: string;
   document:   string;
-  
+
   item;
-  
+
   loading = true;
-  
+
   constructor(
     private router:         Router,
     private activatedRoute: ActivatedRoute,
@@ -32,18 +32,18 @@ export class DocumentComponent implements OnInit {
       this.database   = d.get("database");
       this.collection = d.get("collection");
       this.document   = d.get("document");
-      
+
       this.get();
     })
   }
-  
+
   get() {
     this.mongodb.getDocument(this.server, this.database, this.collection, this.document).subscribe((res: any) => {
       this.loading = false;
       this.item = res.document;
     });
   }
-  
+
   editDocument(json) {
     const newId = json && json._id && json._id.$value;
     const oldId = this.item && this.item._id && this.item._id.$value;
@@ -51,7 +51,7 @@ export class DocumentComponent implements OnInit {
       this.notifService.notifyError("ObjectId changed. This is not supported, updated canceled.");
       return ;
     }
-    
+
     this.loading = true;
     this.mongodb.update(this.server, this.database, this.collection, oldId, json)
       .subscribe((res: any) => {
@@ -59,7 +59,7 @@ export class DocumentComponent implements OnInit {
         this.item = res.update;
       });
   }
-  
+
   remove() {
     this.mongodb.remove(this.server, this.database, this.collection, this.document)
       .subscribe((res: any) => {

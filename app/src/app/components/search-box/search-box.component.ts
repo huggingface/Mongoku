@@ -15,7 +15,7 @@ export interface SearchParams {
 export class SearchBoxComponent implements OnInit, OnChanges {
   @Output() search = new EventEmitter();
   @Input()  params: SearchParams;
-  
+
   private ready = false;
   private defaults = {
     query: "{}",
@@ -28,7 +28,7 @@ export class SearchBoxComponent implements OnInit, OnChanges {
     skip:  false,
     sort:  false
   };
-  
+
   ngOnInit() {
     // Keep original params
     for (const [k, v] of Object.entries(this.defaults)) {
@@ -36,22 +36,22 @@ export class SearchBoxComponent implements OnInit, OnChanges {
         // Bad value, use default
         this.params[k] = v;
       }
-      
+
       if (this.params[k] !== v) {
         this.show[k] = true;
       }
     }
-    
+
     this.ready = true;
     this.go();
   }
-  
+
   ngOnChanges() {
     if (!this.ready) { return; }
-    
+
     this.go();
   }
-  
+
   toggle(add: boolean, type: "limit" | "skip" | "sort") {
     this.show[type] = add;
     if (!add && this.params[type] !== this.defaults[type]) {
@@ -68,10 +68,10 @@ export class SearchBoxComponent implements OnInit, OnChanges {
     if (this.params.query === "") {
       this.params.query = "{}";
     }
-    
+
     this.search.emit();
   }
-  
+
   keyPress(event) {
     if (event.keyCode === 13) {
       this.go();

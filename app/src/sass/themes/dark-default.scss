@@ -3,25 +3,25 @@
 	--color-2: hsl(220, 23%, 21%);
 	--color-3: hsl(217, 20%, 25%);
 	--color-4: hsl(220, 20%, 30%);
-	
+
 	--background-color: var(--color-1);
 	--panel-title:      var(--color-2);
 	--panel-body:       var(--color-2);
-	
+
 	--text:           hsl(0, 0%, 88%);
 	--text-inverse:   hsl(0, 0%, 12%);
 	--text-darker:    hsl(0, 0%, 57%);
 	--text-lighter:   hsl(0, 0%, 100%);
 	--link:           hsl(211, 100%, 89%);
-	
+
 	--error:          hsl(0, 78%, 28%);
-	
+
 	--button-danger:  #a31515;
 	--button-danger-l:#a54c4c;
 	--button-success: #008000;
 	--button-success-l: #4e994e;
 	--button-light:   var(--text);
-	
+
 	--code-namespace: #9cdcfe;
 	--code-boolean:   #569cd6;
 	--code-null:      #569cd6;

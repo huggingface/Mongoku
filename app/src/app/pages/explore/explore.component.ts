@@ -17,19 +17,19 @@ export class ExploreComponent implements OnInit {
   server:     string;
   database:   string;
   collection: string;
-  
+
   params: Partial<SearchParams>;
   loading    = {
     content: true,
     count:   true
   };
-  
+
   count      = {
     total: 0,
     start: 0
   }
   items      = [];
-  
+
   constructor(
     private activatedRoute: ActivatedRoute,
     private router:         Router,
@@ -37,7 +37,7 @@ export class ExploreComponent implements OnInit {
     private jsonParser:     JsonParserService,
     private notifService:   NotificationsService,
   ) { }
-  
+
   ngOnInit() {
     combineLatest(
       this.activatedRoute.paramMap,
@@ -46,7 +46,7 @@ export class ExploreComponent implements OnInit {
       this.server     = params.get("server");
       this.database   = params.get("database");
       this.collection = params.get("collection");
-      
+
       let query;
       let sort;
       let limit;
@@ -63,59 +63,59 @@ export class ExploreComponent implements OnInit {
       if (queryParams.has('limit')) {
         limit = parseInt(queryParams.get('limit'), 10);
       }
-      
+
       this.params = {
         query, sort, limit, skip
       }
     });
   }
-  
+
   update(upd: boolean = true) {
     if (!this.params || !this.params.query) { return; }
-    
+
     const query = JSON.stringify(this.jsonParser.parse(this.params.query));
     const sort  = (this.params.sort !== "")
       ? JSON.stringify(this.jsonParser.parse(this.params.sort))
       : "{}";
     if (!query || !sort) { return ; }
-    
+
     if (upd) {
       this.router.navigate([], {
         relativeTo:  this.activatedRoute,
         queryParams: this.params
       });
     }
-    
+
     // Set loading status
     this.loading.content = true;
     this.loading.count = true;
-    
+
     // Reset status
     this.items = [];
     this.count.total = 0;
-    
+
     // Load Content
     this.mongoDb.query(this.server, this.database, this.collection, query, sort, this.params.skip, this.params.limit)
       .subscribe((res: any) => {
         this.loading.content = false;
-        
+
         if (res.ok) {
           this.items = res.results;
         }
       });
-    
+
     // Count documents
     this.mongoDb.count(this.server, this.database, this.collection, query)
       .subscribe((res: any) => {
         this.loading.count = false;
-        
+
         if (res.ok) {
           this.count.total = res.count;
           this.count.start = this.params.skip;
         }
       });
   }
-  
+
   go(documentId) {
     this.router.navigate([
       "servers",     this.server,
@@ -124,7 +124,7 @@ export class ExploreComponent implements OnInit {
       "documents",   documentId
     ]);
   }
-  
+
   editDocument(_id, json) {
     const newId = json && json._id && json._id.$value;
     const oldId = _id && _id.$value;
@@ -132,7 +132,7 @@ export class ExploreComponent implements OnInit {
       this.notifService.notifyError("ObjectId changed. This is not supported, updated canceled.");
       return ;
     }
-    
+
     this.mongoDb.update(this.server, this.database, this.collection, oldId, json)
       .subscribe((res: any) => {
         this.items.forEach((item, index) => {
@@ -143,31 +143,31 @@ export class ExploreComponent implements OnInit {
         });
       });
   }
-  
+
   remove(_id) {
     const document = _id && _id.$value;
     if (!document) { return; }
-    
+
     this.mongoDb.remove(this.server, this.database, this.collection, document)
       .subscribe((res: any) => {
         const index = this.items.findIndex(v => v._id && v._id.$value && v._id.$value === document);
         this.items.splice(index, 1);
       })
   }
-  
+
   get hasNext() {
     return this.count.start + this.items.length < this.count.total;
   }
-  
+
   next() {
     this.params.skip = this.params.skip + this.params.limit;
     this.update();
   }
-  
+
   get hasPrevious() {
     return this.count.start > 0;
   }
-  
+
   previous() {
     this.params.skip = Math.max(0, this.params.skip - this.params.limit);
     this.update();

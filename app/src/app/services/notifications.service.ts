@@ -9,17 +9,17 @@ interface Notification {
 @Injectable()
 export class NotificationsService {
   private notificationsSource = new Subject<Notification>();
-  
+
   notifications = this.notificationsSource.asObservable();
-  
+
   constructor() { }
-  
+
   notifyError(message: string) {
     const notif: Notification = {
       type:    "error",
       message: message
     };
-    
+
     this.notificationsSource.next(notif);
   }
 }

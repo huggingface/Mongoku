@@ -4,7 +4,7 @@
 	right: 10px;
 	max-width: 500px;
 	z-index: 150;
-	
+
 	.notification {
 		position: relative;
 		padding: 10px 30px;
@@ -12,22 +12,22 @@
 		word-wrap: break-word;;
 		opacity: 0;
 		transition: opacity linear .2s;
-		
+
 		background: var(--color-1);
 		border: 1px solid var(--color-3);
 		border-radius: 5px;
-		
+
 		color: var(--text-lighter);
 	}
-	
+
 	.notification.error {
 		background: var(--error);
 	}
-	
+
 	.notification.show {
 		opacity: 1;
 	}
-	
+
 	.close {
 		color: var(--text-lighter);
 		text-shadow: none;

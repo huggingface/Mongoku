@@ -8,11 +8,11 @@ import { NotificationsService } from '../../services/notifications.service';
 })
 export class NotificationsComponent implements OnInit {
   private _notifications = [];
-  
+
   get notifications() {
     return Object.values(this._notifications);
   }
-  
+
   constructor(private notifService: NotificationsService) { }
 
   ngOnInit() {
@@ -23,7 +23,7 @@ export class NotificationsComponent implements OnInit {
       }, 10);
     })
   }
-  
+
   dismiss(notif) {
     this._notifications[notif.message].show = false;
     setTimeout(() => {

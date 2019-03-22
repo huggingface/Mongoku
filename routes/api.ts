@@ -7,199 +7,199 @@ export const api = express.Router();
 
 // Get servers
 api.get('/servers', async (req, res, next) => {
-	const servers = await factory.mongoManager.getServersJson();
-	return res.json(servers);
+  const servers = await factory.mongoManager.getServersJson();
+  return res.json(servers);
 });
 
 api.put('/servers', bodyParser.json(), async (req, res, next) => {
-	try {
-		await factory.hostsManager.add(req.body.url);
-		await factory.mongoManager.load();
-	} catch (err) {
-		return next(err);
-	}
+  try {
+    await factory.hostsManager.add(req.body.url);
+    await factory.mongoManager.load();
+  } catch (err) {
+    return next(err);
+  }
 
-	return res.json({
-		ok: true
-	});
+  return res.json({
+    ok: true
+  });
 });
 
 api.delete('/servers/:server', async (req, res, next) => {
-	try {
-		await factory.hostsManager.remove(req.params.server);
-		factory.mongoManager.removeServer(req.params.server);
-	} catch (err) {
-		return next(err);
-	}
+  try {
+    await factory.hostsManager.remove(req.params.server);
+    factory.mongoManager.removeServer(req.params.server);
+  } catch (err) {
+    return next(err);
+  }
 
-	return res.json({
-		ok: true
-	});
+  return res.json({
+    ok: true
+  });
 });
 
 api.get('/servers/:server/databases', async (req, res, next) => {
-	const server = req.params.server;
-	
-	try {
-		const databases = await factory.mongoManager.getDatabasesJson(server);
-		return res.json(databases);
-	} catch (err) {
-		return next(err);
-	}
+  const server = req.params.server;
+
+  try {
+    const databases = await factory.mongoManager.getDatabasesJson(server);
+    return res.json(databases);
+  } catch (err) {
+    return next(err);
+  }
 });
 
 api.get('/servers/:server/databases/:database/collections', async (req, res, next) => {
-	const server   = req.params.server;
-	const database = req.params.database;
-	
-	try {
-		const collections = await factory.mongoManager.getCollectionsJson(server, database);
-		return res.json(collections);
-	} catch (err) {
-		return next(err);
-	}
+  const server   = req.params.server;
+  const database = req.params.database;
+
+  try {
+    const collections = await factory.mongoManager.getCollectionsJson(server, database);
+    return res.json(collections);
+  } catch (err) {
+    return next(err);
+  }
 });
 
 api.get('/servers/:server/databases/:database/collections/:collection/documents/:document', async (req, res, next) => {
-	const server     = req.params.server;
-	const database   = req.params.database;
-	const collection = req.params.collection;
-	const document   = req.params.document;
-	
-	try {
-		const c = await factory.mongoManager.getCollection(server, database, collection);
-		if (!c) {
-			return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
-		}
-		
-		const doc = await c.findOne(document);
-		if (!doc) {
-			return next(new Error("This document does not exist"));
-		}
-		
-		return res.json({
-			ok:       true,
-			document: doc
-		});
-	} catch (err) {
-		return next(err);
-	}
+  const server     = req.params.server;
+  const database   = req.params.database;
+  const collection = req.params.collection;
+  const document   = req.params.document;
+
+  try {
+    const c = await factory.mongoManager.getCollection(server, database, collection);
+    if (!c) {
+      return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
+    }
+
+    const doc = await c.findOne(document);
+    if (!doc) {
+      return next(new Error("This document does not exist"));
+    }
+
+    return res.json({
+      ok:       true,
+      document: doc
+    });
+  } catch (err) {
+    return next(err);
+  }
 });
 
 api.post('/servers/:server/databases/:database/collections/:collection/documents/:document', bodyParser.json(), async (req, res, next) => {
-	const server     = req.params.server;
-	const database   = req.params.database;
-	const collection = req.params.collection;
-	const document   = req.params.document;
-	
-	try {
-		const c = await factory.mongoManager.getCollection(server, database, collection);
-		if (!c) {
-			return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
-		}
-		const update = await c.updateOne(document, req.body);
-		
-		return res.json({
-			ok:     true,
-			update: update
-		});
-	} catch (err) {
-		return next(err);
-	}
+  const server     = req.params.server;
+  const database   = req.params.database;
+  const collection = req.params.collection;
+  const document   = req.params.document;
+
+  try {
+    const c = await factory.mongoManager.getCollection(server, database, collection);
+    if (!c) {
+      return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
+    }
+    const update = await c.updateOne(document, req.body);
+
+    return res.json({
+      ok:     true,
+      update: update
+    });
+  } catch (err) {
+    return next(err);
+  }
 })
 
 api.delete('/servers/:server/databases/:database/collections/:collection/documents/:document', async (req, res, next) => {
-	const server     = req.params.server;
-	const database   = req.params.database;
-	const collection = req.params.collection;
-	const document   = req.params.document;
-	
-	try {
-		const c = await factory.mongoManager.getCollection(server, database, collection);
-		if (!c) {
-			return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
-		}
-		
-		await c.removeOne(document);
-		
-		return res.json({
-			ok: true
-		});
-	} catch (err) {
-		return next(err);
-	}
+  const server     = req.params.server;
+  const database   = req.params.database;
+  const collection = req.params.collection;
+  const document   = req.params.document;
+
+  try {
+    const c = await factory.mongoManager.getCollection(server, database, collection);
+    if (!c) {
+      return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
+    }
+
+    await c.removeOne(document);
+
+    return res.json({
+      ok: true
+    });
+  } catch (err) {
+    return next(err);
+  }
 });
 
 api.get('/servers/:server/databases/:database/collections/:collection/query', async (req, res, next) => {
-	const server     = req.params.server;
-	const database   = req.params.database;
-	const collection = req.params.collection;
-	
-	let query = req.query.q;
-	if (typeof query !== "object") {
-		try {
-			query = JSON.parse(query);
-		} catch (err) {
-			return next(new Error(`Invalid query: ${query}`));
-		}
-	}
-	let sort = req.query.sort || "{}";
-	if (sort && typeof sort !== "object") {
-		try {
-			sort = JSON.parse(sort);
-		} catch (err) {
-			return next(new Error(`Invalid order: ${sort}`));
-		}
-	}
-	let limit = parseInt(req.query.limit, 10);
-	if (isNaN(limit)) { limit = 20; }
-	let skip  = parseInt(req.query.skip, 10);
-	if (isNaN(skip)) { skip = 0; }
-	
-	const c = await factory.mongoManager.getCollection(server, database, collection);
-	if (!c) {
-		return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
-	}
-	
-	try {
-		const results = await c.find(query, sort, limit, skip);
-	
-		return res.json({
-			ok:      true,
-			results: results
-		});
-	} catch(err) {
-		return next(err);
-	}
+  const server     = req.params.server;
+  const database   = req.params.database;
+  const collection = req.params.collection;
+
+  let query = req.query.q;
+  if (typeof query !== "object") {
+    try {
+      query = JSON.parse(query);
+    } catch (err) {
+      return next(new Error(`Invalid query: ${query}`));
+    }
+  }
+  let sort = req.query.sort || "{}";
+  if (sort && typeof sort !== "object") {
+    try {
+      sort = JSON.parse(sort);
+    } catch (err) {
+      return next(new Error(`Invalid order: ${sort}`));
+    }
+  }
+  let limit = parseInt(req.query.limit, 10);
+  if (isNaN(limit)) { limit = 20; }
+  let skip  = parseInt(req.query.skip, 10);
+  if (isNaN(skip)) { skip = 0; }
+
+  const c = await factory.mongoManager.getCollection(server, database, collection);
+  if (!c) {
+    return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
+  }
+
+  try {
+    const results = await c.find(query, sort, limit, skip);
+
+    return res.json({
+      ok:      true,
+      results: results
+    });
+  } catch(err) {
+    return next(err);
+  }
 });
 
 api.get('/servers/:server/databases/:database/collections/:collection/count', async (req, res, next) => {
-	const server     = req.params.server;
-	const database   = req.params.database;
-	const collection = req.params.collection;
-	
-	let query = req.query.q;
-	if (typeof query !== "object") {
-		try {
-			query = JSON.parse(query);
-		} catch (err) {
-			return next(new Error(`Invalid query: ${query}`));
-		}
-	}
-	
-	const c = await factory.mongoManager.getCollection(server, database, collection);
-	if (!c) {
-		return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
-	}
-	
-	try {
-		const count = await c.count(query);
-		
-		return res.json({
-			ok:    true,
-			count: count
-		});
-	} catch (err) {
-		return next(err);
-	}
+  const server     = req.params.server;
+  const database   = req.params.database;
+  const collection = req.params.collection;
+
+  let query = req.query.q;
+  if (typeof query !== "object") {
+    try {
+      query = JSON.parse(query);
+    } catch (err) {
+      return next(new Error(`Invalid query: ${query}`));
+    }
+  }
+
+  const c = await factory.mongoManager.getCollection(server, database, collection);
+  if (!c) {
+    return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
+  }
+
+  try {
+    const count = await c.count(query);
+
+    return res.json({
+      ok:    true,
+      count: count
+    });
+  } catch (err) {
+    return next(err);
+  }
 });

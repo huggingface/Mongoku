@@ -2,20 +2,20 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	
+
 	.objectid {
 		font-size: 1.2em;
 	}
-	
+
 	.date {
 		margin-left: 20px;
 		font-size: 0.7em;
 		color: var(--text-darker);
 	}
-	
+
 	.actions {
 		display: none;
-		
+
 		& > .btn {
 			margin-left: 10px;
 			padding: 2px 5px 0;
@@ -45,7 +45,7 @@
 	z-index: 10;
 	right: 20px;
 	top: 15px;
-	
+
 	& > .btn {
 		margin-left: 10px;
 		padding: 2px 5px 0;
@@ -62,14 +62,14 @@
 	border-radius: 5px;
 	background: var(--text-inverse);
 	opacity: 0.7;
-	
+
 	p {
 		color: var(--text);
 		text-align: center;
 		margin-top: 20px;
 		font-size: 2em;
 	}
-	
+
 	.remove-actions {
 		position: absolute;
 		width: 100%;
@@ -78,7 +78,7 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		
+
 		.btn { margin: 20px; }
 	}
 }
@@ -89,24 +89,24 @@
 	white-space: pre;
 	font-size: 0.9em;
 	padding: 0 22px 22px;
-	
+
 	display: block; // For line-height below
 	line-height: 1.3;
-	
+
 	.null {
 		color: var(--code-null);
 	}
 	.boolean {
 		color: var(--code-boolean);
 	}
-	
+
 	.number {
 		color: var(--code-numbers);
 	}
-	
+
 	.quoted {
 		color: var(--code-string);
-		
+
 		.string {
 			color: var(--code-string);
 			a:link, a:visited {
@@ -118,33 +118,33 @@
 			}
 		}
 	}
-	
+
 	.regexp {
 		color: var(--code-regexp);
 	}
-	
+
 	.function {
 		color: var(--code-function);
 	}
-	
+
 	var {
 		color: var(--code-namespace);
 		font-style: normal;
 	}
-	
+
 	.prop {
 		position: relative;
-		
+
 		.e {
 			display: none;
 			cursor: pointer;
-			
+
 			.summary, q {
 				color: var(--code-summary);
 				font-style: italic;
 			}
 		}
-	
+
 		.collapser, button {
 			display: block;
 			cursor: pointer;
@@ -158,7 +158,7 @@
 			line-height: 0;
 			color: transparent;
 			overflow: hidden;
-			
+
 			&:after {
 				display: block;
 				position: absolute;
@@ -167,7 +167,7 @@
 				height: 0;
 				width: 0;
 				content: ' ';
-				
+
 				border: 4px solid transparent;
 				border-top-color: var(--text);
 			}
@@ -175,12 +175,12 @@
 				border-top-color: var(--text);
 			}
 		}
-		
+
 		button {
 			border: none;
 			background-color: transparent;
 		}
-		
+
 		&.collapsed {
 			button {
 				&:after {

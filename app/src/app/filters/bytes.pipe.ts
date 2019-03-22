@@ -7,7 +7,7 @@ export class BytesPipe implements PipeTransform {
   private units = [
     "B", "KB", "MB", "GB", "TB", "PB"
   ];
-  
+
   transform(value: any): any {
     let n = value || 0;
     let i = 0;

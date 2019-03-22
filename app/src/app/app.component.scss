@@ -1,11 +1,11 @@
 .navbar .breadcrumb {
 	margin-bottom: 0;
-	
+
 	a {
 		text-decoration: none;
 		color: var(--text);
 	}
-	
+
 	.breadcrumb-item.active {
 		color: var(--text-darker);
 	}
@@ -13,7 +13,7 @@
 
 .navbar-brand {
 	color: var(--text);
-	
+
 	&:hover {
 		color: var(--text-lighter);
 	}
