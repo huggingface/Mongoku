@@ -12,8 +12,12 @@ api.get('/servers', async (req, res, next) => {
 });
 
 api.put('/servers', bodyParser.json(), async (req, res, next) => {
-	await factory.hostsManager.add(req.body.url);
-	await factory.mongoManager.load();
+	try {
+		await factory.hostsManager.add(req.body.url);
+		await factory.mongoManager.load();
+	} catch (err) {
+		return next(err);
+	}
 
 	return res.json({
 		ok: true
@@ -21,8 +25,12 @@ api.put('/servers', bodyParser.json(), async (req, res, next) => {
 });
 
 api.delete('/servers/:server', async (req, res, next) => {
-	await factory.hostsManager.remove(req.params.server);
-	factory.mongoManager.removeServer(req.params.server);
+	try {
+		await factory.hostsManager.remove(req.params.server);
+		factory.mongoManager.removeServer(req.params.server);
+	} catch (err) {
+		return next(err);
+	}
 
 	return res.json({
 		ok: true

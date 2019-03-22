@@ -23,7 +23,9 @@ export class DatabasesComponent implements OnInit {
       this.mongoDb.getDatabases(this.server)
         .subscribe((databases) => {
           this.loading = false;
-          this.databases = databases;
+          if (Array.isArray(databases)) {
+            this.databases = databases;
+          }
         });
     });
   }

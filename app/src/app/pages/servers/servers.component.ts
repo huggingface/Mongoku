@@ -20,10 +20,13 @@ export class ServersComponent implements OnInit {
   }
 
   refresh() {
+    this.loading = true;
     this.mongoDb.getServers()
       .subscribe(data => {
         this.loading = false;
-        this.servers = data;
+        if (Array.isArray(data)) {
+          this.servers = data;
+        }
       });
   }
 
@@ -41,18 +44,20 @@ export class ServersComponent implements OnInit {
 
   addServer() {
     this.mongoDb.addServer(this.newServer)
-      .subscribe(data => {
-        this.loading = true;
-        this.refresh();
+      .subscribe((data: any) => {
+        if (data.ok) {
+          this.refresh();
+        }
       });
   }
 
   removeServer(server: ServerJSON) {
     const id = `${server.name}:${server.port}`;
     this.mongoDb.removeServer(id)
-      .subscribe(data => {
-        this.loading = true;
-        this.refresh();
+      .subscribe((data: any) => {
+        if (data.ok) {
+          this.refresh();
+        }
       });
   }
 }

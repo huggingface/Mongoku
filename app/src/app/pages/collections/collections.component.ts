@@ -25,7 +25,9 @@ export class CollectionsComponent implements OnInit {
       this.mongoDb.getCollections(this.server, this.database)
         .subscribe((collections) => {
           this.loading = false;
-          this.collections = collections;
+          if (Array.isArray(collections)) {
+            this.collections = collections;
+          }
         });
     });
   }
