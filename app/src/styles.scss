@@ -23,6 +23,7 @@ body {
 
 nav.navbar {
 	border-bottom: 1px solid var(--color-3);
+	padding-top: 0.6rem;
 }
 
 .navbar-brand {
@@ -100,6 +101,10 @@ a:hover {
 	&:hover {
 		background-color: var(--button-light);
 		color: var(--text-inverse);
+	}
+
+	&:focus {
+		box-shadow: 0 0 0 0.2rem var(--button-light-transparent);
 	}
 }
 

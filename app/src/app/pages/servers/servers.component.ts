@@ -63,6 +63,8 @@ export class ServersComponent implements OnInit {
             this.refresh();
           }
         });
+    }, reason => {
+      // Modal closed. We declare this to avoid any uncaught exception in promise
     });
   }
 }

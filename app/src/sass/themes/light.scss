@@ -16,11 +16,12 @@
 
 	--error:          hsl(0, 58%, 63%);
 
-	--button-danger:  #a31515;
-	--button-danger-l:#a54c4c;
-	--button-success: #008000;
-	--button-success-l: #4e994e;
-	--button-light:   var(--text);
+	--button-danger:            #a31515;
+	--button-danger-l:          #a54c4c;
+	--button-success:           #008000;
+	--button-success-l:         #4e994e;
+	--button-light:             hsl(0, 0%, 12%);
+	--button-light-transparent: hsla(0, 0%, 12%, 50%);
 
 	--code-namespace: #001080;
 	--code-boolean:   #0000ff;
