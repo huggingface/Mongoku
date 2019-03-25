@@ -47,7 +47,8 @@ const setupServer = () => {
   app.listen(3100, () => console.log(`[Mongoku] listening on port 3100`));
 }
 
-(async () => {
+export const start = async () => {
+  console.log(`[Mongoku] Starting...`);
   try {
     await factory.load();
     setupServer();
@@ -55,4 +56,10 @@ const setupServer = () => {
     console.error(err);
     process.exit(1);
   }
-})();
+};
+
+if (require.main === module) {
+  (async () => {
+    await start();
+  })();
+}
