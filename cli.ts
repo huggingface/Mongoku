@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import * as child_process from 'child_process';
+import * as path from 'path';
 
 import * as program from 'commander';
 import * as figlet from 'figlet';
@@ -25,7 +26,7 @@ async function start(cmd: 'start', options: any) {
 
   const pm2 = options.pm2;
   const forever = options.forever;
-
+  const entryPath = path.join(__dirname, 'server.js');
 
   if (pm2 && forever) {
     console.log("Cannot launch with both PM2 and Forever. You need to chose one.");
@@ -35,7 +36,7 @@ async function start(cmd: 'start', options: any) {
 
   if (pm2) {
     // Start for pm2
-    return child_process.exec("pm2 start --name mongoku dist/server.js", (err, stdout, stderr) => {
+    return child_process.exec(`pm2 start --name mongoku ${entryPath}`, (err, stdout, stderr) => {
       if (err) {
         console.log("Error while launching with pm2: ", err);
       } else {
@@ -47,7 +48,7 @@ async function start(cmd: 'start', options: any) {
 
   if (forever) {
     // Start for forever
-    return child_process.exec("forever --uid mongoku start -a dist/server.js", (err, stdout, stderr) => {
+    return child_process.exec(`forever --uid mongoku start -a ${entryPath}`, (err, stdout, stderr) => {
       if (err) {
         console.log("Error while launching with forever: ", err);
       } else {
