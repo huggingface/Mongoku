@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as fs from 'fs';
 import * as util from 'util';
 import * as Nedb from 'nedb';
@@ -25,7 +26,7 @@ export class HostsManager {
     }
 
     this._db = new Nedb({
-      filename: DATABASE_FILE
+      filename: path.join(__dirname, '../..', DATABASE_FILE)
     });
 
     const load = this.promise(this._db.loadDatabase);
