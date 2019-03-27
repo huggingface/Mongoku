@@ -21,7 +21,7 @@ mongoku start
 ```
 
 You can also run Mongoku as a daemon, using either [PM2](https://github.com/Unitech/pm2) or
-[Forever](https://github.com/foreverjs/forever)
+[Forever](https://github.com/foreverjs/forever).
 
 ```
 mongoku start --pm2
