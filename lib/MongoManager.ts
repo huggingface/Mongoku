@@ -33,6 +33,7 @@ export class MongoManager {
       const server = new Server(hostname, client);
       this._servers[hostname] = server;
       console.info(`[${hostname}] Connected to ${hostname}`);
+      await this.checkAuth(hostname);
     } catch (err) {
       console.error(`Error while connecting to ${hostname}:`, err.code, err.message);
       this._servers[hostname] = err;
@@ -48,6 +49,22 @@ export class MongoManager {
       throw new Error('Server does not exist');
     }
     return server;
+  }
+
+  private async checkAuth(name: string) {
+    const server = this.getServer(name);
+    if (server instanceof Error) {
+      return;
+    }
+
+    try {
+      await server.toJson();
+    } catch (err) {
+      console.log(require('util').inspect(err, false, 20));
+      if (err.code == 13 && err.codeName == "Unauthorized") {
+        this._servers[name] = err;
+      }
+    }
   }
 
   async load() {

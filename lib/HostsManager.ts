@@ -91,7 +91,7 @@ export class HostsManager {
 
     return new Promise<void>((resolve, reject) => {
       this._db.remove({
-        path: new RegExp(`@?${host.path}$`)
+        path: new RegExp(`@?${host.path}(\/[a-zA-Z0-9]+)?$`)
       }, (err: Error) => {
         if (err) {
           return reject(err);
