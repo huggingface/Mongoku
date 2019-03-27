@@ -16,7 +16,7 @@ This is the easy and recommended way of installing and running Mongoku.
 
 ```
 # Install
-npm install mongoku
+npm install -g mongoku
 
 # Run from your current terminal
 mongoku start
