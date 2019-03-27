@@ -1,8 +1,10 @@
 # Mongoku
 
-MongoDB client for the web. Query your data directly from your browser, or host it anywhere for your team. 
+MongoDB client for the web. Query your data directly from your browser. You can host it locally,
+or anywhere else, for you and your team.
 
-It scales with your data (at Hugging Face we use it on a 1TB+ cluster) and is blazing fast for all operations, including sort/skip/limit. Built on TypeScript/Node.js/Angular.
+It scales with your data (at Hugging Face we use it on a 1TB+ cluster) and is blazing fast for all
+operations, including sort/skip/limit. Built on TypeScript/Node.js/Angular.
 
 ### Demo
 
