@@ -31,6 +31,20 @@ mongoku start --pm2
 mongoku start --forever
 ```
 
+### Build a docker image
+
+If you want to build your own docker image, just clone this repository and run the following:
+
+Build:
+```
+docker build -t yournamehere/mongoku .
+```
+
+Run:
+```
+docker run -d -name mongoku -p 3100:3100 yournamehere/mongoku
+```
+
 ### Manual Build
 
 If you want to manually build and run mongoku, just clone this repository and run the following:
