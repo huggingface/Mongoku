@@ -60,6 +60,7 @@ If you want to manually build and run mongoku, just clone this repository and ru
 ```bash
 # Install the angular cli if you don't have it already
 npm install -g typescript @angular/cli
+npm install
 
 # Build the front
 cd app
@@ -68,7 +69,6 @@ ng build
 
 # And the back
 cd ..
-npm install
 tsc
 
 # Run
