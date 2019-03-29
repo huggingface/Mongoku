@@ -31,7 +31,15 @@ mongoku start --pm2
 mongoku start --forever
 ```
 
-### Build a docker image
+### Docker
+
+#### Using the Docker HUB image
+
+```
+docker run -d --name mongoku -p 3100:3100 huggingface/mongoku
+```
+
+#### Build your own image
 
 If you want to build your own docker image, just clone this repository and run the following:
 
@@ -42,7 +50,7 @@ docker build -t yournamehere/mongoku .
 
 Run:
 ```
-docker run -d -name mongoku -p 3100:3100 yournamehere/mongoku
+docker run -d --name mongoku -p 3100:3100 yournamehere/mongoku
 ```
 
 ### Manual Build
