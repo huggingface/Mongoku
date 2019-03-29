@@ -17,7 +17,9 @@ export class MongoManager {
   } = {};
 
   private async connect(host: Host) {
-    const urlStr = `mongodb://${host.path}`
+    const urlStr = host.path.startsWith('mongodb')
+      ? host.path
+      : `mongodb://${host.path}`;
     const url = URL.parse(urlStr);
     const hostname = url.host || host.path;
 

@@ -41,19 +41,6 @@ export class HostsManager {
     }
   }
 
-  private validateHost(path: string): Host {
-    const r = /^(mongodb:(?:\/{2})?)?((\w+?):(\w+?)@|:?@?)([\w\.]+?):(\d+)(\/(\w+?))?$/;
-    if (!r.exec(path)) {
-      throw new Error("Malformed URI");
-    }
-
-    return {
-      path: (path.startsWith('mongodb://'))
-        ? path.slice('mongodb://'.length)
-        : path
-    };
-  }
-
   getHosts(): Promise<Host[]> {
     return new Promise<Host[]>((resolve, reject) => {
       this._db.find({}, (err: Error, hosts: Host[]) => {
@@ -68,14 +55,12 @@ export class HostsManager {
   }
 
   async add(path: string): Promise<void> {
-    const host = this.validateHost(path);
-
     return new Promise<void>((resolve, reject) => {
       this._db.update({
-        path: host.path
+        path: path
       }, {
         $set: {
-          path: host.path
+          path: path
         }
       }, { upsert : true }, (err: Error) => {
         if (err) {
@@ -88,11 +73,9 @@ export class HostsManager {
   }
 
   async remove(path: string): Promise<void> {
-    const host = this.validateHost(path);
-
     return new Promise<void>((resolve, reject) => {
       this._db.remove({
-        path: new RegExp(`@?${host.path}(\/[a-zA-Z0-9]+)?$`)
+        path: new RegExp(`${path}`)
       }, (err: Error) => {
         if (err) {
           return reject(err);
