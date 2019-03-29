@@ -43,13 +43,11 @@ docker run -d --name mongoku -p 3100:3100 huggingface/mongoku
 
 If you want to build your own docker image, just clone this repository and run the following:
 
-Build:
 ```
+# Build
 docker build -t yournamehere/mongoku .
-```
 
-Run:
-```
+# Run
 docker run -d --name mongoku -p 3100:3100 yournamehere/mongoku
 ```
 
