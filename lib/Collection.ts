@@ -65,10 +65,24 @@ export class Collection {
   }
 
   async toJson(): Promise<CollectionJSON> {
-    const stats = await this._collection.stats();
+    let stats = {
+      size: 0,
+      count: 0,
+      avgObjSize: 0,
+      storageSize: 0,
+      capped: false,
+      nindexes: 0,
+      totalIndexSize: 0,
+      indexSizes: {}
+    };
+
+    try {
+      stats = await this._collection.stats();
+    } catch (err) {
+      console.log(`Skipping stats for collection ${this.name}: ${err.message}`);
+    };
 
     return {
-      // ns:             stats.ns,
       name:           this.name,
       size:           (stats.storageSize || 0) + (stats.totalIndexSize || 0),
       dataSize:       stats.size,
