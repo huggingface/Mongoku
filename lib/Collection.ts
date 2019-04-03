@@ -78,9 +78,7 @@ export class Collection {
 
     try {
       stats = await this._collection.stats();
-    } catch (err) {
-      console.log(`Skipping stats for collection ${this.name}: ${err.message}`);
-    };
+    } catch (err) { };
 
     return {
       name:           this.name,
