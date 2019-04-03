@@ -22,9 +22,6 @@ export class MongoManager {
       : `mongodb://${host.path}`;
     const url = URL.parse(urlStr);
     let hostname = url.host || host.path;
-    if (hostname.indexOf(':') === -1) {
-      hostname = `${hostname}:27017`;
-    }
 
     if (this._servers[hostname] instanceof Server) {
       // Already connected
@@ -46,10 +43,7 @@ export class MongoManager {
   }
 
   private getServer(name: string) {
-    if (name.indexOf(':') === -1) {
-      name = `${name}:27017`;
-    }
-    const server = this._servers[name];
+    const server = this._servers[name] || this._servers[`${name}:27017`];
     if (!server) {
       throw new Error('Server does not exist');
     }
