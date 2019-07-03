@@ -13,7 +13,7 @@ export { ServerJSON, DatabaseJSON, CollectionJSON };
 
 @Injectable()
 export class MongoDbService {
-  private apiBaseUrl: string = "/api";
+  private apiBaseUrl: string = "api";
 
   constructor(private http: HttpClient, private notifService: NotificationsService) { }
 

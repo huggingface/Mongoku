@@ -34,7 +34,7 @@ export class AppComponent implements AfterViewChecked, OnInit {
           const server = params.server;
           breadcrumbs.push({
             name:   server,
-            href:   `/servers/${server}/databases`,
+            href:   `servers/${server}/databases`,
             active: false
           });
 
@@ -42,7 +42,7 @@ export class AppComponent implements AfterViewChecked, OnInit {
             const database = params.database;
             breadcrumbs.push({
               name:   database,
-              href:   `/servers/${server}/databases/${database}/collections`,
+              href:   `servers/${server}/databases/${database}/collections`,
               active: false
             });
 
@@ -50,7 +50,7 @@ export class AppComponent implements AfterViewChecked, OnInit {
               const collection = params.collection;
               breadcrumbs.push({
                 name:   collection,
-                href:   `/servers/${server}/databases/${database}/collections/${collection}`,
+                href:   `servers/${server}/databases/${database}/collections/${collection}`,
                 active: false
               });
 
