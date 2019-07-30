@@ -8,6 +8,8 @@ import factory from './lib/Factory';
 import { api } from './routes/api';
 
 const setupServer = () => {
+  const SERVER_PORT = process.env.MONGOKU_SERVER_PORT || 3100;
+
   app.get('/', (req, res, next) => {
     res.sendFile("app/index.html", { root: __dirname }, (err) => {
       if (err) {
@@ -44,7 +46,7 @@ const setupServer = () => {
     });
   })
 
-  app.listen(3100, () => console.log(`[Mongoku] listening on port 3100`));
+  app.listen(SERVER_PORT, () => console.log(`[Mongoku] listening on port `+SERVER_PORT));
 }
 
 export const start = async () => {
