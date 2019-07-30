@@ -8,7 +8,7 @@ export interface Host {
   path: string
 }
 
-const DEFAULT_HOST = process.env.MONGOKU_DEFAULT_HOST || 'localhost:27017';
+const DEFAULT_HOSTS = process.env.MONGOKU_DEFAULT_HOST ? process.env.MONGOKU_DEFAULT_HOST.split(';') : ['localhost:27017'];
 const DATABASE_FILE = process.env.MONGOKU_DATABASE_FILE || path.join(os.homedir(), '.mongoku.db');
 
 
@@ -35,10 +35,12 @@ export class HostsManager {
     await load();
 
     if (first) {
-      const insert: any = this.promise(this._db.insert);
-      await insert({
-        path: DEFAULT_HOST
-      });
+      await Promise.all(DEFAULT_HOSTS.map(async hostname => {
+        const insert: any = this.promise(this._db.insert);
+        return await insert({
+          path: hostname
+        });
+      }));
     }
   }
 
