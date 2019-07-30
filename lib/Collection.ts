@@ -34,8 +34,9 @@ export class Collection {
     return JsonEncoder.encode(obj);
   }
 
-  find(query: any, sort: any, limit: number, skip: number) {
+  find(query: any, project: any, sort: any, limit: number, skip: number) {
     return this._collection.find(JsonEncoder.decode(query))
+      .project(project)
       .sort(JsonEncoder.decode(sort))
       .limit(limit)
       .skip(skip)
@@ -45,12 +46,13 @@ export class Collection {
       .toArray();
   }
 
-  async updateOne(document: string, newObj: any) {
-    const update = JsonEncoder.decode(newObj);
+  async updateOne(document: string, newObj: any, partial: boolean) {
+    const newValue = JsonEncoder.decode(newObj);
+    const update = partial ? {'$set':newValue} : JsonEncoder.decode(newValue);
     await this._collection.replaceOne({
       _id: new MongoDb.ObjectId(document)
     }, update);
-    return JsonEncoder.encode(update);
+    return JsonEncoder.encode(newValue);
   }
 
   async removeOne(document: string) {

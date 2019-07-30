@@ -51,8 +51,12 @@ export class ExploreComponent implements OnInit {
       let sort;
       let limit;
       let skip;
+      let project;
       if (queryParams.has('query')) {
         query = queryParams.get('query');
+      }
+      if (queryParams.has('project')) {
+        project = queryParams.get('project');
       }
       if (queryParams.has('sort')) {
         sort = queryParams.get('sort');
@@ -63,9 +67,8 @@ export class ExploreComponent implements OnInit {
       if (queryParams.has('limit')) {
         limit = parseInt(queryParams.get('limit'), 10);
       }
-
       this.params = {
-        query, sort, limit, skip
+        query, sort, limit, skip, project
       }
     });
   }
@@ -76,6 +79,9 @@ export class ExploreComponent implements OnInit {
     const query = JSON.stringify(this.jsonParser.parse(this.params.query));
     const sort  = (this.params.sort !== "")
       ? JSON.stringify(this.jsonParser.parse(this.params.sort))
+      : "{}";
+    const project  = (this.params.project !== "")
+      ? JSON.stringify(this.jsonParser.parse(this.params.project))
       : "{}";
     if (!query || !sort) { return ; }
 
@@ -95,7 +101,7 @@ export class ExploreComponent implements OnInit {
     this.count.total = 0;
 
     // Load Content
-    this.mongoDb.query(this.server, this.database, this.collection, query, sort, this.params.skip, this.params.limit)
+    this.mongoDb.query(this.server, this.database, this.collection, query, project, sort, this.params.skip, this.params.limit)
       .subscribe((res: any) => {
         this.loading.content = false;
 
@@ -126,6 +132,7 @@ export class ExploreComponent implements OnInit {
   }
 
   editDocument(_id, json) {
+    const partial = this.params.project && Object.keys(this.params.project).length > 0;
     const newId = json && json._id && json._id.$value;
     const oldId = _id && _id.$value;
     if (newId !== oldId) {
@@ -133,7 +140,7 @@ export class ExploreComponent implements OnInit {
       return ;
     }
 
-    this.mongoDb.update(this.server, this.database, this.collection, oldId, json)
+    this.mongoDb.update(this.server, this.database, this.collection, oldId, json, partial)
       .subscribe((res: any) => {
         this.items.forEach((item, index) => {
           const _id = item && item._id && item._id.$value;

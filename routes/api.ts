@@ -91,13 +91,14 @@ api.post('/servers/:server/databases/:database/collections/:collection/documents
   const database   = req.params.database;
   const collection = req.params.collection;
   const document   = req.params.document;
+  const partial    = !! req.query.partial;
 
   try {
     const c = await factory.mongoManager.getCollection(server, database, collection);
     if (!c) {
       return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
     }
-    const update = await c.updateOne(document, req.body);
+    const update = await c.updateOne(document, req.body, partial);
 
     return res.json({
       ok:     true,
@@ -151,6 +152,16 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
       return next(new Error(`Invalid order: ${sort}`));
     }
   }
+
+  let project = req.query.project || "";
+  if (project && typeof project !== "object") {
+    try {
+      project = JSON.parse(project);
+    } catch (err) {
+      return next(new Error(`Invalid project: ${project}`));
+    }
+  }
+
   let limit = parseInt(req.query.limit, 10);
   if (isNaN(limit)) { limit = 20; }
   let skip  = parseInt(req.query.skip, 10);
@@ -162,7 +173,7 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
   }
 
   try {
-    const results = await c.find(query, sort, limit, skip);
+    const results = await c.find(query, project, sort, limit, skip);
 
     return res.json({
       ok:      true,
