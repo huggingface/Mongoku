@@ -90,19 +90,24 @@ export class MongoDbService {
     return this.get(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/documents/${document}`);
   }
 
-  query(server: string, database: string, collection: string, query: any, sort: any, skip: number = 0, limit: number = 20) {
+  query(server: string, database: string, collection: string, query: any, project: any, sort: any, skip: number = 0, limit: number = 20) {
     return this.get(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/query`, {
       params: {
         q:     query,
         sort:  sort,
         skip:  `${skip}`,
-        limit: `${limit}`
+        limit: `${limit}`,
+        project: `${project}`
       }
     });
   }
 
-  update(server: string, database: string, collection: string, document: string, update: any) {
-    return this.post(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/documents/${document}`, update);
+  update(server: string, database: string, collection: string, document: string, update: any, partial: boolean) {
+    return this.post(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/documents/${document}`, update, {
+      params: {
+        partial: `${partial}`
+      }
+    });
   }
 
   remove(server: string, database: string, collection: string, document: string) {

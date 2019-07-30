@@ -1,10 +1,11 @@
 import { Component, OnInit, Input, Output, EventEmitter, OnChanges } from '@angular/core';
 
 export interface SearchParams {
-  query: string;
-  sort:  string;
-  limit: number;
-  skip:  number;
+  query:   string;
+  sort:    string;
+  project: string;
+  limit:   number;
+  skip:    number;
 }
 
 @Component({
@@ -18,15 +19,17 @@ export class SearchBoxComponent implements OnInit, OnChanges {
 
   private ready = false;
   private defaults = {
-    query: "{}",
-    limit: 20,
-    skip:  0,
-    sort:  ""
+    query:   "{}",
+    project: "{}",
+    limit:   20,
+    skip:    0,
+    sort:    ""
   };
   show = {
-    limit: false,
-    skip:  false,
-    sort:  false
+    limit:   false,
+    skip:    false,
+    sort:    false,
+    project: false
   };
 
   ngOnInit() {
@@ -52,7 +55,7 @@ export class SearchBoxComponent implements OnInit, OnChanges {
     this.go();
   }
 
-  toggle(add: boolean, type: "limit" | "skip" | "sort") {
+  toggle(add: boolean, type: "limit" | "skip" | "sort" | "project") {
     this.show[type] = add;
     if (!add && this.params[type] !== this.defaults[type]) {
       this.params[type] = this.defaults[type];

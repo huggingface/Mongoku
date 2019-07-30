@@ -45,6 +45,7 @@ export class DocumentComponent implements OnInit {
   }
 
   editDocument(json) {
+    const partial = false;
     const newId = json && json._id && json._id.$value;
     const oldId = this.item && this.item._id && this.item._id.$value;
     if (newId !== oldId) {
@@ -53,7 +54,7 @@ export class DocumentComponent implements OnInit {
     }
 
     this.loading = true;
-    this.mongodb.update(this.server, this.database, this.collection, oldId, json)
+    this.mongodb.update(this.server, this.database, this.collection, oldId, json, partial)
       .subscribe((res: any) => {
         this.loading = false;
         this.item = res.update;
