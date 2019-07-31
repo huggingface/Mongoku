@@ -86,6 +86,6 @@ MONGOKU_SERVER_PORT=8000
 # Use a specific file to store hosts (Default = $HOME/.mongoku.db)
 MONGOKU_DATABASE_FILE="/tmp/mongoku.db"
 
-# Use the estimated counts to avoid performance issues (Default = false)
-MONGOKU_ESTIMATED_COUNTS=true
+# Timeout before falling back to estimated documents count in ms (Default = 5000)
+MONGOKU_COUNT_TIMEOUT=1000
 ```

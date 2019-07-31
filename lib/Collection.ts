@@ -18,7 +18,7 @@ export interface CollectionJSON {
 
 export class Collection {
   private _collection: MongoDb.Collection;
-  private estimatedCounts = !!process.env.MONGOKU_ESTIMATED_COUNTS;
+  private countTimeout = parseInt(process.env.MONGOKU_COUNT_TIMEOUT!, 10) || 5000;
 
   get name() {
     return this._collection.collectionName;
@@ -63,8 +63,10 @@ export class Collection {
   }
 
   count(query) {
-    if (query && Object.keys(query).length > 0 && !this.estimatedCounts) {
-      return this._collection.countDocuments(JsonEncoder.decode(query));
+    if (query && Object.keys(query).length > 0) {
+      return this._collection.countDocuments(JsonEncoder.decode(query), {
+        maxTimeMS: this.countTimeout
+      }).catch(_ => this._collection.estimatedDocumentCount());
     }
     // fast count
     return this._collection.estimatedDocumentCount();
