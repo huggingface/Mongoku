@@ -72,3 +72,17 @@ tsc
 # Run
 node dist/server.js
 ```
+
+### Configuration
+
+You can also specify a few things using environment variables:
+```
+# Use some customized default hosts
+MONGOKU_DEFAULT_HOST="mongodb://user:password@localhost:27017;localhost:27017"
+
+# Use another port. (Default = 3100)
+MONGOKU_SERVER_PORT=8000
+
+# Use a specific file to store hosts
+MONGOKU_DATABASE_FILE="/tmp/mongoku.db"
+```
