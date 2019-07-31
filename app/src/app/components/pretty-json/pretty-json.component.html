@@ -1,9 +1,9 @@
 <panel full-width="true">
   <div class="title">
-    <div class="object-info">
+    <div class="object-info" *ngIf="json._id">
       <div class="objectid">
-        <a href="#" (click)="goToDocument($event)">{{ json._id.$value }}</a>
-        <span class="date">{{ json._id.$date | date:'long' }}</span>
+        <a href="#" (click)="goToDocument($event)">{{ json._id?.$value }}</a>
+        <span class="date">{{ json._id?.$date | date:'long' }}</span>
       </div>
       <div class="actions">
         <div class="btn btn-outline-light btn-sm" (click)="enableEditor()">Edit</div>
