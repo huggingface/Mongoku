@@ -67,7 +67,7 @@ export class Collection {
       return this._collection.countDocuments(JsonEncoder.decode(query));
     }
     // fast count
-    return this._collection.estimatedDocumentCount(JsonEncoder.decode(query));
+    return this._collection.estimatedDocumentCount();
   }
 
   async toJson(): Promise<CollectionJSON> {
