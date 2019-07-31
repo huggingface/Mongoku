@@ -77,12 +77,15 @@ node dist/server.js
 
 You can also specify a few things using environment variables:
 ```
-# Use some customized default hosts
+# Use some customized default hosts (Default = localhost:27017)
 MONGOKU_DEFAULT_HOST="mongodb://user:password@localhost:27017;localhost:27017"
 
 # Use another port. (Default = 3100)
 MONGOKU_SERVER_PORT=8000
 
-# Use a specific file to store hosts
+# Use a specific file to store hosts (Default = $HOME/.mongoku.db)
 MONGOKU_DATABASE_FILE="/tmp/mongoku.db"
+
+# Use the estimated counts to avoid performance issues (Default = false)
+MONGOKU_ESTIMATED_COUNTS=true
 ```

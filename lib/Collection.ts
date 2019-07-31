@@ -18,6 +18,7 @@ export interface CollectionJSON {
 
 export class Collection {
   private _collection: MongoDb.Collection;
+  private estimatedCounts = !!process.env.MONGOKU_ESTIMATED_COUNTS;
 
   get name() {
     return this._collection.collectionName;
@@ -62,11 +63,11 @@ export class Collection {
   }
 
   count(query) {
-    if (query && Object.keys(query).length > 0 ) {
-      return this._collection.countDocuments(JsonEncoder.decode(query), {});
+    if (query && Object.keys(query).length > 0 && !this.estimatedCounts) {
+      return this._collection.countDocuments(JsonEncoder.decode(query));
     }
     // fast count
-    return this._collection.estimatedDocumentCount({});
+    return this._collection.estimatedDocumentCount(JsonEncoder.decode(query));
   }
 
   async toJson(): Promise<CollectionJSON> {
