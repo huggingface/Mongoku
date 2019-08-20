@@ -49,10 +49,13 @@ export class Collection {
 
   async updateOne(document: string, newObj: any, partial: boolean) {
     const newValue = JsonEncoder.decode(newObj);
-    const update = partial ? {'$set':newValue} : JsonEncoder.decode(newValue);
+    
+    // TODO: For now it makes it impossible to remove fields from object with a projection
+    const update = partial ? { '$set':newValue } : JsonEncoder.decode(newValue);
     await this._collection.replaceOne({
       _id: new MongoDb.ObjectId(document)
     }, update);
+    
     return JsonEncoder.encode(newValue);
   }
 
