@@ -31,6 +31,9 @@
     "@types/node": "^10.7.1"
   },
   "main": "./dist/server.js",
+  "scripts": {
+    "debug-server": "npx tsc -w & npx nodemon --inspect=9017 ./dist/server.js"
+  },
   "bin": {
     "mongoku": "./dist/cli.js"
   },

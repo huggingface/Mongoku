@@ -27,7 +27,7 @@ export class ExploreComponent implements OnInit {
   count      = {
     total: 0,
     start: 0
-  }
+  };
   items      = [];
 
   constructor(
@@ -43,9 +43,9 @@ export class ExploreComponent implements OnInit {
       this.activatedRoute.paramMap,
       this.activatedRoute.queryParamMap
     ).subscribe(([params, queryParams]) => {
-      this.server     = params.get("server");
-      this.database   = params.get("database");
-      this.collection = params.get("collection");
+      this.server     = params.get('server');
+      this.database   = params.get('database');
+      this.collection = params.get('collection');
 
       let query;
       let sort;
@@ -69,7 +69,7 @@ export class ExploreComponent implements OnInit {
       }
       this.params = {
         query, sort, limit, skip, project
-      }
+      };
     });
   }
 
@@ -77,12 +77,12 @@ export class ExploreComponent implements OnInit {
     if (!this.params || !this.params.query) { return; }
 
     const query = JSON.stringify(this.jsonParser.parse(this.params.query));
-    const sort  = (this.params.sort !== "")
+    const sort  = (this.params.sort !== '')
       ? JSON.stringify(this.jsonParser.parse(this.params.sort))
-      : "{}";
-    const project  = (this.params.project !== "")
+      : '{}';
+    const project  = (this.params.project !== '')
       ? JSON.stringify(this.jsonParser.parse(this.params.project))
-      : "{}";
+      : '{}';
     if (!query || !sort) { return ; }
 
     if (upd) {
@@ -124,10 +124,10 @@ export class ExploreComponent implements OnInit {
 
   go(documentId) {
     this.router.navigate([
-      "servers",     this.server,
-      "databases",   this.database,
-      "collections", this.collection,
-      "documents",   documentId
+      'servers',     this.server,
+      'databases',   this.database,
+      'collections', this.collection,
+      'documents',   documentId
     ]);
   }
 
@@ -136,7 +136,7 @@ export class ExploreComponent implements OnInit {
     const newId = json && json._id && json._id.$value;
     const oldId = _id && _id.$value;
     if (newId !== oldId) {
-      this.notifService.notifyError("ObjectId changed. This is not supported, updated canceled.");
+      this.notifService.notifyError('ObjectId changed. This is not supported, updated canceled.');
       return ;
     }
 
@@ -159,7 +159,7 @@ export class ExploreComponent implements OnInit {
       .subscribe((res: any) => {
         const index = this.items.findIndex(v => v._id && v._id.$value && v._id.$value === document);
         this.items.splice(index, 1);
-      })
+      });
   }
 
   get hasNext() {
