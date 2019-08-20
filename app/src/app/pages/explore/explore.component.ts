@@ -132,7 +132,7 @@ export class ExploreComponent implements OnInit {
   }
 
   editDocument(_id, json) {
-    const partial = this.params.project && Object.keys(this.params.project).length > 0;
+    const partial = this.params.project && Object.keys(this.jsonParser.parse(this.params.project)).length > 0;
     const newId = json && json._id && json._id.$value;
     const oldId = _id && _id.$value;
     if (newId !== oldId) {

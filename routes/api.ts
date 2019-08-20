@@ -91,7 +91,7 @@ api.post('/servers/:server/databases/:database/collections/:collection/documents
   const database   = req.params.database;
   const collection = req.params.collection;
   const document   = req.params.document;
-  const partial    = !! req.query.partial;
+  const partial    = req.query.partial === 'true';
 
   try {
     const c = await factory.mongoManager.getCollection(server, database, collection);
