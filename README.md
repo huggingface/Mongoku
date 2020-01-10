@@ -8,7 +8,7 @@ operations, including sort/skip/limit. Built on TypeScript/Node.js/Angular.
 
 ### Demo
 
-![mongoku](https://huggingface.co/assets/mongoku/mongoku-demo.gif)
+![mongoku](https://huggingface.co/landing/assets/mongoku/mongoku-demo.gif)
 
 ### Install & Run
 
