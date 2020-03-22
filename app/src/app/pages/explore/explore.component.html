@@ -26,6 +26,7 @@
                   autoCollapse="true"
                   [json]="item"
                   (go)="go($event)"
+                  (search)="search($event)"
                   (edit)="editDocument(item._id, $event)"
                   (remove)="remove(item._id)">
     </pretty-json>

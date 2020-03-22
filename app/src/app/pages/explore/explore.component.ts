@@ -17,6 +17,7 @@ export class ExploreComponent implements OnInit {
   server:     string;
   database:   string;
   collection: string;
+  searchBaseUrl: string;
 
   params: Partial<SearchParams>;
   loading    = {
@@ -46,6 +47,7 @@ export class ExploreComponent implements OnInit {
       this.server     = params.get('server');
       this.database   = params.get('database');
       this.collection = params.get('collection');
+      this.searchBaseUrl = `servers/${this.server}/databases/${this.database}/search`;
 
       let query;
       let sort;
@@ -164,6 +166,12 @@ export class ExploreComponent implements OnInit {
 
   get hasNext() {
     return this.count.start + this.items.length < this.count.total;
+  }
+
+  search({ path, id }) {
+    const base = `${location.origin}/servers/${this.server}/databases/${this.database}`;
+    const url = `${base}/search/${id}/hint/${this.collection}.${path}`;
+    window.open(url, '_blank');
   }
 
   next() {

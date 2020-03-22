@@ -5,6 +5,7 @@ import * as express from 'express';
 const app = express()
 
 import factory from './lib/Factory';
+import { Model } from './lib/Model';
 import { api } from './routes/api';
 
 const setupServer = () => {
@@ -52,6 +53,7 @@ const setupServer = () => {
 export const start = async () => {
   console.log(`[Mongoku] Starting...`);
   try {
+    await Model.load();
     await factory.load();
     setupServer();
   } catch (err) {

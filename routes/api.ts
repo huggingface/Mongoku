@@ -1,9 +1,14 @@
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
+import * as minimatch from 'minimatch';
 
 import factory from '../lib/Factory';
+import { Utils } from '../lib/Utils';
+import { Hint } from '../lib/Hint';
 
 export const api = express.Router();
+
+const EXCLUDE_SEARCH_GLOB = process.env.EXCLUDE_SEARCH_GLOB || '';
 
 // Get servers
 api.get('/servers', async (req, res, next) => {
@@ -43,6 +48,37 @@ api.get('/servers/:server/databases', async (req, res, next) => {
   try {
     const databases = await factory.mongoManager.getDatabasesJson(server);
     return res.json(databases);
+  } catch (err) {
+    return next(err);
+  }
+});
+
+api.get('/servers/:server/databases/:database/search/:document', async (req, res, next) => {
+  const server   = req.params.server;
+  const database = req.params.database;
+  const document = req.params.document;
+  const hint = req.query.hint;
+
+  try {
+    const search = (xs: Array<string>) => Utils.anyPromise(xs.map(c => 
+        factory.mongoManager.getCollection(server, database, c)
+          .then(cc => cc && cc.findOne(document))
+          .then(doc => doc && c)))
+
+    const cs = await factory.mongoManager.getCollectionsJson(server, database);
+    const collections = cs.filter(c => !EXCLUDE_SEARCH_GLOB || !minimatch(c.name, EXCLUDE_SEARCH_GLOB))
+      .map(c => c.name);
+
+    const { hits, miss } = Hint.tryApplyHint(hint, collections);
+
+    const collection = await Utils.applyPromiseSequence(search, hits, miss);
+
+    Hint.save(hint, collection);
+
+    return collection
+      ? res.json({ ok: true, collection })
+      : res.json({ ok: false  });
+
   } catch (err) {
     return next(err);
   }

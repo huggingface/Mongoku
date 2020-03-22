@@ -6,11 +6,14 @@ import { DatabasesComponent } from './pages/databases/databases.component';
 import { CollectionsComponent } from './pages/collections/collections.component';
 import { ExploreComponent } from './pages/explore/explore.component';
 import { DocumentComponent } from './pages/document/document.component';
+import { SearchComponent } from './pages/search/search.component';
 
 const routes: Routes = [
   { path: 'servers/:server/databases/:database/collections/:collection/documents/:document', component: DocumentComponent },
   { path: 'servers/:server/databases/:database/collections/:collection',                     component: ExploreComponent },
   { path: 'servers/:server/databases/:database/collections',                                 component: CollectionsComponent },
+  { path: 'servers/:server/databases/:database/search/:document/hint/:hint',                 component: SearchComponent },
+  { path: 'servers/:server/databases/:database/search/:document',                            component: SearchComponent },
   { path: 'servers/:server/databases/:database',                                             redirectTo: "/servers/:server/databases/:database/collections" },
   { path: 'servers/:server/databases',                                                       component: DatabasesComponent },
   { path: 'servers/:server',                                                                 redirectTo: "/servers/:server/databases" },
