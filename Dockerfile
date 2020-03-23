@@ -15,9 +15,9 @@ COPY ./ /app
 RUN npm install \
       && cd app \
       && npm install \
-      && npm build \
+      && npm run build \
       && cd .. \
-      && npm build
+      && npm run build
 
 EXPOSE 3100
 
