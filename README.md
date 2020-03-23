@@ -1,3 +1,4 @@
+![Publish Docker](https://github.com/tomvardasca/Mongoku/workflows/Publish%20Docker/badge.svg)
 # Mongoku
 
 MongoDB client for the web. Query your data directly from your browser. You can host it locally,

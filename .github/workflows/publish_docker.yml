@@ -11,4 +11,3 @@ jobs:
         name: tomvardasca/mongoku
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        tagging: true
