@@ -82,13 +82,18 @@
 	}
 
 	.add-param, .confirm-search {
+    color: var(--text);
 		width: 50px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		font-weight: bold;
 		background-color: var(--color-1);
-	}
+  }
+
+  .add-param:hover, .confirm-search:hover {
+    color: var(--text-darker);
+  }
 
 	.add-param {
 		border-radius: 0;

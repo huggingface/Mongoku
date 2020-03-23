@@ -12,13 +12,12 @@ WORKDIR /app
 
 COPY ./ /app
 
-RUN npm install -g typescript @angular/cli \
-      && npm install \
+RUN npm install \
       && cd app \
       && npm install \
-      && ng build --prod \
+      && npm build \
       && cd .. \
-      && tsc
+      && npm build
 
 EXPOSE 3100
 
