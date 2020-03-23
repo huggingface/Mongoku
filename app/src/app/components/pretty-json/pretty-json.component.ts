@@ -253,6 +253,9 @@ export class PrettyJsonComponent implements OnInit {
         if (value.$type === 'Date') {
           return this.fnCall('Date', [ this.quote(value.$value) ], 'function');
         }
+        if (value.$type === 'Binary') {
+          return this.fnCall('Binary', [ this.text(value.$value.$sub_type.toString()), this.quote(value.$value.$data) ], 'function');
+        }
         if (value.$type === 'RegExp') {
           return this.span('value regexp', `/${value.$value.$pattern}/${value.$value.$flags}`);
         }
