@@ -14,7 +14,7 @@ const setupServer = () => {
     res.sendFile("app/index.html", { root: __dirname }, (err) => {
       if (err) {
         return next(err);
-      }
+      } 
     });
   });
 

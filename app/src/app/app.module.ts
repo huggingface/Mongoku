@@ -15,7 +15,7 @@ import { ServicesModule } from './services/services.module';
   ],
   imports: [
     BrowserModule,
-    NgbModule.forRoot(),
+    NgbModule,
     AppRoutingModule,
     PagesModule,
     ComponentsModule,
