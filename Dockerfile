@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:slim
 
 ENV UID=991 GID=991
 
