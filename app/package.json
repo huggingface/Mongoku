@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --proxy-config proxy.conf.json",
     "build": "ng build --prod",
     "test": "ng test",
     "lint": "ng lint",
@@ -40,7 +40,7 @@
     "@angular/language-service": "^7.2.9",
     "@types/jasmine": "^2.8.16",
     "@types/jasminewd2": "^2.0.6",
-    "@types/node": "^6.14.4",
+    "@types/node": "^12.12.30",
     "codelyzer": "^4.5.0",
     "jasmine-core": "~2.8.0",
     "jasmine-spec-reporter": "~4.2.1",

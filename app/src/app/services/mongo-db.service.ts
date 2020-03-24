@@ -90,6 +90,11 @@ export class MongoDbService {
     return this.get(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/documents/${document}`);
   }
 
+  search(server: string, database: string, document: string, hint?: string) {
+    const qs = !hint ? '' : `?hint=${hint}`;
+    return this.get(`${this.apiBaseUrl}/servers/${server}/databases/${database}/search/${document}/${qs}`);
+  }
+
   query(server: string, database: string, collection: string, query: any, project: any, sort: any, skip: number = 0, limit: number = 20) {
     return this.get(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/query`, {
       params: {

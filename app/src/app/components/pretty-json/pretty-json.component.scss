@@ -1,3 +1,9 @@
+.search span {
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--text-darker);
+}
+
 .object-info {
 	display: flex;
 	justify-content: space-between;

@@ -14,6 +14,7 @@ import { ServersComponent } from './servers/servers.component';
 import { DatabasesComponent } from './databases/databases.component';
 import { CollectionsComponent } from './collections/collections.component';
 import { DocumentComponent } from './document/document.component';
+import { SearchComponent } from './search/search.component';
 import { ExploreComponent } from './explore/explore.component';
 
 import { ComponentsModule } from '../components/components.module';
@@ -36,7 +37,8 @@ import { FiltersModule } from '../filters/filters.module';
     DatabasesComponent,
     CollectionsComponent,
     ExploreComponent,
-    DocumentComponent
+    DocumentComponent,
+    SearchComponent,
   ],
   providers: [ ServicesModule ]
 })

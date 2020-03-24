@@ -14,4 +14,20 @@ export namespace Utils {
           : (descending) ? 1 : -1
     });
   }
+
+
+  export function anyPromise<T>(arr: Promise<T>[]) : Promise<T> {
+    return new Promise<T>(resolve =>
+      Promise.all(arr.map(p => p.then(r => r && resolve(r)))).then(() => resolve(undefined))
+    );
+  }
+
+  export function applyPromiseSequence<T>(fn: Function, ...arr: Array<Array<T>>) : Promise<T> {
+    return new Promise<T>(resolve =>
+      arr.filter(x => x && x.length)
+        .reduce((accP, args) => 
+            accP.then(y => y || fn(args).then((x: T) => { if (x) { resolve(x); return x; } }))
+        ,Promise.resolve(undefined)) 
+    )
+  }
 }

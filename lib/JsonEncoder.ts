@@ -1,12 +1,13 @@
 import * as MongoDb from 'mongodb';
 
 export default class JsonEncoder {
-  static encode(obj: any) {
+  static encode(obj: any, path = '') {
     if (obj instanceof MongoDb.ObjectID) {
       return {
         $type:  'ObjectId',
         $value: obj.toHexString(),
-        $date:  obj.generationTime * 1000
+        $date:  obj.generationTime * 1000,
+        $path: path
       };
     }
     if (obj instanceof Date) {
@@ -25,11 +26,11 @@ export default class JsonEncoder {
       };
     }
     if (Array.isArray(obj)) {
-      return [...obj.map(JsonEncoder.encode)];
+      return [...obj.map(o => JsonEncoder.encode(o, path))];
     }
     if (obj && typeof obj === 'object') {
       for (const [key, value] of Object.entries(obj)) {
-        obj[key] = JsonEncoder.encode(value);
+        obj[key] = JsonEncoder.encode(value,  path ? `${path}.${key}` : key);
       }
     }
 

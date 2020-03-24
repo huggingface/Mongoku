@@ -30,7 +30,7 @@ export class MongoManager {
 
     try {
       const client = await MongoDb.MongoClient.connect(urlStr, {
-        useNewUrlParser: true
+        useUnifiedTopology: true
       });
       const server = new Server(hostname, client);
       this._servers[hostname] = server;

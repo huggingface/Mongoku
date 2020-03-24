@@ -14,6 +14,7 @@ export class DocumentComponent implements OnInit {
   database:   string;
   collection: string;
   document:   string;
+  searchBaseUrl: string;
 
   item;
 
@@ -32,6 +33,7 @@ export class DocumentComponent implements OnInit {
       this.database   = d.get("database");
       this.collection = d.get("collection");
       this.document   = d.get("document");
+      this.searchBaseUrl = `servers/${this.server}/databases/${this.database}/search`;
 
       this.get();
     })
@@ -71,6 +73,12 @@ export class DocumentComponent implements OnInit {
           "collections", this.collection,
         ])
       });
+  }
+
+  search({ path, id }) {
+      const base = `${location.origin}/servers/${this.server}/databases/${this.database}`;
+      const url = `${base}/search/${id}/hint/${this.collection}.${path}`;
+      window.open(url, '_blank');
   }
 
 }
