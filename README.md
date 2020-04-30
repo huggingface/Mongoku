@@ -91,4 +91,7 @@ MONGOKU_DATABASE_FILE="/tmp/mongoku.db"
 
 # Timeout before falling back to estimated documents count in ms (Default = 5000)
 MONGOKU_COUNT_TIMEOUT=1000
+
+# Timeout before aborting find query in ms (Default = 300000)
+MONGOKU_QUERY_TIMEOUT=5000
 ```
