@@ -19,6 +19,7 @@ export interface CollectionJSON {
 export class Collection {
   private _collection: MongoDb.Collection;
   private countTimeout = parseInt(process.env.MONGOKU_COUNT_TIMEOUT!, 10) || 5000;
+  private queryTimeout = parseInt(process.env.MONGOKU_QUERY_TIMEOUT!, 10) || 300000;
 
   get name() {
     return this._collection.collectionName;
@@ -44,6 +45,7 @@ export class Collection {
       .map((obj) => {
         return JsonEncoder.encode(obj);
       })
+      .maxTimeMS(this.queryTimeout)
       .toArray();
   }
 
