@@ -2,7 +2,7 @@
   <div class="title">
     <div class="object-info" *ngIf="json._id">
       <div class="objectid">
-        <a href="#" (click)="goToDocument($event)">{{ json._id?.$value }}</a>
+        <a href="#" (click)="goToDocument($event)">{{ json._id?.$value?.$data ? "Binary("+json._id.$value.$sub_type+",\""+json._id.$value.$data+"\")" : json._id?.$value }}</a>
         <span class="date">{{ json._id?.$date | date:'long' }}</span>
       </div>
       <div class="actions">

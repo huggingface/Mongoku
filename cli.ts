@@ -5,7 +5,7 @@ import * as path from 'path';
 
 import * as program from 'commander';
 import * as figlet from 'figlet';
-import chalk from 'chalk';
+import * as chalk from 'chalk';
 import * as server from './server';
 
 program
@@ -14,7 +14,7 @@ program
   .description('MongoDB client for the web')
   .option('--pm2', 'Run using pm2')
   .option('--forever', 'Run using forever')
-  .action(start)
+  .action((args) => { start(args.cmd, args.options); })
   .parse(process.argv);
 
 async function start(cmd: 'start', options: any) {
