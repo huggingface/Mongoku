@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { HttpParameterCodec, HttpParams } from '@angular/common/http';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -11,9 +12,16 @@ import { NotificationsService } from './notifications.service';
 
 export { ServerJSON, DatabaseJSON, CollectionJSON };
 
+export class HttpUrlEncodingCodec implements HttpParameterCodec {
+    encodeKey(k: string): string { return encodeURIComponent(k); }
+    encodeValue(v: string): string { return encodeURIComponent(v); }
+    decodeKey(k: string): string { return decodeURIComponent(k); }
+    decodeValue(v: string) { return decodeURIComponent(v); }
+}
+
 @Injectable()
 export class MongoDbService {
-  private apiBaseUrl: string = "api";
+  private apiBaseUrl = 'api';
 
   constructor(private http: HttpClient, private notifService: NotificationsService) { }
 
@@ -27,6 +35,10 @@ export class MongoDbService {
   }
 
   private get<T>(path: string, options?: any) {
+    if (options && options.params) {
+      options.params = new HttpParams({encoder: new HttpUrlEncodingCodec(),
+        fromObject: options.params});
+    }
     // The following cast is required to get the right typing
     // since we expect and receive an Observable<T> and not a
     // Observable<HttpEvent<T>>. Weird
@@ -79,7 +91,7 @@ export class MongoDbService {
   }
 
   getDatabases(server: string) {
-    return this.get<DatabaseJSON[]>(`${this.apiBaseUrl}/servers/${server}/databases`)
+    return this.get<DatabaseJSON[]>(`${this.apiBaseUrl}/servers/${server}/databases`);
   }
 
   getCollections(server: string, database: string) {
