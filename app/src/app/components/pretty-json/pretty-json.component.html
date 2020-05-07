@@ -11,7 +11,7 @@
       </div>
     </div>
   </div>
-  <div class="editor" [class.visible]="editorVisible">
+  <div class="editor" [class.visible]="editorVisible" *ngIf="editorVisible">
     <div class="editor-actions">
       <div class="btn btn-outline-success btn-sm" (click)="save()">Save</div>
       <div class="btn btn-outline-light btn-sm" (click)="disableEditor()">Cancel</div>
@@ -22,7 +22,7 @@
       [options]="editorOptions"
     ></ngx-codemirror>
   </div>
-  <div class="remove-layer" [hidden]="!removing">
+  <div class="remove-layer" [hidden]="!removing" *ngIf="removing">
     <p>Are you sure?</p>
     <div class="remove-actions">
       <div class="btn btn-danger"  (click)="confirmRemove()">Yes - Remove</div>
