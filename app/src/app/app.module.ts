@@ -1,9 +1,10 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
+import { UrlSerializer } from '@angular/router';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { AppComponent } from './app.component';
-import { AppRoutingModule } from './app-routing.module';
+import { AppRoutingModule, UrlSerializerFix } from './app-routing.module';
 import { PagesModule } from './pages/pages.module';
 import { ComponentsModule } from './components/components.module';
 import { FiltersModule } from './filters/filters.module';
@@ -22,7 +23,7 @@ import { ServicesModule } from './services/services.module';
     FiltersModule,
     ServicesModule
   ],
-  providers: [],
+  providers: [ { provide: UrlSerializer, useClass: UrlSerializerFix } ],
   bootstrap: [
     AppComponent
   ]
