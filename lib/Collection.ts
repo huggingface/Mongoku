@@ -30,9 +30,11 @@ export class Collection {
   }
 
   async findOne(document: string) {
-    const obj = await this._collection.findOne({
-      _id: JsonEncoder.fromObjectId(document)
-    })
+    let _id = JsonEncoder.fromObjectId(document);
+    let obj = await this._collection.findOne({_id});
+    // Try to find by objectid
+    if (!obj && /^[0-9a-fA-F]{24}$/.test(document)) {
+      obj = await this._collection.findOne({_id: new MongoDb.ObjectId(document)}); }
     return JsonEncoder.encode(obj);
   }
 
