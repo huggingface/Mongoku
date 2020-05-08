@@ -19,6 +19,12 @@ export class HttpUrlEncodingCodec implements HttpParameterCodec {
     decodeValue(v: string) { return decodeURIComponent(v); }
 }
 
+export function toObjectId(obj) {
+  if (!obj || obj.$type !== 'ObjectId') {
+    return obj; }
+  return `ObjectId('${obj.$value}')`;
+}
+
 @Injectable()
 export class MongoDbService {
   private apiBaseUrl = 'api';
