@@ -1,6 +1,13 @@
 import * as MongoDb from 'mongodb';
 
+const objid_re = new RegExp(/ObjectId\('?([0-9a-fA-F]{24})'?\)/);
 export default class JsonEncoder {
+  static fromObjectId(obj: string) {
+    const match = objid_re.exec(obj);
+    if (match && match[1])
+      return new MongoDb.ObjectId(match[1]);
+    return obj;
+  }
   static encode(obj: any) {
     if (obj instanceof MongoDb.ObjectID) {
       return {

@@ -31,7 +31,7 @@ export class Collection {
 
   async findOne(document: string) {
     const obj = await this._collection.findOne({
-      _id: new MongoDb.ObjectId(document)
+      _id: JsonEncoder.fromObjectId(document)
     })
     return JsonEncoder.encode(obj);
   }
@@ -55,7 +55,7 @@ export class Collection {
     // TODO: For now it makes it impossible to remove fields from object with a projection
     const update = partial ? { '$set':newValue } : JsonEncoder.decode(newValue);
     await this._collection.replaceOne({
-      _id: new MongoDb.ObjectId(document)
+      _id: JsonEncoder.fromObjectId(document)
     }, update);
     
     return JsonEncoder.encode(newValue);
@@ -63,7 +63,7 @@ export class Collection {
 
   async removeOne(document: string) {
     await this._collection.deleteOne({
-      _id: new MongoDb.ObjectId(document)
+      _id: JsonEncoder.fromObjectId(document)
     });
   }
 
