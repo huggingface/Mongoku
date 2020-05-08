@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, ElementRef, Renderer2, Output, EventEmitter, NgZone } from '@angular/core';
 import { JsonParserService } from '../../services/json-parser.service';
 import { NotificationsService } from '../../services/notifications.service';
+import { toObjectId } from '../../services/mongo-db.service';
 
 // All of this is heavily inspired by the Genghis app `pretty-print`
 // and adapted to angular
@@ -41,7 +42,7 @@ export class PrettyJsonComponent implements OnInit {
 
   private gap           = '';
   private listener      = null;
-  editJson      = "";
+  editJson      = '';
   editorVisible = false;
   removing      = false;
 
@@ -54,7 +55,7 @@ export class PrettyJsonComponent implements OnInit {
       'Ctrl-Enter': this.outsideSave.bind(this),
       'Cmd-Enter':  this.outsideSave.bind(this),
     }
-  }
+  };
 
   constructor(
     private el: ElementRef,
@@ -77,6 +78,17 @@ export class PrettyJsonComponent implements OnInit {
     this.listener && this.listener();
   }
 
+  documentKey() {
+     const id = this.json?._id;
+     if (!id) {
+       return ''; }
+     if (typeof id === 'string' || !id.$value) {
+       return id; }
+     if (id.$value?.$data) {
+       return `Binary(${id.$value.$sub_type}, "${id.$value.$data}")`; }
+     return id.$value;
+  }
+
   enableEditor() {
     this.collapseAll(false);
     this.editJson = this.el.nativeElement.querySelector(".pretty-json").innerText.replace(/(\s{2,})\n/g, "$1");
@@ -85,7 +97,7 @@ export class PrettyJsonComponent implements OnInit {
 
   disableEditor() {
     this.editorVisible = false;
-    this.editJson = "";
+    this.editJson = '';
   }
 
   updateEditor() {
@@ -97,7 +109,7 @@ export class PrettyJsonComponent implements OnInit {
   outsideSave() {
     this.zone.run(() => {
       this.save();
-    })
+    });
   }
 
   save() {
@@ -130,7 +142,7 @@ export class PrettyJsonComponent implements OnInit {
 
   goToDocument(event) {
     event.preventDefault();
-    this.go.emit(this.json._id.$value);
+    this.go.emit(toObjectId(this.json._id));
   }
 
   private isObject(obj: any) {
