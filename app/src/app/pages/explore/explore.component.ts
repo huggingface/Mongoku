@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { combineLatest } from 'rxjs';
 
-import { MongoDbService } from '../../services/mongo-db.service';
+import { MongoDbService, toObjectId } from '../../services/mongo-db.service';
 
 import { SearchParams } from '../../components/search-box/search-box.component';
 import { JsonParserService } from '../../services/json-parser.service';
@@ -133,8 +133,8 @@ export class ExploreComponent implements OnInit {
 
   editDocument(_id, json) {
     const partial = this.params.project && Object.keys(this.jsonParser.parse(this.params.project)).length > 0;
-    const newId = json && json._id && json._id.$value;
-    const oldId = _id && _id.$value;
+    const newId = toObjectId(json && json._id);
+    const oldId = toObjectId(_id);
     if (newId !== oldId) {
       this.notifService.notifyError('ObjectId changed. This is not supported, updated canceled.');
       return ;
@@ -142,9 +142,11 @@ export class ExploreComponent implements OnInit {
 
     this.mongoDb.update(this.server, this.database, this.collection, oldId, json, partial)
       .subscribe((res: any) => {
+        if (!res.ok) {
+          return void this.notifService.notifyError(`Edit failed: ${res.message}`); }
         this.items.forEach((item, index) => {
-          const _id = item && item._id && item._id.$value;
-          if (_id === oldId) {
+          const m_id = toObjectId(item && item._id);
+          if (m_id === oldId) {
             this.items[index] = res.update;
           }
         });
@@ -152,12 +154,11 @@ export class ExploreComponent implements OnInit {
   }
 
   remove(_id) {
-    const document = _id && _id.$value;
+    const document = toObjectId(_id);
     if (!document) { return; }
-
     this.mongoDb.remove(this.server, this.database, this.collection, document)
       .subscribe((res: any) => {
-        const index = this.items.findIndex(v => v._id && v._id.$value && v._id.$value === document);
+        const index = this.items.findIndex(v => toObjectId(v._id) === document);
         this.items.splice(index, 1);
       });
   }
