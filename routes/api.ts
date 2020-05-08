@@ -214,3 +214,27 @@ api.get('/servers/:server/databases/:database/collections/:collection/count', as
     return next(err);
   }
 });
+
+api.put('/servers/:server/databases/:database/collections/:collection/new', async (req, res, next) => {
+  const server     = req.params.server;
+  const database   = req.params.database;
+  const collection = req.params.collection;
+
+  const c = await factory.mongoManager.getCollection(server, database, collection);
+  if (!c) {
+    return next(new Error(`Collection not found: ${server}.${database}.${collection}`)); }
+
+  try {
+    if (!req.body) {
+      throw new Error('No data to insert'); }
+
+    const insert = await c.insert(req.body);
+
+    return res.json({
+      ok:  true,
+      insert,
+    });
+  } catch (err) {
+    return next(err);
+  }
+});

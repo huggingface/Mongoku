@@ -79,6 +79,11 @@ export class Collection {
     return this._collection.estimatedDocumentCount();
   }
 
+  async insert(data: object) {
+    const insertion = JsonEncoder.decode(data);
+    return await this._collection.insert(insertion);
+  }
+
   async toJson(): Promise<CollectionJSON> {
     let stats = {
       size: 0,
