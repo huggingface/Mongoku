@@ -12,6 +12,8 @@ hosts.db
 node_modules
 
 # IDEs and editors
+*.swp
+*.swo
 /.idea
 .project
 .classpath
