@@ -7,9 +7,11 @@ import { DatabasesComponent } from './pages/databases/databases.component';
 import { CollectionsComponent } from './pages/collections/collections.component';
 import { ExploreComponent } from './pages/explore/explore.component';
 import { DocumentComponent } from './pages/document/document.component';
+import { InsertComponent } from './pages/insert/insert.component';
 
 const routes: Routes = [
   { path: 'servers/:server/databases/:database/collections/:collection/documents/:document', component: DocumentComponent },
+  { path: 'servers/:server/databases/:database/collections/:collection/new',                 component: InsertComponent },
   { path: 'servers/:server/databases/:database/collections/:collection',                     component: ExploreComponent },
   { path: 'servers/:server/databases/:database/collections',                                 component: CollectionsComponent },
   { path: 'servers/:server/databases/:database',                                             redirectTo: '/servers/:server/databases/:database/collections' },

@@ -1,0 +1,14 @@
+.insert-component .editor {
+        min-height: 60px;
+}
+.editor-actions {
+	position: absolute;
+	z-index: 10;
+	right: 20px;
+	top: 15px;
+
+	& > .btn {
+		margin-left: 10px;
+		padding: 2px 5px 0;
+	}
+}

@@ -81,7 +81,7 @@ export class Collection {
 
   async insert(data: object) {
     const insertion = JsonEncoder.decode(data);
-    return await this._collection.insert(insertion);
+    return await this._collection.insertOne(insertion);
   }
 
   async toJson(): Promise<CollectionJSON> {

@@ -132,6 +132,10 @@ export class MongoDbService {
     return this.delete(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/documents/${document}`);
   }
 
+  insert(server: string, database: string, collection: string, data: any) {
+    return this.put(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/new`, data);
+  }
+
   count(server: string, database: string, collection: string, query: any) {
     return this.get(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/count`, {
       params: {
