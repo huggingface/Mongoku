@@ -163,7 +163,7 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
   let query = req.query.q;
   if (typeof query !== "object") {
     try {
-      query = JSON.parse(query);
+      query = JSON.parse(query||'');
     } catch (err) {
       return next(new Error(`Invalid query: ${query}`));
     }
@@ -186,10 +186,8 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
     }
   }
 
-  let limit = parseInt(req.query.limit, 10);
-  if (isNaN(limit)) { limit = 20; }
-  let skip  = parseInt(req.query.skip, 10);
-  if (isNaN(skip)) { skip = 0; }
+  const limit = parseInt(String(req.query.limit), 10) || 20;
+  const skip  = parseInt(String(req.query.skip), 10) || 0;
 
   const c = await factory.mongoManager.getCollection(server, database, collection);
   if (!c) {
@@ -216,7 +214,7 @@ api.get('/servers/:server/databases/:database/collections/:collection/count', as
   let query = req.query.q;
   if (typeof query !== "object") {
     try {
-      query = JSON.parse(query);
+      query = JSON.parse(query||'');
     } catch (err) {
       return next(new Error(`Invalid query: ${query}`));
     }
