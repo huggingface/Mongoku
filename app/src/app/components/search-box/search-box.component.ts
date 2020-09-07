@@ -18,6 +18,7 @@ export class SearchBoxComponent implements OnInit, OnChanges {
   @Input()  params: SearchParams;
 
   private ready = false;
+  private prevQuery = "{}";
   private defaults: SearchParams = {
     query:   "{}",
     project: "{}",
@@ -73,6 +74,11 @@ export class SearchBoxComponent implements OnInit, OnChanges {
       this.params.query = "{}";
     }
 
+    if (this.params.query !== this.prevQuery) {
+      this.params.skip = 0;
+    }
+
+    this.prevQuery = this.params.query;
     this.search.emit();
   }
 

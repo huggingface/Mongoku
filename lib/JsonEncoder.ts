@@ -1,6 +1,6 @@
 import * as MongoDb from 'mongodb';
 
-const objid_re = new RegExp(/ObjectId\('?([0-9a-fA-F]{24})'?\)/);
+const objid_re = /(?:ObjectId\('?)?([0-9a-fA-F]{24})(?:'?\))?/;
 export default class JsonEncoder {
   static fromObjectId(obj: string) {
     const match = objid_re.exec(obj);
