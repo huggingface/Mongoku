@@ -86,7 +86,8 @@ api.get('/servers/:server/databases/:database/collections/:collection/documents/
   }
 });
 
-api.post('/servers/:server/databases/:database/collections/:collection/documents/:document', bodyParser.json(), async (req, res, next) => {
+api.post('/servers/:server/databases/:database/collections/:collection/documents/:document',
+  bodyParser.json({limit: '20mb'}), async (req, res, next) => {
   const server     = req.params.server;
   const database   = req.params.database;
   const collection = req.params.collection;
@@ -109,7 +110,8 @@ api.post('/servers/:server/databases/:database/collections/:collection/documents
   }
 })
 
-api.delete('/servers/:server/databases/:database/collections/:collection/documents/:document', async (req, res, next) => {
+api.delete('/servers/:server/databases/:database/collections/:collection/documents/:document',
+  async (req, res, next) => {
   const server     = req.params.server;
   const database   = req.params.database;
   const collection = req.params.collection;
@@ -131,7 +133,8 @@ api.delete('/servers/:server/databases/:database/collections/:collection/documen
   }
 });
 
-api.put('/servers/:server/databases/:database/collections/:collection/new', bodyParser.json(), async (req, res, next) => {
+api.put('/servers/:server/databases/:database/collections/:collection/new',
+  bodyParser.json({limit: '20mb'}), async (req, res, next) => {
   const server     = req.params.server;
   const database   = req.params.database;
   const collection = req.params.collection;
