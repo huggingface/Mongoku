@@ -60,7 +60,7 @@ api.get('/servers/:server/databases/:database/collections', async (req, res, nex
   }
 });
 
-api.get('/servers/:server/databases/:database/collections/:collection/documents/:document', async (req, res, next) => {
+api.get('/servers/:server/databases/:database/collections/:collection/documents/:document(*)', async (req, res, next) => {
   const server     = req.params.server;
   const database   = req.params.database;
   const collection = req.params.collection;
