@@ -8,14 +8,6 @@ export interface ServerJSON {
   size:      number;
   databases: DatabaseJSON[]
 }
-export interface ServerErrorJSON {
-  name:      string;
-  error:     {
-    code:    number | undefined;
-    name:    string;
-    message: string;
-  };
-}
 
 export class Server {
   private _client: MongoDb.MongoClient;
