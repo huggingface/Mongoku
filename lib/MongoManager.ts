@@ -1,5 +1,5 @@
 import { URL } from 'url';
-import * as MongoDb from 'mongodb';
+import { MongoClient } from 'mongodb';
 
 import factory from '../lib/Factory';
 
@@ -28,7 +28,7 @@ export class MongoManager {
       return ;
     }
 
-    const client = await MongoDb.MongoClient.connect(urlStr, {
+    const client = await MongoClient.connect(urlStr, {
       useUnifiedTopology: true,
       useNewUrlParser: true
     });
