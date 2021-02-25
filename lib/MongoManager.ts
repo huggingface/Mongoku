@@ -1,5 +1,5 @@
 import { URL } from 'url';
-import { MongoClient } from 'mongodb';
+import { MongoClient, ReadPreference } from 'mongodb';
 
 import factory from '../lib/Factory';
 
@@ -21,7 +21,7 @@ export class MongoManager {
       ? host.path
       : `mongodb://${host.path}`;
     const url = new URL(urlStr);
-    let hostname = url.host || host.path;
+    let hostname = url.host && url.host.split(',').shift() || host.path;
 
     if (this._servers[hostname] instanceof Server) {
       // Already connected
@@ -29,12 +29,13 @@ export class MongoManager {
     }
 
     const client = await MongoClient.connect(urlStr, {
+      readPreference: ReadPreference.SECONDARY_PREFERRED,
+      useNewUrlParser: true,
       useUnifiedTopology: true,
-      useNewUrlParser: true
     });
     const server = new Server(hostname, client);
     this._servers[hostname] = server;
-    console.info(`[${hostname}] Connected to ${hostname}`);
+    console.info(`[${hostname}] Connected to "${urlStr}"`);
   }
 
   private getServer(name: string) {
