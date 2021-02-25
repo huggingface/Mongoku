@@ -34,7 +34,7 @@ export class MongoManager {
     });
     const server = new Server(hostname, client);
     this._servers[hostname] = server;
-    console.info(`[${hostname}] Host ${hostname} is added to host list`);
+    console.info(`[${hostname}] Connected to ${hostname}`);
   }
 
   private getServer(name: string) {
