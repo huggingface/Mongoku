@@ -1,4 +1,4 @@
-import * as URL from 'url';
+import { URL } from 'url';
 import * as MongoDb from 'mongodb';
 
 import factory from '../lib/Factory';
@@ -20,7 +20,7 @@ export class MongoManager {
     const urlStr = host.path.startsWith('mongodb')
       ? host.path
       : `mongodb://${host.path}`;
-    const url = URL.parse(urlStr);
+    const url = new URL(urlStr);
     let hostname = url.host || host.path;
 
     if (this._servers[hostname] instanceof Server) {
