@@ -1,0 +1,22 @@
+<div class="row insert-component">
+  <div class="col-md-12">
+    <panel [hidden]="!loading">
+      <h1 class="center loading">
+        Loading...
+      </h1>
+    </panel>
+    <panel full-width="true" [hidden]="loading">
+    <div class="editor">
+      <div class="editor-actions">
+        <div class="btn btn-outline-success btn-sm" (click)="save()">Save</div>
+        <div class="btn btn-outline-light btn-sm" (click)="cancelEditor()">Cancel</div>
+      </div>
+      <ngx-codemirror
+        [(ngModel)]="editJson"
+        (cursorActivity)="updateEditor()"
+        [options]="editorOptions"
+      ></ngx-codemirror>
+    </div>
+    </panel>
+  </div>
+</div>

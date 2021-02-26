@@ -19,6 +19,7 @@ export interface CollectionJSON {
 export class Collection {
   private _collection: MongoDb.Collection;
   private countTimeout = parseInt(process.env.MONGOKU_COUNT_TIMEOUT!, 10) || 5000;
+  private queryTimeout = parseInt(process.env.MONGOKU_QUERY_TIMEOUT!, 10) || 300000;
 
   get name() {
     return this._collection.collectionName;
@@ -29,9 +30,11 @@ export class Collection {
   }
 
   async findOne(document: string) {
-    const obj = await this._collection.findOne({
-      _id: new MongoDb.ObjectId(document)
-    })
+    let _id = JsonEncoder.fromObjectId(document);
+    let obj = await this._collection.findOne({_id});
+    // Try to find by objectid
+    if (!obj && /^[0-9a-fA-F]{24}$/.test(document)) {
+      obj = await this._collection.findOne({_id: new MongoDb.ObjectId(document)}); }
     return JsonEncoder.encode(obj);
   }
 
@@ -44,6 +47,7 @@ export class Collection {
       .map((obj) => {
         return JsonEncoder.encode(obj);
       })
+      .maxTimeMS(this.queryTimeout)
       .toArray();
   }
 
@@ -53,7 +57,7 @@ export class Collection {
     // TODO: For now it makes it impossible to remove fields from object with a projection
     const update = partial ? { '$set':newValue } : JsonEncoder.decode(newValue);
     await this._collection.replaceOne({
-      _id: new MongoDb.ObjectId(document)
+      _id: JsonEncoder.fromObjectId(document)
     }, update);
     
     return JsonEncoder.encode(newValue);
@@ -61,7 +65,7 @@ export class Collection {
 
   async removeOne(document: string) {
     await this._collection.deleteOne({
-      _id: new MongoDb.ObjectId(document)
+      _id: JsonEncoder.fromObjectId(document)
     });
   }
 
@@ -73,6 +77,11 @@ export class Collection {
     }
     // fast count
     return this._collection.estimatedDocumentCount();
+  }
+
+  async insert(data: object) {
+    const insertion = JsonEncoder.decode(data);
+    return await this._collection.insertOne(insertion);
   }
 
   async toJson(): Promise<CollectionJSON> {

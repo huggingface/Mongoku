@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { MongoDbService } from '../../services/mongo-db.service';
-import { NotificationsService } from '../../services/notifications.service';
+import { MongoDbService, toObjectId } from '../../services/mongo-db.service';
+import { NotificationsService} from '../../services/notifications.service';
 
 @Component({
   selector: 'app-document',
@@ -28,13 +28,13 @@ export class DocumentComponent implements OnInit {
 
   ngOnInit() {
     this.activatedRoute.paramMap.subscribe((d) => {
-      this.server     = d.get("server");
-      this.database   = d.get("database");
-      this.collection = d.get("collection");
-      this.document   = d.get("document");
+      this.server     = d.get('server');
+      this.database   = d.get('database');
+      this.collection = d.get('collection');
+      this.document   = d.get('document');
 
       this.get();
-    })
+    });
   }
 
   get() {
@@ -46,10 +46,10 @@ export class DocumentComponent implements OnInit {
 
   editDocument(json) {
     const partial = false;
-    const newId = json && json._id && json._id.$value;
-    const oldId = this.item && this.item._id && this.item._id.$value;
+    const newId = toObjectId(json && json._id);
+    const oldId = toObjectId(this.item && this.item._id);
     if (newId !== oldId) {
-      this.notifService.notifyError("ObjectId changed. This is not supported, updated canceled.");
+      this.notifService.notifyError('ObjectId changed. This is not supported, updated canceled.');
       return ;
     }
 
@@ -57,6 +57,8 @@ export class DocumentComponent implements OnInit {
     this.mongodb.update(this.server, this.database, this.collection, oldId, json, partial)
       .subscribe((res: any) => {
         this.loading = false;
+        if (!res.ok) {
+          return void this.notifService.notifyError(`Edit failed: ${res.message}`); }
         this.item = res.update;
       });
   }
@@ -66,10 +68,10 @@ export class DocumentComponent implements OnInit {
       .subscribe((res: any) => {
         this.item = null;
         this.router.navigate([
-          "servers",     this.server,
-          "databases",   this.database,
-          "collections", this.collection,
-        ])
+          'servers',     this.server,
+          'databases',   this.database,
+          'collections', this.collection,
+        ]);
       });
   }
 

@@ -60,7 +60,7 @@ api.get('/servers/:server/databases/:database/collections', async (req, res, nex
   }
 });
 
-api.get('/servers/:server/databases/:database/collections/:collection/documents/:document', async (req, res, next) => {
+api.get('/servers/:server/databases/:database/collections/:collection/documents/:document(*)', async (req, res, next) => {
   const server     = req.params.server;
   const database   = req.params.database;
   const collection = req.params.collection;
@@ -86,7 +86,8 @@ api.get('/servers/:server/databases/:database/collections/:collection/documents/
   }
 });
 
-api.post('/servers/:server/databases/:database/collections/:collection/documents/:document', bodyParser.json(), async (req, res, next) => {
+api.post('/servers/:server/databases/:database/collections/:collection/documents/:document',
+  bodyParser.json({limit: '20mb'}), async (req, res, next) => {
   const server     = req.params.server;
   const database   = req.params.database;
   const collection = req.params.collection;
@@ -109,7 +110,8 @@ api.post('/servers/:server/databases/:database/collections/:collection/documents
   }
 })
 
-api.delete('/servers/:server/databases/:database/collections/:collection/documents/:document', async (req, res, next) => {
+api.delete('/servers/:server/databases/:database/collections/:collection/documents/:document',
+  async (req, res, next) => {
   const server     = req.params.server;
   const database   = req.params.database;
   const collection = req.params.collection;
@@ -131,6 +133,31 @@ api.delete('/servers/:server/databases/:database/collections/:collection/documen
   }
 });
 
+api.put('/servers/:server/databases/:database/collections/:collection/new',
+  bodyParser.json({limit: '20mb'}), async (req, res, next) => {
+  const server     = req.params.server;
+  const database   = req.params.database;
+  const collection = req.params.collection;
+
+  const c = await factory.mongoManager.getCollection(server, database, collection);
+  if (!c) {
+    return next(new Error(`Collection not found: ${server}.${database}.${collection}`)); }
+
+  try {
+    if (!req.body) {
+      throw new Error('No data to insert'); }
+
+    const insert = await c.insert(req.body);
+
+    return res.json({
+      ok:  true,
+      insert,
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 api.get('/servers/:server/databases/:database/collections/:collection/query', async (req, res, next) => {
   const server     = req.params.server;
   const database   = req.params.database;
@@ -139,7 +166,7 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
   let query = req.query.q;
   if (typeof query !== "object") {
     try {
-      query = JSON.parse(query);
+      query = JSON.parse(query||'');
     } catch (err) {
       return next(new Error(`Invalid query: ${query}`));
     }
@@ -162,10 +189,8 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
     }
   }
 
-  let limit = parseInt(req.query.limit, 10);
-  if (isNaN(limit)) { limit = 20; }
-  let skip  = parseInt(req.query.skip, 10);
-  if (isNaN(skip)) { skip = 0; }
+  const limit = parseInt(String(req.query.limit), 10) || 20;
+  const skip  = parseInt(String(req.query.skip), 10) || 0;
 
   const c = await factory.mongoManager.getCollection(server, database, collection);
   if (!c) {
@@ -192,7 +217,7 @@ api.get('/servers/:server/databases/:database/collections/:collection/count', as
   let query = req.query.q;
   if (typeof query !== "object") {
     try {
-      query = JSON.parse(query);
+      query = JSON.parse(query||'');
     } catch (err) {
       return next(new Error(`Invalid query: ${query}`));
     }

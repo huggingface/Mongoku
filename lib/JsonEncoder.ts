@@ -1,12 +1,28 @@
 import * as MongoDb from 'mongodb';
 
+const objid_re = /^ObjectId\('?([0-9a-fA-F]{24})'?\)$/;
 export default class JsonEncoder {
+  static fromObjectId(obj: string) {
+    const match = objid_re.exec(obj);
+    if (match && match[1])
+      return new MongoDb.ObjectId(match[1]);
+    return obj;
+  }
   static encode(obj: any) {
     if (obj instanceof MongoDb.ObjectID) {
       return {
         $type:  'ObjectId',
         $value: obj.toHexString(),
         $date:  obj.generationTime * 1000
+      };
+    }
+    if (obj instanceof MongoDb.Binary) {
+      return {
+        $type:  'Binary',
+        $value:  {
+          $sub_type: obj.sub_type,
+          $data: obj.buffer.toString('base64')
+        }
       };
     }
     if (obj instanceof Date) {
@@ -39,6 +55,9 @@ export default class JsonEncoder {
   static decode(obj: any) {
     if (obj && obj.$type === 'ObjectId') {
       return new MongoDb.ObjectID(obj.$value);
+    }
+    if (obj && obj.$type === 'Binary') {
+      return new MongoDb.Binary(Buffer.from(obj.$value.$data, 'base64'), parseInt(obj.$value.$sub_type));
     }
     if (obj && obj.$type === "Date") {
       return new Date(obj.$value);

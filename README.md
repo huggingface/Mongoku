@@ -1,3 +1,4 @@
+![Publish Docker](https://github.com/tomvardasca/Mongoku/workflows/Publish%20Docker/badge.svg)
 # Mongoku
 
 MongoDB client for the web. Query your data directly from your browser. You can host it locally,
@@ -59,21 +60,11 @@ docker run -d --name mongoku -p 3100:3100 yournamehere/mongoku
 If you want to manually build and run mongoku, just clone this repository and run the following:
 
 ```bash
-# Install the angular cli if you don't have it already
-npm install -g typescript @angular/cli
-npm install
-
-# Build the front
-cd app
-npm install
-ng build
-
-# And the back
-cd ..
-tsc
+# Install deps and build everything
+./run.sh
 
 # Run
-node dist/server.js
+npm start
 ```
 
 ### Configuration
@@ -91,4 +82,7 @@ MONGOKU_DATABASE_FILE="/tmp/mongoku.db"
 
 # Timeout before falling back to estimated documents count in ms (Default = 5000)
 MONGOKU_COUNT_TIMEOUT=1000
+
+# Timeout before aborting find query in ms (Default = 300000)
+MONGOKU_QUERY_TIMEOUT=5000
 ```

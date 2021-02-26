@@ -12,6 +12,8 @@ hosts.db
 node_modules
 
 # IDEs and editors
+*.swp
+*.swo
 /.idea
 .project
 .classpath
@@ -35,6 +37,7 @@ node_modules
 npm-debug.log
 testem.log
 /typings
+package-lock.json
 
 # e2e
 /e2e/*.js

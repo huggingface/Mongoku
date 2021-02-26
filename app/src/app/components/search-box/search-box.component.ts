@@ -18,7 +18,8 @@ export class SearchBoxComponent implements OnInit, OnChanges {
   @Input()  params: SearchParams;
 
   private ready = false;
-  private defaults = {
+  private prevQuery = "{}";
+  private defaults: SearchParams = {
     query:   "{}",
     project: "{}",
     limit:   20,
@@ -55,9 +56,10 @@ export class SearchBoxComponent implements OnInit, OnChanges {
     this.go();
   }
 
-  toggle(add: boolean, type: "limit" | "skip" | "sort" | "project") {
+  toggle(add: boolean, type: keyof SearchParams) {
     this.show[type] = add;
     if (!add && this.params[type] !== this.defaults[type]) {
+      // @ts-ignore: dont know why the error
       this.params[type] = this.defaults[type];
       this.go();
     }
@@ -72,6 +74,11 @@ export class SearchBoxComponent implements OnInit, OnChanges {
       this.params.query = "{}";
     }
 
+    if (this.params.query !== this.prevQuery) {
+      this.params.skip = 0;
+    }
+
+    this.prevQuery = this.params.query;
     this.search.emit();
   }
 

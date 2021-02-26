@@ -1,4 +1,7 @@
 <div class="row explore-component">
+  <button class="btn btn-default insert-button" (click)="goInsert()">
+    Add document
+  </button>
   <div class="col-md-12">
     <search-box (search)="update()" [(params)]="params"></search-box>
     <panel *ngIf="params && !loading.count">

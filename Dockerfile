@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:slim
 
 ENV UID=991 GID=991
 
@@ -12,13 +12,12 @@ WORKDIR /app
 
 COPY ./ /app
 
-RUN npm install -g typescript @angular/cli \
-      && npm install \
+RUN npm install \
       && cd app \
       && npm install \
-      && ng build --prod \
+      && npm run build \
       && cd .. \
-      && tsc
+      && npm run build
 
 EXPOSE 3100
 

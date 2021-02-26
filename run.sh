@@ -1,5 +1,7 @@
-cd client
+#!/bin/bash
+cd "$(dirname "$0")"
 npm install
-ng build
-cd ..
+npm run build
+cd app
 npm install
+npm run build

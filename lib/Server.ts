@@ -1,4 +1,4 @@
-import * as MongoDb from 'mongodb';
+import { MongoClient } from 'mongodb';
 
 import { Database, DatabaseJSON } from './Database';
 import { Utils } from './Utils';
@@ -8,24 +8,16 @@ export interface ServerJSON {
   size:      number;
   databases: DatabaseJSON[]
 }
-export interface ServerErrorJSON {
-  name:      string;
-  error:     {
-    code:    number | undefined;
-    name:    string;
-    message: string;
-  };
-}
 
 export class Server {
-  private _client: MongoDb.MongoClient;
+  private _client: MongoClient;
   private _name: string;
   private _size: number;
 
   get name() { return this._name; }
   get size() { return this._size; }
 
-  constructor(name: string, client: MongoDb.MongoClient) {
+  constructor(name: string, client: MongoClient) {
     this._name = name;
     this._client = client;
   }

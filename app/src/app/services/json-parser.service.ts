@@ -70,7 +70,7 @@ export class JsonParserService {
 
       case 'NewExpression':
       case 'CallExpression': {
-        const authorizedCalls = [ 'ObjectId', 'Date', 'RegExp' ];
+        const authorizedCalls = [ 'ObjectId', 'Date', 'RegExp', "Binary" ];
         const callee = node.callee.type === 'Identifier'
           ? node.callee.name
           : null;
@@ -82,6 +82,16 @@ export class JsonParserService {
               $value: {
                 $pattern: pattern,
                 $flags:   flags
+              }
+            }
+          }
+          if (callee === 'Binary') {
+            const [sub_type, data] = node.arguments.map(this.buildObject.bind(this));
+            return {
+              $type:  'Binary',
+              $value: {
+                $data: data,
+                $sub_type:  sub_type
               }
             }
           }
