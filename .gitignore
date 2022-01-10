@@ -3,6 +3,7 @@
 hosts.db
 
 # compiled output
+.angular/
 /dist
 /dist-server
 /tmp

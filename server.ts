@@ -41,12 +41,12 @@ const setupServer = () => {
     res.status(500);
 
     return res.json({
-      ok:      false,
-      message: err.message
+      ok: false,
+      message: err.message,
     });
-  })
+  });
 
-  app.listen(SERVER_PORT, () => console.log(`[Mongoku] listening on port `+SERVER_PORT));
+  app.listen(SERVER_PORT, () => console.log(`[Mongoku] listening on port ${SERVER_PORT}`));
 }
 
 export const start = async () => {

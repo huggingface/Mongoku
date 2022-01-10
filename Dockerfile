@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:lts
 
 ENV UID=991 GID=991
 
@@ -6,6 +6,7 @@ ENV MONGOKU_DEFAULT_HOST="localhost:27017"
 ENV MONGOKU_SERVER_PORT=3100
 ENV MONGOKU_DATABASE_FILE="/tmp/mongoku.db"
 ENV MONGOKU_COUNT_TIMEOUT=5000
+ENV MONGOKU_READ_ONLY_MODE="true"
 
 RUN mkdir -p /app
 WORKDIR /app
@@ -16,7 +17,7 @@ RUN npm install -g typescript @angular/cli \
       && npm install \
       && cd app \
       && npm install \
-      && ng build --prod \
+      && ng build --configuration production \
       && cd .. \
       && tsc
 

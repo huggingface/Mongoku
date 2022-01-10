@@ -25,12 +25,13 @@ export class MongoManager {
 
     if (this._servers[hostname] instanceof Server) {
       // Already connected
-      return ;
+      return;
     }
 
     try {
       const client = await MongoDb.MongoClient.connect(urlStr, {
-        useNewUrlParser: true
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
       });
       const server = new Server(hostname, client);
       this._servers[hostname] = server;
@@ -82,8 +83,8 @@ export class MongoManager {
         servers.push({
           name: name,
           error: {
-            code:    server.code,
-            name:    server.name,
+            code: (server.code) ? +server.code : undefined,
+            name: server.name,
             message: server.message
           }
         });
@@ -122,10 +123,10 @@ export class MongoManager {
 
   async getCollection(serverName: string, databaseName: string, collectionName: string): Promise<Collection | undefined> {
     const server = this.getServer(serverName);
-    if (server instanceof Error) { return ; }
+    if (server instanceof Error) { return; }
 
     const database = await server.database(databaseName);
-    if (!database) { return ; }
+    if (!database) { return; }
 
     const collection = await database.collection(collectionName);
     return collection;
