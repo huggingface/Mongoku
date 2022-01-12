@@ -1,5 +1,5 @@
-import * as URL from 'url';
-import * as MongoDb from 'mongodb';
+import { URL } from 'url';
+import { MongoClient, MongoError } from 'mongodb';
 
 import factory from '../lib/Factory';
 
@@ -13,14 +13,14 @@ export type Servers = (ServerJSON | ServerErrorJSON)[]
 
 export class MongoManager {
   private _servers: {
-    [name: string]: Server | MongoDb.MongoError;
+    [name: string]: Server | MongoError;
   } = {};
 
   private async connect(host: Host) {
     const urlStr = host.path.startsWith('mongodb')
       ? host.path
       : `mongodb://${host.path}`;
-    const url = URL.parse(urlStr);
+    const url = new URL(urlStr);
     let hostname = url.host || host.path;
 
     if (this._servers[hostname] instanceof Server) {
@@ -29,10 +29,8 @@ export class MongoManager {
     }
 
     try {
-      const client = await MongoDb.MongoClient.connect(urlStr, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      });
+      const client = new MongoClient(urlStr);
+      await client.connect();
       const server = new Server(hostname, client);
       this._servers[hostname] = server;
       console.info(`[${hostname}] Connected to ${hostname}`);
