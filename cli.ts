@@ -45,6 +45,7 @@ async function start(cmd: 'start', options: any) {
         console.log("[Mongoku] Launched with PM2.\nAvailable at http://localhost:3100/");
       }
     });
+    return;
   }
 
   if (forever) {
@@ -57,6 +58,7 @@ async function start(cmd: 'start', options: any) {
         console.log("[Mongoku] Launched with forever.\nAvailable at http://localhost:3100/");
       }
     });
+    return;
   }
 
   await server.start();

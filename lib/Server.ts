@@ -11,7 +11,7 @@ export interface ServerJSON {
 export interface ServerErrorJSON {
   name: string;
   error: {
-    code: number | undefined;
+    code: string | number | undefined;
     name: string;
     message: string;
   };

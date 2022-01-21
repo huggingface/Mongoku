@@ -1,4 +1,4 @@
-<div class="row databases-component gx-0">
+<div class="row databases-component">
   <panel>
     <div class="title">{{ server }} Databases</div>
     <table class="table table-hover">
@@ -9,16 +9,26 @@
       </thead>
       <tbody>
         <tr *ngFor="let database of databases">
-          <td><a routerLink="/servers/{{ server }}/databases/{{ database.name }}/collections">{{ database.name }}</a>
+          <td><a routerLink="/servers/{{ server }}/databases/{{ database.name }}/collections">{{ database.name }}</a></td>
+          <td>
+            <span class="dotted"
+                  [ngbPopover]="popCollection"
+                  placement="auto right"
+                  triggers="manual"
+                  #p1="ngbPopover"
+                  (mouseenter)="toggleCollection(p1, database.collections)"
+                  (mouseleave)="toggle(p1)"
+            >{{ database.collections.length }}</span>
           </td>
           <td>
-            <span class="dotted" [ngbPopover]="popCollection" placement="auto right" triggers="manual" #p1="ngbPopover"
-              (mouseenter)="toggleCollection(p1, database.collections)" (mouseleave)="toggle(p1)">{{
-              database.collections.length }}</span>
-          </td>
-          <td>
-            <span class="dotted" [ngbPopover]="popStats" placement="auto right" triggers="manual" #p2="ngbPopover"
-              (mouseenter)="toggleStats(p2, database)" (mouseleave)="toggle(p2)">{{ database.size | bytes }}</span>
+            <span class="dotted"
+                  [ngbPopover]="popStats"
+                  placement="auto right"
+                  triggers="manual"
+                  #p2="ngbPopover"
+                  (mouseenter)="toggleStats(p2, database)"
+                  (mouseleave)="toggle(p2)"
+            >{{ database.size | bytes }}</span>
           </td>
         </tr>
         <tr *ngIf="databases.length == 0 && !loading">

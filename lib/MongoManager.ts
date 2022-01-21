@@ -81,7 +81,7 @@ export class MongoManager {
         servers.push({
           name: name,
           error: {
-            code: (server.code) ? +server.code : undefined,
+            code: server.code,
             name: server.name,
             message: server.message
           }

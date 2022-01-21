@@ -12,7 +12,7 @@ api.get('/servers', async (req, res, next) => {
   return res.json(servers);
 });
 
-api.put('/servers', readOnlyMode, bodyParser.json(), async (req, res, next) => {
+api.put('/servers', bodyParser.json(), async (req, res, next) => {
   try {
     await factory.hostsManager.add(req.body.url);
     await factory.mongoManager.load();
@@ -25,7 +25,7 @@ api.put('/servers', readOnlyMode, bodyParser.json(), async (req, res, next) => {
   });
 });
 
-api.delete('/servers/:server', readOnlyMode, async (req, res, next) => {
+api.delete('/servers/:server', async (req, res, next) => {
   try {
     await factory.hostsManager.remove(req.params.server);
     factory.mongoManager.removeServer(req.params.server);
