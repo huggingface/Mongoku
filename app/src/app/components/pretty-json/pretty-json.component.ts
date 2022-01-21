@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, ElementRef, Renderer2, Output, EventEmitter, NgZone } from '@angular/core';
 import { JsonParserService } from '../../services/json-parser.service';
 import { NotificationsService } from '../../services/notifications.service';
+import { environment } from '../../../environments/environment';
 
 // All of this is heavily inspired by the Genghis app `pretty-print`
 // and adapted to angular
@@ -43,6 +44,7 @@ export class PrettyJsonComponent implements OnInit {
   private listener      = null;
   editJson      = "";
   editorVisible = false;
+  readOnly      = environment.readOnly;
   removing      = false;
 
   editorOptions = {
