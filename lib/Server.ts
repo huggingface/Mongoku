@@ -4,15 +4,15 @@ import { Database, DatabaseJSON } from './Database';
 import { Utils } from './Utils';
 
 export interface ServerJSON {
-  name: string;
-  size: number;
+  name:      string;
+  size:      number;
   databases: DatabaseJSON[]
 }
 export interface ServerErrorJSON {
-  name: string;
+  name:      string;
   error: {
-    code: string | number | undefined;
-    name: string;
+    code:    string | number | undefined;
+    name:    string;
     message: string;
   };
 }
@@ -61,8 +61,8 @@ export class Server {
     Utils.fieldSort(dbsJson, 'name');
 
     return {
-      name: this.name,
-      size: this.size,
+      name:      this.name,
+      size:      this.size,
       databases: dbsJson
     }
   }

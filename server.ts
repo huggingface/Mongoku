@@ -41,7 +41,7 @@ const setupServer = () => {
     res.status(500);
 
     return res.json({
-      ok: false,
+      ok:      false,
       message: err.message,
     });
   });

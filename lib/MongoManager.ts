@@ -81,8 +81,8 @@ export class MongoManager {
         servers.push({
           name: name,
           error: {
-            code: server.code,
-            name: server.name,
+            code:    server.code,
+            name:    server.name,
             message: server.message
           }
         });

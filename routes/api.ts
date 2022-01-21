@@ -50,7 +50,7 @@ api.get('/servers/:server/databases', async (req, res, next) => {
 });
 
 api.get('/servers/:server/databases/:database/collections', async (req, res, next) => {
-  const server = req.params.server;
+  const server   = req.params.server;
   const database = req.params.database;
 
   try {
@@ -62,10 +62,10 @@ api.get('/servers/:server/databases/:database/collections', async (req, res, nex
 });
 
 api.get('/servers/:server/databases/:database/collections/:collection/documents/:document', async (req, res, next) => {
-  const server = req.params.server;
-  const database = req.params.database;
+  const server     = req.params.server;
+  const database   = req.params.database;
   const collection = req.params.collection;
-  const document = req.params.document;
+  const document   = req.params.document;
 
   try {
     const c = await factory.mongoManager.getCollection(server, database, collection);
@@ -79,7 +79,7 @@ api.get('/servers/:server/databases/:database/collections/:collection/documents/
     }
 
     return res.json({
-      ok: true,
+      ok:       true,
       document: doc
     });
   } catch (err) {
@@ -88,11 +88,11 @@ api.get('/servers/:server/databases/:database/collections/:collection/documents/
 });
 
 api.post('/servers/:server/databases/:database/collections/:collection/documents/:document', readOnlyMode, bodyParser.json(), async (req, res, next) => {
-  const server = req.params.server;
-  const database = req.params.database;
+  const server     = req.params.server;
+  const database   = req.params.database;
   const collection = req.params.collection;
-  const document = req.params.document;
-  const partial = req.query.partial === 'true';
+  const document   = req.params.document;
+  const partial    = req.query.partial === 'true';
 
   try {
     const c = await factory.mongoManager.getCollection(server, database, collection);
@@ -102,7 +102,7 @@ api.post('/servers/:server/databases/:database/collections/:collection/documents
     const update = await c.updateOne(document, req.body, partial);
 
     return res.json({
-      ok: true,
+      ok:     true,
       update: update
     });
   } catch (err) {
@@ -111,10 +111,10 @@ api.post('/servers/:server/databases/:database/collections/:collection/documents
 })
 
 api.delete('/servers/:server/databases/:database/collections/:collection/documents/:document', readOnlyMode, async (req, res, next) => {
-  const server = req.params.server;
-  const database = req.params.database;
+  const server     = req.params.server;
+  const database   = req.params.database;
   const collection = req.params.collection;
-  const document = req.params.document;
+  const document   = req.params.document;
 
   try {
     const c = await factory.mongoManager.getCollection(server, database, collection);
@@ -133,8 +133,8 @@ api.delete('/servers/:server/databases/:database/collections/:collection/documen
 });
 
 api.get('/servers/:server/databases/:database/collections/:collection/query', async (req, res, next) => {
-  const server = req.params.server;
-  const database = req.params.database;
+  const server     = req.params.server;
+  const database   = req.params.database;
   const collection = req.params.collection;
 
   let query = req.query.q;
@@ -177,7 +177,7 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
     const results = await c.find(query, project, sort, limit, skip);
 
     return res.json({
-      ok: true,
+      ok:      true,
       results: results
     });
   } catch (err) {
@@ -186,8 +186,8 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
 });
 
 api.get('/servers/:server/databases/:database/collections/:collection/count', async (req, res, next) => {
-  const server = req.params.server;
-  const database = req.params.database;
+  const server     = req.params.server;
+  const database   = req.params.database;
   const collection = req.params.collection;
 
   let query = req.query.q;
@@ -208,7 +208,7 @@ api.get('/servers/:server/databases/:database/collections/:collection/count', as
     const count = await c.count(query);
 
     return res.json({
-      ok: true,
+      ok:    true,
       count: count
     });
   } catch (err) {

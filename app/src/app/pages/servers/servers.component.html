@@ -10,11 +10,10 @@
         <div *ngIf="adding">
           <input type="text" placeholder="user:password@hostname:port" [(ngModel)]="newServer" [disabled]="loading" />
         </div>
-        <button
-          *ngIf="adding"
-            class="btn btn-outline-success btn-sm"
-            (click)="addServer()"
-            [disabled]="!newServer.length || loading">
+        <button *ngIf="adding"
+                class="btn btn-outline-success btn-sm"
+                (click)="addServer()"
+                [disabled]="!newServer.length || loading">
           Add
         </button>
       </div>
