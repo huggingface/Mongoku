@@ -6,6 +6,14 @@ import { readOnlyMode } from '../lib/ReadOnlyMiddleware';
 
 export const api = express.Router();
 
+// get readOnly
+api.get('/readonly', async (req, res, next) => {
+  return res.json({
+    ok: true,
+    readOnly: (process.env.MONGOKU_READ_ONLY_MODE === 'true'),
+  });
+});
+
 // Get servers
 api.get('/servers', async (req, res, next) => {
   const servers = await factory.mongoManager.getServersJson();

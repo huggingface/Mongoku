@@ -18,6 +18,7 @@ export class ExploreComponent implements OnInit {
   database:   string;
   collection: string;
 
+  readOnly = false;
   params: Partial<SearchParams>;
   loading    = {
     content: true,
@@ -39,6 +40,9 @@ export class ExploreComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    this.mongoDb.isReadOnly().subscribe(({ readOnly }) => {
+      this.readOnly = readOnly;
+    });
     combineLatest(
       this.activatedRoute.paramMap,
       this.activatedRoute.queryParamMap

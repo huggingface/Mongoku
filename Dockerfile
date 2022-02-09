@@ -14,10 +14,6 @@ WORKDIR /mongoku
 
 COPY ./ /mongoku
 
-RUN if [ "$MONGOKU_READ_ONLY_MODE" = "true" ]; \
-    then sed -i -E 's/(readOnly:\s+)false/\1true/' /mongoku/app/src/environments/environment.prod.ts; \
-    fi
-
 RUN npm install -g typescript @angular/cli \
       && npm install \
       && cd app \

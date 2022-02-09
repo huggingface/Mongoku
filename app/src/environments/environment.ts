@@ -5,5 +5,4 @@
 
 export const environment = {
   production: false,
-  readOnly: false,
 };

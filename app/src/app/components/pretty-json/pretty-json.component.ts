@@ -36,6 +36,7 @@ const ESCAPE = (a) => {
 export class PrettyJsonComponent implements OnInit {
   @Input()  json: any;
   @Input()  autoCollapse = false;
+  @Input()  readOnly = false;
   @Output() go = new EventEmitter();
   @Output() edit = new EventEmitter();
   @Output() remove = new EventEmitter();
@@ -44,7 +45,6 @@ export class PrettyJsonComponent implements OnInit {
   private listener      = null;
   editJson      = "";
   editorVisible = false;
-  readOnly      = environment.readOnly;
   removing      = false;
 
   editorOptions = {

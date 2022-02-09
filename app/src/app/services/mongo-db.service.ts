@@ -66,6 +66,10 @@ export class MongoDbService {
       ) as Observable<T>;
   }
 
+  isReadOnly() {
+    return this.get<{ readOnly: boolean }>(`${this.apiBaseUrl}/readonly`);
+  }
+
   getServers() {
     return this.get<ServerJSON[]>(`${this.apiBaseUrl}/servers`);
   }
