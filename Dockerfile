@@ -14,10 +14,10 @@ WORKDIR /mongoku
 
 COPY ./ /mongoku
 
-RUN npm install -g typescript @angular/cli \
-      && npm install \
+RUN npm install -g typescript@4.5.4 @angular/cli \
+      && npm ci \
       && cd app \
-      && npm install \
+      && npm ci \
       && ng build --configuration production \
       && cd .. \
       && tsc
@@ -26,5 +26,4 @@ EXPOSE 3100
 
 LABEL description="MongoDB client for the web. Query your data directly from your browser. You can host it locally, or anywhere else, for you and your team."
 
-
-CMD ["/mongoku/docker-run.sh"]
+ENTRYPOINT node dist/server.js
