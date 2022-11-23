@@ -2,7 +2,7 @@ import * as express from 'express';
 import * as bodyParser from 'body-parser';
 
 import factory from '../lib/Factory';
-import { readOnlyMode } from '../lib/ReadOnlyMiddleware';
+import { writeEnabled } from '../lib/ReadOnlyMiddleware';
 
 export const api = express.Router();
 
@@ -95,7 +95,7 @@ api.get('/servers/:server/databases/:database/collections/:collection/documents/
   }
 });
 
-api.post('/servers/:server/databases/:database/collections/:collection/documents/:document', readOnlyMode, bodyParser.json(), async (req, res, next) => {
+api.post('/servers/:server/databases/:database/collections/:collection/documents/:document', writeEnabled, bodyParser.json(), async (req, res, next) => {
   const server     = req.params.server;
   const database   = req.params.database;
   const collection = req.params.collection;
@@ -118,7 +118,7 @@ api.post('/servers/:server/databases/:database/collections/:collection/documents
   }
 })
 
-api.delete('/servers/:server/databases/:database/collections/:collection/documents/:document', readOnlyMode, async (req, res, next) => {
+api.delete('/servers/:server/databases/:database/collections/:collection/documents/:document', writeEnabled, async (req, res, next) => {
   const server     = req.params.server;
   const database   = req.params.database;
   const collection = req.params.collection;
