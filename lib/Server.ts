@@ -10,8 +10,8 @@ export interface ServerJSON {
 }
 export interface ServerErrorJSON {
   name:      string;
-  error:     {
-    code:    number | undefined;
+  error: {
+    code:    string | number | undefined;
     name:    string;
     message: string;
   };
@@ -34,12 +34,12 @@ export class Server {
     const db = this._client.db("test");
     const results = await db.admin().listDatabases();
 
-    this._size = results.totalSize;
+    this._size = results.totalSize ?? 0;
     const databases: Database[] = [];
     if (Array.isArray(results.databases)) {
       for (const d of results.databases) {
         const db = this._client.db(d.name);
-        const database = new Database(d.name, d.sizeOnDisk, d.empty, db);
+        const database = new Database(d.name, d.sizeOnDisk ?? 0, d.empty ?? true, db);
         databases.push(database);
       }
     }

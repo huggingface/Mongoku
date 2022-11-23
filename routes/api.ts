@@ -2,8 +2,17 @@ import * as express from 'express';
 import * as bodyParser from 'body-parser';
 
 import factory from '../lib/Factory';
+import { writeEnabled } from '../lib/ReadOnlyMiddleware';
 
 export const api = express.Router();
+
+// get readOnly
+api.get('/readonly', async (req, res, next) => {
+  return res.json({
+    ok: true,
+    readOnly: (process.env.MONGOKU_READ_ONLY_MODE === 'true'),
+  });
+});
 
 // Get servers
 api.get('/servers', async (req, res, next) => {
@@ -86,7 +95,7 @@ api.get('/servers/:server/databases/:database/collections/:collection/documents/
   }
 });
 
-api.post('/servers/:server/databases/:database/collections/:collection/documents/:document', bodyParser.json(), async (req, res, next) => {
+api.post('/servers/:server/databases/:database/collections/:collection/documents/:document', writeEnabled, bodyParser.json(), async (req, res, next) => {
   const server     = req.params.server;
   const database   = req.params.database;
   const collection = req.params.collection;
@@ -109,7 +118,7 @@ api.post('/servers/:server/databases/:database/collections/:collection/documents
   }
 })
 
-api.delete('/servers/:server/databases/:database/collections/:collection/documents/:document', async (req, res, next) => {
+api.delete('/servers/:server/databases/:database/collections/:collection/documents/:document', writeEnabled, async (req, res, next) => {
   const server     = req.params.server;
   const database   = req.params.database;
   const collection = req.params.collection;
@@ -139,7 +148,7 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
   let query = req.query.q;
   if (typeof query !== "object") {
     try {
-      query = JSON.parse(query);
+      query = JSON.parse(query as string);
     } catch (err) {
       return next(new Error(`Invalid query: ${query}`));
     }
@@ -162,9 +171,9 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
     }
   }
 
-  let limit = parseInt(req.query.limit, 10);
+  let limit = parseInt(req.query.limit as string, 10);
   if (isNaN(limit)) { limit = 20; }
-  let skip  = parseInt(req.query.skip, 10);
+  let skip = parseInt(req.query.skip as string, 10);
   if (isNaN(skip)) { skip = 0; }
 
   const c = await factory.mongoManager.getCollection(server, database, collection);
@@ -179,7 +188,7 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
       ok:      true,
       results: results
     });
-  } catch(err) {
+  } catch (err) {
     return next(err);
   }
 });
@@ -192,7 +201,7 @@ api.get('/servers/:server/databases/:database/collections/:collection/count', as
   let query = req.query.q;
   if (typeof query !== "object") {
     try {
-      query = JSON.parse(query);
+      query = JSON.parse(query as string);
     } catch (err) {
       return next(new Error(`Invalid query: ${query}`));
     }

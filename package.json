@@ -14,21 +14,20 @@
     "url": "https://github.com/huggingface/Mongoku.git"
   },
   "dependencies": {
-    "body-parser": "^1.18.3",
+    "body-parser": "^1.19.1",
     "chalk": "^2.4.2",
-    "commander": "^2.19.0",
-    "express": "^4.16.3",
-    "figlet": "^1.2.1",
-    "mongodb": "^3.2.2",
+    "commander": "^8.3.0",
+    "express": "^4.17.2",
+    "figlet": "^1.5.2",
+    "mongodb": "^4.3.0",
     "nedb": "^1.8.0"
   },
   "devDependencies": {
-    "@types/commander": "^2.12.2",
-    "@types/express": "^4.16.0",
-    "@types/figlet": "^1.2.0",
-    "@types/mongodb": "^3.1.4",
-    "@types/nedb": "^1.8.5",
-    "@types/node": "^10.7.1"
+    "@types/express": "^4.17.13",
+    "@types/figlet": "^1.5.4",
+    "@types/mongodb": "^4.0.7",
+    "@types/nedb": "^1.8.12",
+    "@types/node": "^17.0.8"
   },
   "main": "./dist/server.js",
   "scripts": {

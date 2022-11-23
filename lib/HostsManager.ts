@@ -65,7 +65,7 @@ export class HostsManager {
         $set: {
           path: path
         }
-      }, { upsert : true }, (err: Error) => {
+      }, { upsert: true }, (err: Error) => {
         if (err) {
           return reject(err);
         } else {

@@ -8,7 +8,7 @@
           <span *ngIf="!adding">Add Server</span>
         </button>
         <div *ngIf="adding">
-          <input type="text" placeholder="user:password@hostname:port" [(ngModel)]="newServer" [disabled]="loading"/>
+          <input type="text" placeholder="user:password@hostname:port" [(ngModel)]="newServer" [disabled]="loading" />
         </div>
         <button *ngIf="adding"
                 class="btn btn-outline-success btn-sm"

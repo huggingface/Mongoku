@@ -3,11 +3,12 @@
 import * as child_process from 'child_process';
 import * as path from 'path';
 
-import * as program from 'commander';
+import { createCommand } from 'commander';
 import * as figlet from 'figlet';
 import chalk from 'chalk';
 import * as server from './server';
 
+const program = createCommand();
 program
   .version(require('../package.json').version)
   .usage('start [--pm2] [--forever]')
@@ -18,7 +19,7 @@ program
   .parse(process.argv);
 
 async function start(cmd: 'start', options: any) {
-  console.log(chalk.hsl(216, 25, 75)(figlet.textSync('Mongoku')));
+  console.log(chalk.rgb(175, 188, 207)(figlet.textSync('Mongoku')) + '\n');
 
   if (cmd !== "start") {
     return program.help();
@@ -36,7 +37,7 @@ async function start(cmd: 'start', options: any) {
 
   if (pm2) {
     // Start for pm2
-    return child_process.exec(`pm2 start --name mongoku ${entryPath}`, (err, stdout, stderr) => {
+    child_process.exec(`pm2 start --name mongoku ${entryPath}`, (err, stdout, stderr) => {
       if (err) {
         console.log("Error while launching with pm2: ", err);
       } else {
@@ -44,11 +45,12 @@ async function start(cmd: 'start', options: any) {
         console.log("[Mongoku] Launched with PM2.\nAvailable at http://localhost:3100/");
       }
     });
+    return;
   }
 
   if (forever) {
     // Start for forever
-    return child_process.exec(`forever --uid mongoku start -a ${entryPath}`, (err, stdout, stderr) => {
+    child_process.exec(`forever --uid mongoku start -a ${entryPath}`, (err, stdout, stderr) => {
       if (err) {
         console.log("Error while launching with forever: ", err);
       } else {
@@ -56,6 +58,7 @@ async function start(cmd: 'start', options: any) {
         console.log("[Mongoku] Launched with forever.\nAvailable at http://localhost:3100/");
       }
     });
+    return;
   }
 
   await server.start();

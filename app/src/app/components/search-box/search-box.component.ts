@@ -58,7 +58,7 @@ export class SearchBoxComponent implements OnInit, OnChanges {
   toggle(add: boolean, type: "limit" | "skip" | "sort" | "project") {
     this.show[type] = add;
     if (!add && this.params[type] !== this.defaults[type]) {
-      this.params[type] = this.defaults[type];
+      (this.params[type] as string | number) = this.defaults[type];
       this.go();
     }
   }
