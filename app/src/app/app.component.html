@@ -1,5 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <a class="navbar-brand" routerLink="/">Mongoku</a>
+  <div class="navbar-brand"></div>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb bg-dark">
       <li *ngFor="let b of breadcrumbs" class="breadcrumb-item" [class.active]="b.active">
@@ -22,3 +23,19 @@
     </div>
   </div>
 </div>
+
+<ng-template #signinContent let-modal>
+  <div class="modal-body">
+    <h3>Sign in</h3>
+    <p>Use your Luminati username and password</p>
+    <p><input type="text" placeholder="username" #usr
+      (keydown.enter)="modal.close({username: usr.value, password: pwd.value})"/></p>
+    <p><input type="password" placeholder="password" #pwd
+      (keydown.enter)="modal.close({username: usr.value, password: pwd.value})"/></p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-default btn-sm" (click)="modal.dismiss(2)">Cancel</button>
+    <button type="button" class="btn btn-outline-success btn-sm"
+      (click)="modal.close({username: usr.value, password: pwd.value})">Sign In</button>
+  </div>
+</ng-template>

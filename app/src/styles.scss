@@ -16,7 +16,7 @@
 
 body {
 	background-color: var(--background-color);
-	font-family: 'Rajdhani', sans-serif;
+	font-family: "Open Sans", sans-serif;
 	cursor: default;
 }
 
@@ -39,12 +39,14 @@ nav.navbar {
 		border-bottom: none;
 	}
 
-	th,td {
+	th,
+	td {
 		border-color: var(--color-3);
 	}
 }
 
-a, pre {
+a,
+pre {
 	color: var(--text);
 }
 
@@ -63,7 +65,7 @@ a:hover {
 }
 
 .btn.btn-outline-danger {
-	color:        var(--button-danger);
+	color: var(--button-danger);
 	border-color: var(--button-danger);
 
 	&:hover {
@@ -73,7 +75,7 @@ a:hover {
 }
 
 .btn.btn-outline-success {
-	color:        var(--button-success);
+	color: var(--button-success);
 	border-color: var(--button-success);
 
 	&:hover {
@@ -95,7 +97,7 @@ a:hover {
 }
 
 .btn.btn-outline-light {
-	color:        var(--button-light);
+	color: var(--button-light);
 	border-color: var(--button-light);
 
 	&:hover {
@@ -107,12 +109,15 @@ a:hover {
 .bs-popover-bottom .arrow::after {
 	border-bottom-color: var(--color-3);
 }
+
 .bs-popover-top .arrow::after {
 	border-top-color: var(--color-3);
 }
+
 .bs-popover-left .arrow::after {
 	border-left-color: var(--color-3);
 }
+
 .bs-popover-right .arrow::after {
 	border-right-color: var(--color-3);
 }
@@ -130,7 +135,8 @@ a:hover {
 		padding: 0;
 	}
 
-	table.sm th, table.sm td {
+	table.sm th,
+	table.sm td {
 		padding: 5px 20px !important;
 	}
 }
@@ -155,13 +161,13 @@ span.dotted {
 }
 
 .table-hover tbody tr:hover {
-  color: var(--text-darker);
+	color: var(--text-darker);
 }
 
 .btn {
-  color: var(--text);
+	color: var(--text);
 }
 
 .btn:hover {
-  color: var(--text-darker);
+	color: var(--text-darker);
 }

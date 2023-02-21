@@ -18,7 +18,7 @@ import 'codemirror/mode/javascript/javascript';
     NgbModule,
     CodemirrorModule,
   ],
-  declarations: [ PanelComponent, PrettyJsonComponent, SearchBoxComponent, NotificationsComponent ],
-  exports: [ PanelComponent, PrettyJsonComponent, SearchBoxComponent, NotificationsComponent ]
+  declarations: [PanelComponent, PrettyJsonComponent, SearchBoxComponent, NotificationsComponent],
+  exports: [PanelComponent, PrettyJsonComponent, SearchBoxComponent, NotificationsComponent]
 })
 export class ComponentsModule { }

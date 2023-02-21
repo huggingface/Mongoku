@@ -192,7 +192,10 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
   const limit = parseInt(String(req.query.limit), 10) || 20;
   const skip  = parseInt(String(req.query.skip), 10) || 0;
 
-  const c = await factory.mongoManager.getCollection(server, database, collection);
+  let c;
+  try {
+    c = await factory.mongoManager.getCollection(server, database, collection);
+  } catch(err) {}
   if (!c) {
     return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
   }
@@ -223,7 +226,10 @@ api.get('/servers/:server/databases/:database/collections/:collection/count', as
     }
   }
 
-  const c = await factory.mongoManager.getCollection(server, database, collection);
+  let c;
+  try {
+    c = await factory.mongoManager.getCollection(server, database, collection);
+  } catch(err) {}
   if (!c) {
     return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
   }

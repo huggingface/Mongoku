@@ -23,7 +23,7 @@ import { ServicesModule } from './services/services.module';
     FiltersModule,
     ServicesModule
   ],
-  providers: [ { provide: UrlSerializer, useClass: UrlSerializerFix } ],
+  providers: [{ provide: UrlSerializer, useClass: UrlSerializerFix }],
   bootstrap: [
     AppComponent
   ]

@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Subject }    from 'rxjs';
+import { Subject } from 'rxjs';
 
 interface Notification {
-  type:    "error";
+  type: 'error';
   message: string;
 }
 
@@ -16,7 +16,7 @@ export class NotificationsService {
 
   notifyError(message: string) {
     const notif: Notification = {
-      type:    "error",
+      type: 'error',
       message: message
     };
 

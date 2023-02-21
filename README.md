@@ -85,4 +85,27 @@ MONGOKU_COUNT_TIMEOUT=1000
 
 # Timeout before aborting find query in ms (Default = 300000)
 MONGOKU_QUERY_TIMEOUT=5000
+
+# Session secret
+MONGOKU_SESSION_SECRET="keyboard cat"
+
+# Authentication endpoint. This address will be used to authenticate users
+MONGOKU_AUTH_ENDPOINT=http://localhost/auth
+
+# Disable authorization (allow any requests), useful for debugging environment
+MONGOKU_DISABLE_AUTH=true
+
+# MONGOKU_EXT_SESSION_COOKIE and MONGOKU_EXT_SESSION_ENDPOINT enable
+# "external session auth" mode when a request to the api may be authorized
+# using web session managed by another appication.
+
+# If the given cookie is present on a request to the api
+# mongoku server mades request to MONGOKU_EXT_SESSION_ENPOINT with that cookie
+# to get the current user.
+MONGOKU_EXT_SESSION_COOKIE="app.sid"
+
+# The given endpoint must accept GET request with MONGOKU_EXT_SESSION_COOKIE set
+# and response with json {"login":"<curret_user_login>"} if session is valid
+# or 40x code otherwise.
+MONGOKU_EXT_SESSION_ENDPOINT=http://localhost/whoami
 ```

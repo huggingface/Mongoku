@@ -13,6 +13,6 @@ import { JsonParserService } from './json-parser.service';
     HttpClientModule
   ],
   declarations: [],
-  providers: [ MongoDbService, NotificationsService, JsonParserService ]
+  providers: [MongoDbService, NotificationsService, JsonParserService]
 })
 export class ServicesModule { }

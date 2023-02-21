@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as util from 'util';
-import * as Nedb from 'nedb';
+import Nedb from 'nedb';
 
 export interface Host {
   path: string
@@ -65,7 +65,7 @@ export class HostsManager {
         $set: {
           path: path
         }
-      }, { upsert : true }, (err: Error) => {
+      }, { upsert: true }, (err: Error) => {
         if (err) {
           return reject(err);
         } else {
