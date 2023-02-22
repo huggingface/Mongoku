@@ -27,7 +27,7 @@
 <ng-template #signinContent let-modal>
   <div class="modal-body">
     <h3>Sign in</h3>
-    <p>Use your Luminati username and password</p>
+    <p>Use your username and password</p>
     <p><input type="text" placeholder="username" #usr
       (keydown.enter)="modal.close({username: usr.value, password: pwd.value})"/></p>
     <p><input type="password" placeholder="password" #pwd
