@@ -19,7 +19,7 @@
     "commander": "^8.3.0",
     "express": "^4.17.2",
     "figlet": "^1.5.2",
-    "mongodb": "^4.3.0",
+    "mongodb": "^4.17.0",
     "nedb": "^1.8.0"
   },
   "devDependencies": {
