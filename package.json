@@ -1,6 +1,6 @@
 {
   "name": "@hola.org/mongoku",
-  "version": "1.4.3-hola.0",
+  "version": "1.4.4-hola.0",
   "license": "MIT",
   "author": "Anthony Moi <m.anthony.moi@gmail.com>",
   "keywords": [
@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "body-parser": "^1.19.0",
+    "bson": "1.1.4",
     "chalk": "^4.1.0",
     "commander": "^7.1.0",
     "cookie-parser": "1.4.3",
@@ -23,7 +24,7 @@
     "figlet": "^1.3.0",
     "memorystore": "^1.6.5",
     "mongodb": "3.6.12",
-    "nedb": "^1.8.0",
+    "@seald-io/nedb": "4.0.4",
     "nodemon": "^2.0.7",
     "npm-run-all": "^4.1.5",
     "rimraf": "^3.0.2",
@@ -35,7 +36,6 @@
     "@types/express-session": "^1.17.3",
     "@types/figlet": "^1.2.1",
     "@types/mongodb": "3.6.12",
-    "@types/nedb": "^1.8.11",
     "@types/node": "^14.14.31",
     "typescript": "^4.2.2"
   },

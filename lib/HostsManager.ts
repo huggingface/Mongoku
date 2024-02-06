@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as util from 'util';
-import Nedb from 'nedb';
+import Nedb from '@seald-io/nedb';
 
 export interface Host {
   path: string
