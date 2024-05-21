@@ -3,6 +3,8 @@
     <pretty-json
       *ngIf="item"
       [json]="item"
+      [collectionRefs]="collectionRefs"
+      [baseUrl]="baseUrl" 
       [readOnly]="readOnly"
       (edit)="editDocument($event)"
       (remove)="remove()"

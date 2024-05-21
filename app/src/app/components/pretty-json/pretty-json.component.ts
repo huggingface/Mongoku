@@ -2,6 +2,7 @@ import { Component, OnInit, Input, ElementRef, Renderer2, Output, EventEmitter, 
 import { JsonParserService } from '../../services/json-parser.service';
 import { NotificationsService } from '../../services/notifications.service';
 import { environment } from '../../../environments/environment';
+import type { CollectionRefs, Reference } from '../../../../../lib/Database';
 
 // All of this is heavily inspired by the Genghis app `pretty-print`
 // and adapted to angular
@@ -37,6 +38,8 @@ export class PrettyJsonComponent implements OnInit {
   @Input()  json: any;
   @Input()  autoCollapse = false;
   @Input()  readOnly = false;
+@Input()  collectionRefs: CollectionRefs;
+  @Input()  baseUrl: string;
   @Output() go = new EventEmitter();
   @Output() edit = new EventEmitter();
   @Output() remove = new EventEmitter();
@@ -222,7 +225,7 @@ export class PrettyJsonComponent implements OnInit {
     return span;
   }
 
-  private createView(key, holder) {
+  private createView(key, holder, ancestors: string[] = []) {
     let mind      = this.gap;
     let indent    = '    ';
     let value     = holder[key];
@@ -289,11 +292,11 @@ export class PrettyJsonComponent implements OnInit {
         }
 
         // Iterate through all the keys in the object.
-        const partial = [];
+        const partial: { prop: any; ancestors: string[]; refs?: Reference[] }[] = [];
         const cologn = this.text(': ');
         for (const k in value) {
           if (Object.hasOwnProperty.call(value, k)) {
-            const view = this.createView(k, value);
+            const view = this.createView(k, value, [...ancestors, k]);
             if (view) {
               spanClass = 'prop'
                 + (view.collapsible ? ' collapsible' : '')
@@ -309,8 +312,8 @@ export class PrettyJsonComponent implements OnInit {
               this.renderer.appendChild(prop, cologn.cloneNode(false));
               this.renderer.appendChild(prop, view);
 
+              const isObj = view.classList.contains('object');
               if (view.collapsible) {
-                const isObj = view.classList.contains('object');
                 const child = this.span('e');
                 this.renderer.appendChild(child, this.text(isObj ? '{ ' : '[ '));
                 this.renderer.appendChild(child, this.span("summary", this.text('...')));
@@ -318,7 +321,8 @@ export class PrettyJsonComponent implements OnInit {
                 this.renderer.appendChild(prop, child);
               }
 
-              partial.push(prop);
+              const refs = !isObj ? this.collectionRefs[[...ancestors, k].join('.')] : [];
+              partial.push({ prop, refs, ancestors });
             }
           }
         }
@@ -336,12 +340,24 @@ export class PrettyJsonComponent implements OnInit {
         el.collapsible = true;
         this.renderer.appendChild(el, this.text('{\n' + this.gap));
 
-        const glue = this.text(',\n' + this.gap);
+        const glue = this.text('\n' + this.gap);
         for (let i = 0; i < partial.length; i++) {
-          if (i > 0) {
-            this.renderer.appendChild(el, glue.cloneNode(true));
+          const { prop, refs } = partial[i];
+          this.renderer.appendChild(el, prop);
+          this.renderer.appendChild(el, this.text(','));
+
+          if (refs) {
+            for (const ref of refs) {
+              this.renderer.appendChild(el, this.text(' '));
+
+              const child = this.element('a', 'dbref');
+              this.renderer.setAttribute(child, 'href', `${this.baseUrl}${ref.collection}?query={${prop.innerText}}`);
+              this.renderer.appendChild(child, this.text(`${ref.collection}[${ref.key}]`));
+              this.renderer.appendChild(el, child);
+            }
           }
-          this.renderer.appendChild(el, partial[i]);
+
+          this.renderer.appendChild(el, glue.cloneNode(true));
         }
 
         this.renderer.appendChild(el, this.text('\n' + mind + '}'));

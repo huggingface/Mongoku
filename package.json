@@ -20,14 +20,16 @@
     "express": "^4.17.2",
     "figlet": "^1.5.2",
     "mongodb": "^4.3.0",
-    "nedb": "^1.8.0"
+    "nedb": "^1.8.0",
+    "node-fetch": "^2.7.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.13",
     "@types/figlet": "^1.5.4",
     "@types/mongodb": "^4.0.7",
     "@types/nedb": "^1.8.12",
-    "@types/node": "^17.0.8"
+    "@types/node": "^17.0.8",
+    "@types/node-fetch": "^2.6.11"
   },
   "main": "./dist/server.js",
   "scripts": {

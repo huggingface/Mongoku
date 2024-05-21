@@ -7,6 +7,7 @@ import { MongoDbService } from '../../services/mongo-db.service';
 import { SearchParams } from '../../components/search-box/search-box.component';
 import { JsonParserService } from '../../services/json-parser.service';
 import { NotificationsService } from '../../services/notifications.service';
+import type { CollectionRefs } from '../../../../../lib/Database';
 
 @Component({
   selector: 'app-explore',
@@ -17,6 +18,7 @@ export class ExploreComponent implements OnInit {
   server:     string;
   database:   string;
   collection: string;
+  baseUrl:    string;
 
   readOnly = false;
   params: Partial<SearchParams>;
@@ -30,6 +32,7 @@ export class ExploreComponent implements OnInit {
     start: 0
   };
   items      = [];
+  collectionRefs: CollectionRefs;
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -50,6 +53,7 @@ export class ExploreComponent implements OnInit {
       this.server     = params.get('server');
       this.database   = params.get('database');
       this.collection = params.get('collection');
+      this.baseUrl    = `/servers/${this.server}/databases/${this.database}/collections/`;
 
       let query;
       let sort;
@@ -111,6 +115,7 @@ export class ExploreComponent implements OnInit {
 
         if (res.ok) {
           this.items = res.results;
+          this.collectionRefs = res.collectionRefs;
         }
       });
 

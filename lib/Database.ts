@@ -14,6 +14,17 @@ export interface DatabaseJSON {
   collections:    CollectionJSON[]
 }
 
+export type Reference = {
+  collection: string;
+  key:        string;
+}
+
+export type CollectionRefs = { [ prop: string ]: Reference[]; }
+
+export type DbRefs = {
+  [ collection: string ]: CollectionRefs;
+}
+
 export class Database {
   private _db:    MongoDb.Db;
 

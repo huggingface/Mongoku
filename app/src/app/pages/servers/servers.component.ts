@@ -12,6 +12,7 @@ export class ServersComponent implements OnInit {
   loading = true;
   adding = false;
   newServer = "";
+  newTypesUrl = "";
 
   constructor(private mongoDb: MongoDbService, private modalService: NgbModal) { }
 
@@ -43,10 +44,10 @@ export class ServersComponent implements OnInit {
   }
 
   addServer() {
-    this.mongoDb.addServer(this.newServer)
+    this.mongoDb.addServer(this.newServer, this.newTypesUrl)
       .subscribe((data: any) => {
         if (data.ok) {
-          this.newServer = "";
+          this.newTypesUrl = "";
           this.adding = false;
           this.refresh();
         }

@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { MongoDbService } from '../../services/mongo-db.service';
 import { NotificationsService } from '../../services/notifications.service';
+import type { CollectionRefs } from '../../../../../lib/Database';
 
 @Component({
   selector: 'app-document',
@@ -14,9 +15,11 @@ export class DocumentComponent implements OnInit {
   database:   string;
   collection: string;
   document:   string;
+  baseUrl:    string;
 
   readOnly = false;
   item;
+  collectionRefs: CollectionRefs;
 
   loading = true;
 
@@ -36,6 +39,7 @@ export class DocumentComponent implements OnInit {
       this.database   = d.get("database");
       this.collection = d.get("collection");
       this.document   = d.get("document");
+      this.baseUrl    = `/servers/${this.server}/databases/${this.database}/collections/`;
 
       this.get();
     })
@@ -45,6 +49,7 @@ export class DocumentComponent implements OnInit {
     this.mongodb.getDocument(this.server, this.database, this.collection, this.document).subscribe((res: any) => {
       this.loading = false;
       this.item = res.document;
+      this.collectionRefs = res.collectionRefs;
     });
   }
 

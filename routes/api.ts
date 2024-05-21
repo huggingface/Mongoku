@@ -22,7 +22,7 @@ api.get('/servers', async (req, res, next) => {
 
 api.put('/servers', bodyParser.json(), async (req, res, next) => {
   try {
-    await factory.hostsManager.add(req.body.url);
+    await factory.hostsManager.add(req.body.url, req.body.typesUrl);
     await factory.mongoManager.load();
   } catch (err) {
     return next(err);
@@ -86,9 +86,11 @@ api.get('/servers/:server/databases/:database/collections/:collection/documents/
       return next(new Error("This document does not exist"));
     }
 
+    const collectionRefs = factory.mongoManager.getCollectionRefs(server, database, collection);
     return res.json({
       ok:       true,
-      document: doc
+      document: doc,
+      collectionRefs
     });
   } catch (err) {
     return next(err);
@@ -183,10 +185,12 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
 
   try {
     const results = await c.find(query, project, sort, limit, skip);
+    const collectionRefs = factory.mongoManager.getCollectionRefs(server, database, collection);
 
     return res.json({
       ok:      true,
-      results: results
+      results: results,
+      collectionRefs
     });
   } catch (err) {
     return next(err);

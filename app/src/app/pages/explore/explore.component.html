@@ -25,6 +25,8 @@
                   [hidden]="loading.content"
                   autoCollapse="true"
                   [json]="item"
+                  [collectionRefs]="collectionRefs"
+                  [baseUrl]="baseUrl"
                   [readOnly]="readOnly"
                   (go)="go($event)"
                   (edit)="editDocument(item._id, $event)"
