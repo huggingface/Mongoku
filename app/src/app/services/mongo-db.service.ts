@@ -74,8 +74,8 @@ export class MongoDbService {
     return this.get<ServerJSON[]>(`${this.apiBaseUrl}/servers`);
   }
 
-  addServer(url: string) {
-    return this.put(`${this.apiBaseUrl}/servers`, { url: url });
+  addServer(url: string, typesUrl: string) {
+    return this.put(`${this.apiBaseUrl}/servers`, { url, typesUrl });
   }
 
   removeServer(server: string) {

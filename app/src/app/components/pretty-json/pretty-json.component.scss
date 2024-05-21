@@ -23,6 +23,11 @@
 	}
 }
 
+.dbref {
+	color: var(--text-darker);
+	font-style: italic;
+}
+
 :host:hover .object-info .actions {
 	display: initial;
 }

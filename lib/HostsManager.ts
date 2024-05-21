@@ -6,6 +6,7 @@ import * as Nedb from 'nedb';
 
 export interface Host {
   path: string
+  typesUrl?: string
 }
 
 const DEFAULT_HOSTS = process.env.MONGOKU_DEFAULT_HOST ? process.env.MONGOKU_DEFAULT_HOST.split(';') : ['localhost:27017'];
@@ -57,13 +58,14 @@ export class HostsManager {
     });
   }
 
-  async add(path: string): Promise<void> {
+  async add(path: string, typesUrl: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this._db.update({
         path: path
       }, {
         $set: {
-          path: path
+          path: path,
+          typesUrl: typesUrl.length ? typesUrl : undefined
         }
       }, { upsert: true }, (err: Error) => {
         if (err) {

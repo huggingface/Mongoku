@@ -9,6 +9,8 @@
         </button>
         <div *ngIf="adding">
           <input type="text" placeholder="user:password@hostname:port" [(ngModel)]="newServer" [disabled]="loading" />
+          <input type="text" placeholder="URL to retrieve server types" [(ngModel)]="newTypesUrl"
+            [disabled]="loading" />
         </div>
         <button *ngIf="adding"
                 class="btn btn-outline-success btn-sm"

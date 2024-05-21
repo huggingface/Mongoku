@@ -1,35 +1,39 @@
 import { URL } from 'url';
 import { MongoClient, MongoError } from 'mongodb';
+import fetch from 'node-fetch';
 
 import factory from '../lib/Factory';
 
 import { Host } from './HostsManager';
 import { Server, ServerJSON, ServerErrorJSON } from './Server';
-import { DatabaseJSON } from './Database';
+import { DatabaseJSON, type CollectionRefs, type DbRefs } from './Database';
 import { Collection, CollectionJSON } from './Collection';
 import { Utils } from './Utils';
 
 export type Servers = (ServerJSON | ServerErrorJSON)[]
 
 export class MongoManager {
+  private _pollItv?: NodeJS.Timeout;
+
   private _servers: {
     [name: string]: Server | MongoError;
   } = {};
 
-  private async connect(host: Host) {
-    const urlStr = host.path.startsWith('mongodb')
-      ? host.path
-      : `mongodb://${host.path}`;
-    const url = new URL(urlStr);
-    let hostname = url.host || host.path;
+  private _serverToTypes: {
+    [hostname: string]: {
+      [dbName: string]: DbRefs;
+    }
+  } = {};
 
+  private async connect(host: Host) {
+    let { hostname, url } = this.parseHost(host);
     if (this._servers[hostname] instanceof Server) {
       // Already connected
       return;
     }
 
     try {
-      const client = new MongoClient(urlStr);
+      const client = new MongoClient(url);
       await client.connect();
       const server = new Server(hostname, client);
       this._servers[hostname] = server;
@@ -39,6 +43,8 @@ export class MongoManager {
       console.error(`Error while connecting to ${hostname}:`, err.code, err.message);
       this._servers[hostname] = err;
     }
+
+    await this.getServerTypes(host);
   }
 
   private getServer(name: string) {
@@ -65,8 +71,60 @@ export class MongoManager {
     }
   }
 
+  private parseHost(host: Host): { hostname: string; url: string; } {
+    const urlStr = host.path.startsWith('mongodb')
+      ? host.path
+      : `mongodb://${host.path}`;
+    const url = new URL(urlStr);
+
+    return { hostname: url.host || host.path, url: urlStr };
+  }
+
+  private async getServerTypes(host: Host, hostname = this.parseHost(host).hostname) {
+    if (host.typesUrl) {
+      try {
+        const res = await (await fetch(host.typesUrl)).json();
+        if (isDatabaseTypes(res)) {
+          this._serverToTypes[hostname] = res;
+        } else {
+          console.error("Invalid data: the received object doesn't match the expected schema");
+        }
+
+        if (!this._pollItv) {
+          this.startPolling();
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }
+
+  private startPolling() {
+    this.stopPolling();
+    this._pollItv = setInterval(
+      async () => {
+        try {
+          const hosts = await factory.hostsManager.getHosts();
+          for (const host of hosts) {
+            await this.getServerTypes(host);
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      },
+      5 * 60 * 1_000
+    );
+    /// every 5 minutes.
+  }
+
+  private stopPolling(): void {
+    if (this._pollItv) {
+      clearInterval(this._pollItv);
+    }
+  }
+
   async load() {
-    let hosts = await factory.hostsManager.getHosts();
+    const hosts = await factory.hostsManager.getHosts();
     await Promise.all(hosts.map((h) => this.connect(h)));
   }
 
@@ -126,7 +184,29 @@ export class MongoManager {
     const database = await server.database(databaseName);
     if (!database) { return; }
 
-    const collection = await database.collection(collectionName);
+    const collection = database.collection(collectionName);
     return collection;
   }
+
+  getCollectionRefs(serverName: string, databaseName: string, collectionName: string): CollectionRefs {
+    return this._serverToTypes[serverName]?.[databaseName]?.[collectionName] ?? {};
+  }
+}
+
+function isDatabaseTypes(obj: unknown): obj is { [dbName: string]: DbRefs; } {
+  return isDict(obj) &&
+    Object.values(obj).every(dbColls => isDict(dbColls) &&
+      Object.values(dbColls).every(collRefs => isDict(collRefs) &&
+        Object.values(collRefs).every(propValue => Array.isArray(propValue) &&
+          propValue.every(ref => isDict(ref) &&
+            'collection' in ref && typeof ref.collection === 'string' &&
+            'key' in ref && typeof ref.key === 'string'))));
+}
+
+function isDict(arg: unknown): arg is Record<string, unknown> {
+  if (arg === undefined || arg === null) {
+    return false;
+  }
+
+  return Object.getPrototypeOf(arg) === Object.prototype;
 }
