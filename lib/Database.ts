@@ -15,14 +15,20 @@ export interface DatabaseJSON {
 }
 
 export type Reference = {
+  /** The external collection this references links to */
   collection: string;
+  /** The key in the external collection, useful to generate a query based on it */
   key:        string;
 }
 
-export type CollectionRefs = { [ prop: string ]: Reference[]; }
+/**
+ * List of keys in the collection documents that are associated with documents in other collections
+ * The collection a key refers to can vary from one document to another, hence the array
+ */
+export type CollectionRefs = { [prop: string]: Reference[]; }
 
 export type DbRefs = {
-  [ collection: string ]: CollectionRefs;
+  [collection: string]: CollectionRefs;
 }
 
 export class Database {
