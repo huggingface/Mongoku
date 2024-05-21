@@ -47,6 +47,7 @@ export class ServersComponent implements OnInit {
     this.mongoDb.addServer(this.newServer, this.newTypesUrl)
       .subscribe((data: any) => {
         if (data.ok) {
+          this.newServer = "";
           this.newTypesUrl = "";
           this.adding = false;
           this.refresh();
