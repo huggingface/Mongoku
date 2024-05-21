@@ -38,7 +38,7 @@ export class PrettyJsonComponent implements OnInit {
   @Input()  json: any;
   @Input()  autoCollapse = false;
   @Input()  readOnly = false;
-@Input()  collectionRefs: CollectionRefs;
+  @Input()  collectionRefs: CollectionRefs;
   @Input()  baseUrl: string;
   @Output() go = new EventEmitter();
   @Output() edit = new EventEmitter();
