@@ -1,12 +1,12 @@
-import * as MongoDb from 'mongodb';
+import { ObjectId } from "mongodb";
 
 export default class JsonEncoder {
   static encode(obj: any) {
-    if (obj instanceof MongoDb.ObjectID) {
+    if (obj instanceof ObjectId) {
       return {
         $type:  'ObjectId',
         $value: obj.toHexString(),
-        $date:  obj.generationTime * 1000
+        $date:  obj.getTimestamp().getTime()
       };
     }
     if (obj instanceof Date) {
@@ -38,7 +38,7 @@ export default class JsonEncoder {
 
   static decode(obj: any) {
     if (obj && obj.$type === 'ObjectId') {
-      return new MongoDb.ObjectID(obj.$value);
+      return new ObjectId(obj.$value);
     }
     if (obj && obj.$type === "Date") {
       return new Date(obj.$value);

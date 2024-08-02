@@ -1,4 +1,4 @@
-FROM node:lts
+FROM node:18
 
 ENV UID=991 GID=991
 
