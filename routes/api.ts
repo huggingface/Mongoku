@@ -182,8 +182,9 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
   }
 
   try {
-    const results = await c.find(query, project, sort, limit, skip);
-
+    let aggregate = req.query.aggregate == 'true';
+    const results = aggregate ? await c.aggregate(query)
+                              : await c.find(query, project, sort, limit, skip);
     return res.json({
       ok:      true,
       results: results

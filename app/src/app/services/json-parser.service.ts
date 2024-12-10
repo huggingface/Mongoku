@@ -128,7 +128,7 @@ export class JsonParserService {
       }
 
       const objExpression = varDeclaration.declarations[0].init;
-      if (objExpression.type !== 'ObjectExpression') {
+      if (!["ObjectExpression", "ArrayExpression"].includes(objExpression.type)) {
         return error();
       }
 
