@@ -94,10 +94,11 @@ export class MongoDbService {
     return this.get(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/documents/${document}`);
   }
 
-  query(server: string, database: string, collection: string, query: any, project: any, sort: any, skip: number = 0, limit: number = 20) {
+  query(server: string, database: string, collection: string, query: any, project: any, sort: any, skip: number = 0, limit: number = 20, aggregate: boolean = false) {
     return this.get(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/query`, {
       params: {
         q:     query,
+        aggregate: aggregate,
         sort:  sort,
         skip:  `${skip}`,
         limit: `${limit}`,

@@ -35,6 +35,16 @@ export class Collection {
     return JsonEncoder.encode(obj);
   }
 
+
+  aggregate(query: any) {
+    return this._collection.aggregate(JsonEncoder.decode(query))
+      .map((obj) => {
+        console.log(obj)
+        return JsonEncoder.encode(obj);
+      })
+      .toArray();
+  }
+
   find(query: any, project: any, sort: any, limit: number, skip: number) {
     return this._collection.find(JsonEncoder.decode(query))
       .project(project)

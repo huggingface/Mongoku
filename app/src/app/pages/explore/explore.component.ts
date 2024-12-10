@@ -105,25 +105,32 @@ export class ExploreComponent implements OnInit {
     this.count.total = 0;
 
     // Load Content
-    this.mongoDb.query(this.server, this.database, this.collection, query, project, sort, this.params.skip, this.params.limit)
+    const aggregate = query[0] == '[';
+    this.mongoDb.query(this.server, this.database, this.collection, query, project, sort, this.params.skip, this.params.limit, aggregate)
       .subscribe((res: any) => {
         this.loading.content = false;
 
         if (res.ok) {
           this.items = res.results;
+          if (aggregate) {
+            this.count.total = this.items.length;
+            this.count.start = 0;
+          }
         }
       });
 
-    // Count documents
-    this.mongoDb.count(this.server, this.database, this.collection, query)
-      .subscribe((res: any) => {
-        this.loading.count = false;
+    if (!aggregate) {
+      // Count documents
+      this.mongoDb.count(this.server, this.database, this.collection, query)
+        .subscribe((res: any) => {
+          this.loading.count = false;
 
-        if (res.ok) {
-          this.count.total = res.count;
-          this.count.start = this.params.skip;
-        }
-      });
+          if (res.ok) {
+            this.count.total = res.count;
+            this.count.start = this.params.skip;
+          }
+        });
+    }
   }
 
   go(documentId) {
