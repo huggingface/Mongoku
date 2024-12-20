@@ -6,8 +6,8 @@
         <span class="date">{{ json._id?.$date | date:'long' }}</span>
       </div>
       <div class="actions">
-        <div class="btn btn-outline-light btn-sm" (click)="enableEditor()">Edit</div>
-        <div class="btn btn-outline-danger btn-sm" (click)="showRemove()">Remove</div>
+        <div class="btn btn-outline-light btn-sm" [hidden]="readOnly" (click)="enableEditor()">Edit</div>
+        <div class="btn btn-outline-danger btn-sm" [hidden]="readOnly" (click)="showRemove()">Remove</div>
       </div>
     </div>
   </div>

@@ -18,6 +18,7 @@ export class ExploreComponent implements OnInit {
   database:   string;
   collection: string;
 
+  readOnly = false;
   params: Partial<SearchParams>;
   loading    = {
     content: true,
@@ -39,6 +40,9 @@ export class ExploreComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    this.mongoDb.isReadOnly().subscribe(({ readOnly }) => {
+      this.readOnly = readOnly;
+    });
     combineLatest(
       this.activatedRoute.paramMap,
       this.activatedRoute.queryParamMap
@@ -156,6 +160,7 @@ export class ExploreComponent implements OnInit {
   remove(_id) {
     const document = toObjectId(_id);
     if (!document) { return; }
+
     this.mongoDb.remove(this.server, this.database, this.collection, document)
       .subscribe((res: any) => {
         const index = this.items.findIndex(v => toObjectId(v._id) === document);
@@ -189,4 +194,5 @@ export class ExploreComponent implements OnInit {
       'new'
     ]);
   }
+
 }

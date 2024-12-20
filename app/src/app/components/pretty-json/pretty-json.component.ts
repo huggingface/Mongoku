@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, ElementRef, Renderer2, Output, EventEmitter, NgZone } from '@angular/core';
 import { JsonParserService } from '../../services/json-parser.service';
 import { NotificationsService } from '../../services/notifications.service';
+import { environment } from '../../../environments/environment';
 import { toObjectId } from '../../services/mongo-db.service';
 
 // All of this is heavily inspired by the Genghis app `pretty-print`
@@ -36,6 +37,7 @@ const ESCAPE = (a) => {
 export class PrettyJsonComponent implements OnInit {
   @Input()  json: any;
   @Input()  autoCollapse = false;
+  @Input()  readOnly = false;
   @Output() go = new EventEmitter();
   @Output() edit = new EventEmitter();
   @Output() remove = new EventEmitter();

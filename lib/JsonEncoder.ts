@@ -1,4 +1,4 @@
-import * as MongoDb from 'mongodb';
+import * as MongoDb from "mongodb";
 
 const objid_re = /^ObjectId\('?([0-9a-fA-F]{24})'?\)$/;
 export default class JsonEncoder {
@@ -9,11 +9,11 @@ export default class JsonEncoder {
     return obj;
   }
   static encode(obj: any) {
-    if (obj instanceof MongoDb.ObjectID) {
+    if (obj instanceof MongoDb.ObjectId) {
       return {
         $type:  'ObjectId',
         $value: obj.toHexString(),
-        $date:  obj.generationTime * 1000
+        $date:  obj.getTimestamp().getTime()
       };
     }
     if (obj instanceof MongoDb.Binary) {
@@ -21,7 +21,7 @@ export default class JsonEncoder {
         $type:  'Binary',
         $value:  {
           $sub_type: obj.sub_type,
-          $data: obj.buffer.toString('base64')
+          $data: Buffer.from(obj.buffer).toString('base64')
         }
       };
     }
@@ -54,7 +54,7 @@ export default class JsonEncoder {
 
   static decode(obj: any) {
     if (obj && obj.$type === 'ObjectId') {
-      return new MongoDb.ObjectID(obj.$value);
+      return new MongoDb.ObjectId(obj.$value);
     }
     if (obj && obj.$type === 'Binary') {
       return new MongoDb.Binary(Buffer.from(obj.$value.$data, 'base64'), parseInt(obj.$value.$sub_type));

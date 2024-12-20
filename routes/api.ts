@@ -2,8 +2,17 @@ import * as express from 'express';
 import * as bodyParser from 'body-parser';
 
 import factory from '../lib/Factory';
+import { writeEnabled } from '../lib/ReadOnlyMiddleware';
 
 export const api = express.Router();
+
+// get readOnly
+api.get('/readonly', async (req, res, next) => {
+  return res.json({
+    ok: true,
+    readOnly: (process.env.MONGOKU_READ_ONLY_MODE === 'true'),
+  });
+});
 
 // Get servers
 api.get('/servers', async (req, res, next) => {
@@ -60,7 +69,8 @@ api.get('/servers/:server/databases/:database/collections', async (req, res, nex
   }
 });
 
-api.get('/servers/:server/databases/:database/collections/:collection/documents/:document(*)', async (req, res, next) => {
+api.get('/servers/:server/databases/:database/collections/:collection/documents/:document(*)',
+  async (req, res, next) => {
   const server     = req.params.server;
   const database   = req.params.database;
   const collection = req.params.collection;
@@ -87,7 +97,7 @@ api.get('/servers/:server/databases/:database/collections/:collection/documents/
 });
 
 api.post('/servers/:server/databases/:database/collections/:collection/documents/:document',
-  bodyParser.json({limit: '20mb'}), async (req, res, next) => {
+  writeEnabled, bodyParser.json({limit: '20mb'}), async (req, res, next) => {
   const server     = req.params.server;
   const database   = req.params.database;
   const collection = req.params.collection;
@@ -111,7 +121,7 @@ api.post('/servers/:server/databases/:database/collections/:collection/documents
 })
 
 api.delete('/servers/:server/databases/:database/collections/:collection/documents/:document',
-  async (req, res, next) => {
+  writeEnabled, async (req, res, next) => {
   const server     = req.params.server;
   const database   = req.params.database;
   const collection = req.params.collection;

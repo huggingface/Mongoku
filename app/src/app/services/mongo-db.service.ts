@@ -90,6 +90,10 @@ export class MongoDbService {
       ) as Observable<T>;
   }
 
+  isReadOnly() {
+    return this.get<{ readOnly: boolean }>(`${this.apiBaseUrl}/readonly`);
+  }
+
   private encodeId(id: string) {
     return encodeURIComponent(id);
   }

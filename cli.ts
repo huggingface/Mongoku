@@ -3,11 +3,12 @@
 import * as child_process from 'child_process';
 import * as path from 'path';
 
-import * as program from 'commander';
+import { createCommand } from 'commander';
 import * as figlet from 'figlet';
-import * as chalk from 'chalk';
+import chalk from 'chalk';
 import * as server from './server';
 
+const program = createCommand();
 program
   .version(require('../package.json').version)
   .usage('start [--pm2] [--forever]')
@@ -18,7 +19,7 @@ program
   .parse(process.argv);
 
 async function start(cmd: 'start', options: any) {
-  console.log(chalk.hsl(216, 25, 75)(figlet.textSync('Mongoku')));
+  console.log(chalk.rgb(175, 188, 207)(figlet.textSync('Mongoku')) + '\n');
 
   if (cmd !== "start") {
     return program.help();

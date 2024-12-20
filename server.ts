@@ -128,6 +128,8 @@ const setupServer = () => {
   }, api);
 
   app.get('/*', (req, res, next) => {
+    const ext = path.extname(req.url);
+
     fs.stat(path.join(__dirname, "app", req.url), (err, stats) => {
       let file = "index.html";
       if (stats && stats.isFile()) {
@@ -149,9 +151,9 @@ const setupServer = () => {
       ok: false,
       message: err.message
     });
-  })
+  });
 
-  app.listen(SERVER_PORT, () => console.log(`[Mongoku] listening on port ` + SERVER_PORT));
+  app.listen(SERVER_PORT, () => console.log(`[Mongoku] listening on port ${SERVER_PORT}`));
 }
 
 export const start = async () => {
@@ -166,5 +168,7 @@ export const start = async () => {
 };
 
 if (require.main === module) {
-  start();
+  (async () => {
+    await start();
+  })();
 }

@@ -28,6 +28,7 @@
                   [hidden]="loading.content"
                   autoCollapse="true"
                   [json]="item"
+                  [readOnly]="readOnly"
                   (go)="go($event)"
                   (edit)="editDocument(item._id, $event)"
                   (remove)="remove(item._id)">

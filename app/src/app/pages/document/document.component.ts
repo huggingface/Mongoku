@@ -15,6 +15,7 @@ export class DocumentComponent implements OnInit {
   collection: string;
   document:   string;
 
+  readOnly = false;
   item;
 
   loading = true;
@@ -27,6 +28,9 @@ export class DocumentComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    this.mongodb.isReadOnly().subscribe(({ readOnly }) => {
+      this.readOnly = readOnly;
+    });
     this.activatedRoute.paramMap.subscribe((d) => {
       this.server     = d.get('server');
       this.database   = d.get('database');

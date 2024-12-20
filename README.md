@@ -1,4 +1,3 @@
-![Publish Docker](https://github.com/tomvardasca/Mongoku/workflows/Publish%20Docker/badge.svg)
 # Mongoku
 
 MongoDB client for the web. Query your data directly from your browser. You can host it locally,
@@ -82,6 +81,9 @@ MONGOKU_DATABASE_FILE="/tmp/mongoku.db"
 
 # Timeout before falling back to estimated documents count in ms (Default = 5000)
 MONGOKU_COUNT_TIMEOUT=1000
+
+# Read-only mode
+MONGOKU_READ_ONLY_MODE=true
 
 # Timeout before aborting find query in ms (Default = 300000)
 MONGOKU_QUERY_TIMEOUT=5000

@@ -4,6 +4,7 @@ hosts.db
 *.tgz
 
 # compiled output
+.angular/
 /dist
 /dist-server
 /tmp
@@ -39,6 +40,7 @@ npm-debug.log
 testem.log
 /typings
 package-lock.json
+app/package-lock.json
 
 # e2e
 /e2e/*.js
