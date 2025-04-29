@@ -1,6 +1,7 @@
 import * as MongoDb from 'mongodb';
 
 import { Database, DatabaseJSON } from './Database';
+import { hideDatabase } from './HideDatabaseCollection';
 import { Utils } from './Utils';
 
 export interface ServerJSON {
@@ -36,8 +37,12 @@ export class Server {
 
     this._size = results.totalSize ?? 0;
     const databases: Database[] = [];
+
     if (Array.isArray(results.databases)) {
       for (const d of results.databases) {
+        if (hideDatabase(d.name)) {
+          continue;
+        }
         const db = this._client.db(d.name);
         const database = new Database(d.name, d.sizeOnDisk ?? 0, d.empty ?? true, db);
         databases.push(database);
