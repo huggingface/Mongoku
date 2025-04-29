@@ -1,6 +1,7 @@
 import * as MongoDb from 'mongodb';
 
 import { Collection, CollectionJSON } from './Collection';
+import { hideDatabase } from './HideDatabaseCollection';
 import { Utils } from './Utils';
 
 export interface DatabaseJSON {
@@ -31,6 +32,10 @@ export class Database {
   async collections() {
     const cs = await this._db.collections();
     const collections: Collection[] = [];
+
+    if (hideDatabase(this._db.databaseName)) {
+      return collections;
+    }
 
     for (const c of cs) {
       const collection = new Collection(c);
