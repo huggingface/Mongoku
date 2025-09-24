@@ -21,14 +21,13 @@
     "commander": "^8.3.0",
     "express": "^4.17.2",
     "figlet": "^1.5.2",
-    "mongodb": "^5.9.2",
-    "nedb": "^1.8.0"
+    "mongodb": "^5.9.2"
   },
   "devDependencies": {
     "@types/express": "^4.17.13",
     "@types/figlet": "^1.5.4",
     "@types/mongodb": "^4.0.7",
-    "@types/nedb": "^1.8.12"
+    "typescript": "^5.9.2"
   },
   "main": "./dist/server.js",
   "scripts": {
