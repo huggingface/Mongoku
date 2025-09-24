@@ -11,7 +11,7 @@
 	// 	"ghcr.io/devcontainers-extra/features/mongosh-homebrew:1": {}
 	// },
 
-	// "runArgs": ["--add-host=host.docker.internal:host-gateway"],
+	"runArgs": ["--add-host=host.docker.internal:host-gateway"],
 
 	"customizations": {
 		"vscode": {
