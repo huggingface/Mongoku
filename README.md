@@ -73,6 +73,7 @@ npm start
 ### Configuration
 
 You can also specify a few things using environment variables:
+
 ```
 # Use some customized default hosts (Default = localhost:27017)
 MONGOKU_DEFAULT_HOST="mongodb://user:password@localhost:27017;localhost:27017"

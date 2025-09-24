@@ -7,11 +7,7 @@ export namespace Utils {
    */
   export const fieldSort = (arr: Object[], field: string, descending: boolean = false) => {
     return arr.sort((a, b) => {
-      return (a[field] == b[field])
-        ? 0
-        : (a[field] > b[field])
-          ? (descending) ? -1 : 1
-          : (descending) ? 1 : -1
+      return a[field] == b[field] ? 0 : a[field] > b[field] ? (descending ? -1 : 1) : descending ? 1 : -1;
     });
-  }
+  };
 }

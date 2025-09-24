@@ -1,12 +1,10 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import { Pipe, PipeTransform } from "@angular/core";
 
 @Pipe({
-  name: 'bytes'
+  name: "bytes",
 })
 export class BytesPipe implements PipeTransform {
-  private units = [
-    "B", "KB", "MB", "GB", "TB", "PB"
-  ];
+  private units = ["B", "KB", "MB", "GB", "TB", "PB"];
 
   transform(value: any): any {
     let n = value || 0;
@@ -14,12 +12,11 @@ export class BytesPipe implements PipeTransform {
     for (const unit of this.units) {
       if (n / 1024 > 1) {
         n = n / 1024;
-        i ++;
+        i++;
       } else {
         break;
       }
     }
     return `${n.toFixed(2)} ${this.units[i]}`;
   }
-
 }

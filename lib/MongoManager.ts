@@ -1,15 +1,15 @@
-import { URL } from 'url';
-import { MongoClient, MongoError } from 'mongodb';
+import { URL } from "url";
+import { MongoClient, MongoError } from "mongodb";
 
-import factory from '../lib/Factory';
+import factory from "../lib/Factory";
 
-import { Host } from './HostsManager';
-import { Server, ServerJSON, ServerErrorJSON } from './Server';
-import { DatabaseJSON } from './Database';
-import { Collection, CollectionJSON } from './Collection';
-import { Utils } from './Utils';
+import { Host } from "./HostsManager";
+import { Server, ServerJSON, ServerErrorJSON } from "./Server";
+import { DatabaseJSON } from "./Database";
+import { Collection, CollectionJSON } from "./Collection";
+import { Utils } from "./Utils";
 
-export type Servers = (ServerJSON | ServerErrorJSON)[]
+export type Servers = (ServerJSON | ServerErrorJSON)[];
 
 export class MongoManager {
   private _servers: {
@@ -17,9 +17,7 @@ export class MongoManager {
   } = {};
 
   private async connect(host: Host) {
-    const urlStr = host.path.startsWith('mongodb')
-      ? host.path
-      : `mongodb://${host.path}`;
+    const urlStr = host.path.startsWith("mongodb") ? host.path : `mongodb://${host.path}`;
     const url = new URL(urlStr);
     let hostname = url.host || host.path;
 
@@ -44,7 +42,7 @@ export class MongoManager {
   private getServer(name: string) {
     const server = this._servers[name] || this._servers[`${name}:27017`];
     if (!server) {
-      throw new Error('Server does not exist');
+      throw new Error("Server does not exist");
     }
     return server;
   }
@@ -58,7 +56,7 @@ export class MongoManager {
     try {
       await server.toJson();
     } catch (err) {
-      console.log(require('util').inspect(err, false, 20));
+      console.log(require("util").inspect(err, false, 20));
       if (err.code == 13 && err.codeName == "Unauthorized") {
         this._servers[name] = err;
       }
@@ -79,12 +77,12 @@ export class MongoManager {
     for (const [name, server] of Object.entries(this._servers)) {
       if (server instanceof Error) {
         servers.push({
-          name: name,
+          name:  name,
           error: {
             code:    server.code,
             name:    server.name,
-            message: server.message
-          }
+            message: server.message,
+          },
         });
       } else {
         const json = await server.toJson();
@@ -119,12 +117,20 @@ export class MongoManager {
     return json.collections;
   }
 
-  async getCollection(serverName: string, databaseName: string, collectionName: string): Promise<Collection | undefined> {
+  async getCollection(
+    serverName: string,
+    databaseName: string,
+    collectionName: string,
+  ): Promise<Collection | undefined> {
     const server = this.getServer(serverName);
-    if (server instanceof Error) { return; }
+    if (server instanceof Error) {
+      return;
+    }
 
     const database = await server.database(databaseName);
-    if (!database) { return; }
+    if (!database) {
+      return;
+    }
 
     const collection = await database.collection(collectionName);
     return collection;

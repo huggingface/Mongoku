@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { NotificationsService } from '../../services/notifications.service';
+import { Component, OnInit } from "@angular/core";
+import { NotificationsService } from "../../services/notifications.service";
 
 @Component({
-  selector: 'notifications',
-  templateUrl: './notifications.component.html',
-  styleUrls: ['./notifications.component.scss']
+  selector:    "notifications",
+  templateUrl: "./notifications.component.html",
+  styleUrls:   ["./notifications.component.scss"],
 })
 export class NotificationsComponent implements OnInit {
   private _notifications = [];
@@ -13,15 +13,15 @@ export class NotificationsComponent implements OnInit {
     return Object.values(this._notifications);
   }
 
-  constructor(private notifService: NotificationsService) { }
+  constructor(private notifService: NotificationsService) {}
 
   ngOnInit() {
     this.notifService.notifications.subscribe((notif) => {
       this._notifications[notif.message] = notif;
       setTimeout(() => {
-        this._notifications[notif.message].show = true
+        this._notifications[notif.message].show = true;
       }, 10);
-    })
+    });
   }
 
   dismiss(notif) {

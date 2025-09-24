@@ -8,12 +8,19 @@
           <span *ngIf="!adding">Add Server</span>
         </button>
         <div *ngIf="adding">
-          <input type="text" placeholder="mongodb://user:password@hostname:port?directConnection=true" [(ngModel)]="newServer" [disabled]="loading" />
+          <input
+            type="text"
+            placeholder="mongodb://user:password@hostname:port?directConnection=true"
+            [(ngModel)]="newServer"
+            [disabled]="loading"
+          />
         </div>
-        <button *ngIf="adding"
-                class="btn btn-outline-success btn-sm"
-                (click)="addServer()"
-                [disabled]="!newServer.length || loading">
+        <button
+          *ngIf="adding"
+          class="btn btn-outline-success btn-sm"
+          (click)="addServer()"
+          [disabled]="!newServer.length || loading"
+        >
           Add
         </button>
       </div>
@@ -28,24 +35,30 @@
       <tbody>
         <tr *ngFor="let server of servers" [hidden]="loading">
           <td>
-            <a *ngIf="!server.error" routerLink="/servers/{{ server.name | serverName }}/databases">{{ server.name | serverName }}</a>
+            <a *ngIf="!server.error" routerLink="/servers/{{ server.name | serverName }}/databases">{{
+              server.name | serverName
+            }}</a>
             <span class="error" *ngIf="server.error">
               <span class="badge badge-danger" [ngbTooltip]="server.error.message" placement="bottom">Error</span>
               {{ server.name | serverName }}
             </span>
           </td>
           <td>
-            <span class="dotted"
-                  *ngIf="server.databases"
-                  [ngbPopover]="popContent"
-                  placement="right"
-                  triggers="manual"
-                  #p1="ngbPopover"
-                  (mouseenter)="toggle(p1, server.databases)"
-                  (mouseleave)="toggle(p1)"
-            >{{ server.databases.length }}</span>
+            <span
+              class="dotted"
+              *ngIf="server.databases"
+              [ngbPopover]="popContent"
+              placement="right"
+              triggers="manual"
+              #p1="ngbPopover"
+              (mouseenter)="toggle(p1, server.databases)"
+              (mouseleave)="toggle(p1)"
+              >{{ server.databases.length }}</span
+            >
           </td>
-          <td><span *ngIf="server.databases">{{ server.size | bytes }}</span></td>
+          <td>
+            <span *ngIf="server.databases">{{ server.size | bytes }}</span>
+          </td>
           <td class="actions">
             <button type="button" class="btn btn-outline-danger btn-sm" (click)="removeServer(confirmRemoval, server)">
               Remove from list
@@ -80,7 +93,7 @@
           <td>{{ item.size | bytes }}</td>
         </tr>
         <tr *ngIf="clipped">
-          <td colspan=3>{{ clipped }} more items...</td>
+          <td colspan="3">{{ clipped }} more items...</td>
         </tr>
       </tbody>
     </table>
@@ -88,10 +101,7 @@
 
   <ng-template #confirmRemoval let-modal>
     <div class="modal-body">
-      <p>
-        Are you sure you wan't to remove this server? This will only remove it from this list.
-        You can add it back
-      </p>
+      <p>Are you sure you wan't to remove this server? This will only remove it from this list. You can add it back</p>
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-default btn-sm" (click)="modal.close(false)">No</button>

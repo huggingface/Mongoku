@@ -1,27 +1,27 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgModule } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
 
-import { CodemirrorModule } from '@ctrl/ngx-codemirror';
+import { CodemirrorModule } from "@ctrl/ngx-codemirror";
 // Import the required language
 // see https://codemirror.net/mode/index.html
-import 'codemirror/mode/javascript/javascript';
+import "codemirror/mode/javascript/javascript";
 
-import { AppRoutingModule } from '../app-routing.module';
+import { AppRoutingModule } from "../app-routing.module";
 
-import { ServersComponent } from './servers/servers.component';
-import { DatabasesComponent } from './databases/databases.component';
-import { CollectionsComponent } from './collections/collections.component';
-import { DocumentComponent } from './document/document.component';
-import { ExploreComponent } from './explore/explore.component';
+import { ServersComponent } from "./servers/servers.component";
+import { DatabasesComponent } from "./databases/databases.component";
+import { CollectionsComponent } from "./collections/collections.component";
+import { DocumentComponent } from "./document/document.component";
+import { ExploreComponent } from "./explore/explore.component";
 
-import { ComponentsModule } from '../components/components.module';
-import { ServicesModule } from '../services/services.module';
-import { FiltersModule } from '../filters/filters.module';
+import { ComponentsModule } from "../components/components.module";
+import { ServicesModule } from "../services/services.module";
+import { FiltersModule } from "../filters/filters.module";
 
 @NgModule({
-  imports: [
+  imports:      [
     FormsModule,
     CommonModule,
     NgbModule,
@@ -29,15 +29,9 @@ import { FiltersModule } from '../filters/filters.module';
     AppRoutingModule,
     ComponentsModule,
     ServicesModule,
-    FiltersModule
+    FiltersModule,
   ],
-  declarations: [
-    ServersComponent,
-    DatabasesComponent,
-    CollectionsComponent,
-    ExploreComponent,
-    DocumentComponent
-  ],
-  providers: [ ServicesModule ]
+  declarations: [ServersComponent, DatabasesComponent, CollectionsComponent, ExploreComponent, DocumentComponent],
+  providers:    [ServicesModule],
 })
-export class PagesModule { }
+export class PagesModule {}

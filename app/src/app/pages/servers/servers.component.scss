@@ -1,55 +1,56 @@
 .row.servers-component {
-	.table {
-		margin-bottom: 0;
-		color: var(--text);
+  .table {
+    margin-bottom: 0;
+    color: var(--text);
 
-		th, td {
-			padding: 10px 22px 8px;
-			vertical-align: middle;
-		}
+    th,
+    td {
+      padding: 10px 22px 8px;
+      vertical-align: middle;
+    }
 
-		thead {
-			background-color: var(--color-3);
-		}
+    thead {
+      background-color: var(--color-3);
+    }
 
-		tr {
-			td.actions {
-				max-width: 160px;
-				width: 120px;
+    tr {
+      td.actions {
+        max-width: 160px;
+        width: 120px;
 
-				.btn {
-					opacity: 0;
-				}
-			}
+        .btn {
+          opacity: 0;
+        }
+      }
 
-			&:hover td.actions .btn {
-				opacity: 1;
-			}
-		}
-	}
+      &:hover td.actions .btn {
+        opacity: 1;
+      }
+    }
+  }
 
-	.title {
-		display: flex;
-		justify-content: space-between;
+  .title {
+    display: flex;
+    justify-content: space-between;
 
-		.actions {
-			display: flex;
+    .actions {
+      display: flex;
 
-			& > * {
-				margin-left: 10px;
-			}
+      & > * {
+        margin-left: 10px;
+      }
 
-			input {
-				outline: none;
-				width: 300px;
-				border-radius: 5px;
-				font-size: 0.9em;
-				padding: 3px 10px 0;
-			}
-		}
-	}
+      input {
+        outline: none;
+        width: 300px;
+        border-radius: 5px;
+        font-size: 0.9em;
+        padding: 3px 10px 0;
+      }
+    }
+  }
 
-	.badge.badge-danger {
-		margin-right: 10px;
-	}
+  .badge.badge-danger {
+    margin-right: 10px;
+  }
 }

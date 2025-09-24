@@ -1,34 +1,34 @@
 .theme-light {
-	--color-1: hsl(228, 26%, 98%);
-	--color-2: hsl(232, 23%, 93%);
-	--color-3: hsl(229, 20%, 88%);
-	--color-4: hsl(232, 20%, 83%);
+  --color-1: hsl(228, 26%, 98%);
+  --color-2: hsl(232, 23%, 93%);
+  --color-3: hsl(229, 20%, 88%);
+  --color-4: hsl(232, 20%, 83%);
 
-	--background-color: var(--color-1);
-	--panel-title:      var(--color-2);
-	--panel-body:       var(--color-2);
+  --background-color: var(--color-1);
+  --panel-title: var(--color-2);
+  --panel-body: var(--color-2);
 
-	--text:           hsl(0, 0%, 12%);
-	--text-inverse:   hsl(0, 0%, 88%);
-	--text-darker:    hsl(0, 0%, 43%);
-	--text-lighter:   hsl(0, 0%, 100%);
-	--link:           hsl(211, 100%, 89%);
+  --text: hsl(0, 0%, 12%);
+  --text-inverse: hsl(0, 0%, 88%);
+  --text-darker: hsl(0, 0%, 43%);
+  --text-lighter: hsl(0, 0%, 100%);
+  --link: hsl(211, 100%, 89%);
 
-	--error:          hsl(0, 58%, 63%);
+  --error: hsl(0, 58%, 63%);
 
-	--button-danger:    #a31515;
-	--button-danger-l:  #a54c4c;
-	--button-success:   #008000;
-	--button-success-l: #4e994e;
-	--button-light:     hsl(0, 0%, 12%);
+  --button-danger: #a31515;
+  --button-danger-l: #a54c4c;
+  --button-success: #008000;
+  --button-success-l: #4e994e;
+  --button-light: hsl(0, 0%, 12%);
 
-	--code-namespace: #001080;
-	--code-boolean:   #0000ff;
-	--code-null:      #0000ff;
-	--code-numbers:   #09885a;
-	--code-string:    #a31515;
-	--code-links:     #4e94ce;
-	--code-summary:   #008000;
-	--code-regexp:    #811f3f;
-	--code-function:  var(--text);
+  --code-namespace: #001080;
+  --code-boolean: #0000ff;
+  --code-null: #0000ff;
+  --code-numbers: #09885a;
+  --code-string: #a31515;
+  --code-links: #4e94ce;
+  --code-summary: #008000;
+  --code-regexp: #811f3f;
+  --code-function: var(--text);
 }

@@ -1,17 +1,14 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
+import { NgModule } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { HttpClientModule } from "@angular/common/http";
 
-import { MongoDbService } from './mongo-db.service';
-import { NotificationsService } from './notifications.service';
-import { JsonParserService } from './json-parser.service';
+import { MongoDbService } from "./mongo-db.service";
+import { NotificationsService } from "./notifications.service";
+import { JsonParserService } from "./json-parser.service";
 
 @NgModule({
-  imports: [
-    CommonModule,
-    HttpClientModule
-  ],
+  imports:      [CommonModule, HttpClientModule],
   declarations: [],
-  providers: [ MongoDbService, NotificationsService, JsonParserService ]
+  providers:    [MongoDbService, NotificationsService, JsonParserService],
 })
-export class ServicesModule { }
+export class ServicesModule {}

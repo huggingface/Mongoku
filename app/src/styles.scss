@@ -1,155 +1,156 @@
 // Bootstrap
-@import '../node_modules/bootstrap/scss/bootstrap';
+@import "../node_modules/bootstrap/scss/bootstrap";
 
 // Themes
-@import 'sass/themes/dark-default';
-@import 'sass/themes/light';
+@import "sass/themes/dark-default";
+@import "sass/themes/light";
 
 // Fonts
-@import url('https://fonts.googleapis.com/css?family=Cuprum|Rajdhani');
+@import url("https://fonts.googleapis.com/css?family=Cuprum|Rajdhani");
 
 // Code Mirror
 @import "~codemirror/lib/codemirror.css";
 // Our theme
-@import 'sass/themes/codemirror';
-
+@import "sass/themes/codemirror";
 
 body {
-	background-color: var(--background-color);
-	font-family: 'Rajdhani', sans-serif;
-	cursor: default;
+  background-color: var(--background-color);
+  font-family: "Rajdhani", sans-serif;
+  cursor: default;
 }
 
-
 nav.navbar {
-	border-bottom: 1px solid var(--color-3);
-	padding-top: 0.6rem;
+  border-bottom: 1px solid var(--color-3);
+  padding-top: 0.6rem;
 }
 
 .navbar-brand {
-	font-size: 25px;
+  font-size: 25px;
 }
 
 .bg-dark {
-	background-color: var(--color-2) !important;
+  background-color: var(--color-2) !important;
 }
 
 .table {
-	thead th {
-		border-bottom: none;
-	}
+  thead th {
+    border-bottom: none;
+  }
 
-	th,td {
-		border-color: var(--color-3);
-	}
+  th,
+  td {
+    border-color: var(--color-3);
+  }
 }
 
-a, pre {
-	color: var(--text);
+a,
+pre {
+  color: var(--text);
 }
 
 a:hover {
-	color: var(--text);
+  color: var(--text);
 }
 
 .center {
-	text-align: center;
+  text-align: center;
 }
 
 .btn.btn-default {
-	background-color: var(--color-1);
-	color: var(--text);
-	border-color: var(--color-4);
+  background-color: var(--color-1);
+  color: var(--text);
+  border-color: var(--color-4);
 }
 
 .btn.btn-outline-danger {
-	color:        var(--button-danger);
-	border-color: var(--button-danger);
+  color: var(--button-danger);
+  border-color: var(--button-danger);
 
-	&:hover {
-		background-color: var(--button-danger-l);
-		color: var(--text-lighter);
-	}
+  &:hover {
+    background-color: var(--button-danger-l);
+    color: var(--text-lighter);
+  }
 }
 
 .btn.btn-outline-success {
-	color:        var(--button-success);
-	border-color: var(--button-success);
+  color: var(--button-success);
+  border-color: var(--button-success);
 
-	&:hover {
-		background-color: var(--button-success-l);
-		color: var(--text-lighter);
-	}
+  &:hover {
+    background-color: var(--button-success-l);
+    color: var(--text-lighter);
+  }
 }
 
 .btn.btn-danger {
-	border-color: var(--button-danger);
-	background-color: var(--button-danger-l);
-	color: var(--text-lighter);
+  border-color: var(--button-danger);
+  background-color: var(--button-danger-l);
+  color: var(--text-lighter);
 }
 
 .btn.btn-success {
-	border-color: var(--button-success);
-	background-color: var(--button-success-l);
-	color: var(--text-lighter);
+  border-color: var(--button-success);
+  background-color: var(--button-success-l);
+  color: var(--text-lighter);
 }
 
 .btn.btn-outline-light {
-	color:        var(--button-light);
-	border-color: var(--button-light);
+  color: var(--button-light);
+  border-color: var(--button-light);
 
-	&:hover {
-		background-color: var(--button-light);
-		color: var(--text-inverse);
-	}
+  &:hover {
+    background-color: var(--button-light);
+    color: var(--text-inverse);
+  }
 }
 
 .bs-popover-bottom .arrow::after {
-	border-bottom-color: var(--color-3);
+  border-bottom-color: var(--color-3);
 }
 .bs-popover-top .arrow::after {
-	border-top-color: var(--color-3);
+  border-top-color: var(--color-3);
 }
 .bs-popover-left .arrow::after {
-	border-left-color: var(--color-3);
+  border-left-color: var(--color-3);
 }
 .bs-popover-right .arrow::after {
-	border-right-color: var(--color-3);
+  border-right-color: var(--color-3);
 }
 
 .popover {
-	max-width: none;
-	color: var(--text);
-	border-radius: 5px;
-	border: 1px solid var(--color-3);
+  max-width: none;
+  color: var(--text);
+  border-radius: 5px;
+  border: 1px solid var(--color-3);
 
-	.popover-body {
-		background-color: var(--panel-body);
-		border-radius: 4px;
-		color: var(--text);
-		padding: 0;
-	}
+  .popover-body {
+    background-color: var(--panel-body);
+    border-radius: 4px;
+    color: var(--text);
+    padding: 0;
+  }
 
-	table.sm th, table.sm td {
-		padding: 5px 20px !important;
-	}
+  table.sm th,
+  table.sm td {
+    padding: 5px 20px !important;
+  }
 }
 
 span.dotted {
-	border-bottom: 1px dotted var(--text);
+  border-bottom: 1px dotted var(--text);
 }
 
 .modal-content {
-	background-color: var(--color-2);
-	border-color: var(--color-3);
-	color: var(--text);
+  background-color: var(--color-2);
+  border-color: var(--color-3);
+  color: var(--text);
 
-	.modal-header {
-		padding: 1rem 1rem 0;
-		border-color: var(--color-3);
-	}
+  .modal-header {
+    padding: 1rem 1rem 0;
+    border-color: var(--color-3);
+  }
 
-	.modal-footer {
-		border-color: var(--color-3);
-	}
+  .modal-footer {
+    border-color: var(--color-3);
+  }
 }

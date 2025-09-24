@@ -1,21 +1,24 @@
-import { Component, AfterViewChecked, Renderer2, OnInit } from '@angular/core';
-import { Router, RoutesRecognized } from '@angular/router';
+import { Component, AfterViewChecked, Renderer2, OnInit } from "@angular/core";
+import { Router, RoutesRecognized } from "@angular/router";
 
 interface Breadcrumb {
-  href?:   string;
+  href?:  string;
   active: boolean;
   name:   string;
-};
+}
 
 @Component({
-  selector: 'content',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  selector:    "content",
+  templateUrl: "./app.component.html",
+  styleUrls:   ["./app.component.scss"],
 })
 export class AppComponent implements AfterViewChecked, OnInit {
   breadcrumbs: Breadcrumb[] = [];
 
-  constructor(private route: Router, private renderer: Renderer2) { }
+  constructor(
+    private route: Router,
+    private renderer: Renderer2,
+  ) {}
 
   ngOnInit() {
     const currentTheme = localStorage.getItem("theme");
@@ -26,7 +29,7 @@ export class AppComponent implements AfterViewChecked, OnInit {
 
   ngAfterViewChecked() {
     this.route.events.subscribe((data) => {
-       if (data instanceof RoutesRecognized) {
+      if (data instanceof RoutesRecognized) {
         const params = data.state.root.firstChild.params;
         const breadcrumbs: Breadcrumb[] = [];
 
@@ -35,7 +38,7 @@ export class AppComponent implements AfterViewChecked, OnInit {
           breadcrumbs.push({
             name:   server,
             href:   `servers/${server}/databases`,
-            active: false
+            active: false,
           });
 
           if (params.database) {
@@ -43,7 +46,7 @@ export class AppComponent implements AfterViewChecked, OnInit {
             breadcrumbs.push({
               name:   database,
               href:   `servers/${server}/databases/${database}/collections`,
-              active: false
+              active: false,
             });
 
             if (params.collection) {
@@ -51,14 +54,14 @@ export class AppComponent implements AfterViewChecked, OnInit {
               breadcrumbs.push({
                 name:   collection,
                 href:   `servers/${server}/databases/${database}/collections/${collection}`,
-                active: false
+                active: false,
               });
 
               if (params.document) {
                 const document = params.document;
                 breadcrumbs.push({
                   name:   document,
-                  active: false
+                  active: false,
                 });
               }
             }
@@ -71,15 +74,13 @@ export class AppComponent implements AfterViewChecked, OnInit {
         }
 
         this.breadcrumbs = breadcrumbs;
-       }
-     });
+      }
+    });
   }
 
   get otherTheme() {
     const isLight = document.body.classList.contains("theme-light");
-    return isLight
-      ? "Dark"
-      : "Light";
+    return isLight ? "Dark" : "Light";
   }
 
   switchTheme(theme: string) {

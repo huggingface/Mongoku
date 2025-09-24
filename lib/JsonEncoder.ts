@@ -4,30 +4,30 @@ export default class JsonEncoder {
   static encode(obj: any) {
     if (obj instanceof ObjectId) {
       return {
-        $type:  'ObjectId',
+        $type:  "ObjectId",
         $value: obj.toHexString(),
-        $date:  obj.getTimestamp().getTime()
+        $date:  obj.getTimestamp().getTime(),
       };
     }
     if (obj instanceof Date) {
       return {
-        $type: 'Date',
-        $value: obj.toISOString()
+        $type:  "Date",
+        $value: obj.toISOString(),
       };
     }
     if (obj instanceof RegExp) {
       return {
-        $type: 'RegExp',
+        $type:  "RegExp",
         $value: {
           $pattern: obj.source,
-          $flags:   obj.flags
-        }
+          $flags:   obj.flags,
+        },
       };
     }
     if (Array.isArray(obj)) {
       return [...obj.map(JsonEncoder.encode)];
     }
-    if (obj && typeof obj === 'object') {
+    if (obj && typeof obj === "object") {
       for (const [key, value] of Object.entries(obj)) {
         obj[key] = JsonEncoder.encode(value);
       }
@@ -37,7 +37,7 @@ export default class JsonEncoder {
   }
 
   static decode(obj: any) {
-    if (obj && obj.$type === 'ObjectId') {
+    if (obj && obj.$type === "ObjectId") {
       return new ObjectId(obj.$value);
     }
     if (obj && obj.$type === "Date") {
@@ -49,7 +49,7 @@ export default class JsonEncoder {
     if (Array.isArray(obj)) {
       return [...obj.map(JsonEncoder.decode)];
     }
-    if (obj && typeof obj === 'object') {
+    if (obj && typeof obj === "object") {
       for (const [key, value] of Object.entries(obj)) {
         obj[key] = JsonEncoder.decode(value);
       }

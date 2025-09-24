@@ -1,26 +1,26 @@
-import * as express from 'express';
-import * as bodyParser from 'body-parser';
+import * as express from "express";
+import * as bodyParser from "body-parser";
 
-import factory from '../lib/Factory';
-import { writeEnabled } from '../lib/ReadOnlyMiddleware';
+import factory from "../lib/Factory";
+import { writeEnabled } from "../lib/ReadOnlyMiddleware";
 
 export const api = express.Router();
 
 // get readOnly
-api.get('/readonly', async (req, res, next) => {
+api.get("/readonly", async (req, res, next) => {
   return res.json({
-    ok: true,
-    readOnly: (process.env.MONGOKU_READ_ONLY_MODE === 'true'),
+    ok:       true,
+    readOnly: process.env.MONGOKU_READ_ONLY_MODE === "true",
   });
 });
 
 // Get servers
-api.get('/servers', async (req, res, next) => {
+api.get("/servers", async (req, res, next) => {
   const servers = await factory.mongoManager.getServersJson();
   return res.json(servers);
 });
 
-api.put('/servers', bodyParser.json(), async (req, res, next) => {
+api.put("/servers", bodyParser.json(), async (req, res, next) => {
   try {
     await factory.hostsManager.add(req.body.url);
     await factory.mongoManager.load();
@@ -29,11 +29,11 @@ api.put('/servers', bodyParser.json(), async (req, res, next) => {
   }
 
   return res.json({
-    ok: true
+    ok: true,
   });
 });
 
-api.delete('/servers/:server', async (req, res, next) => {
+api.delete("/servers/:server", async (req, res, next) => {
   try {
     await factory.hostsManager.remove(req.params.server);
     factory.mongoManager.removeServer(req.params.server);
@@ -42,11 +42,11 @@ api.delete('/servers/:server', async (req, res, next) => {
   }
 
   return res.json({
-    ok: true
+    ok: true,
   });
 });
 
-api.get('/servers/:server/databases', async (req, res, next) => {
+api.get("/servers/:server/databases", async (req, res, next) => {
   const server = req.params.server;
 
   try {
@@ -57,8 +57,8 @@ api.get('/servers/:server/databases', async (req, res, next) => {
   }
 });
 
-api.get('/servers/:server/databases/:database/collections', async (req, res, next) => {
-  const server   = req.params.server;
+api.get("/servers/:server/databases/:database/collections", async (req, res, next) => {
+  const server = req.params.server;
   const database = req.params.database;
 
   try {
@@ -69,11 +69,11 @@ api.get('/servers/:server/databases/:database/collections', async (req, res, nex
   }
 });
 
-api.get('/servers/:server/databases/:database/collections/:collection/documents/:document', async (req, res, next) => {
-  const server     = req.params.server;
-  const database   = req.params.database;
+api.get("/servers/:server/databases/:database/collections/:collection/documents/:document", async (req, res, next) => {
+  const server = req.params.server;
+  const database = req.params.database;
   const collection = req.params.collection;
-  const document   = req.params.document;
+  const document = req.params.document;
 
   try {
     const c = await factory.mongoManager.getCollection(server, database, collection);
@@ -88,61 +88,70 @@ api.get('/servers/:server/databases/:database/collections/:collection/documents/
 
     return res.json({
       ok:       true,
-      document: doc
+      document: doc,
     });
   } catch (err) {
     return next(err);
   }
 });
 
-api.post('/servers/:server/databases/:database/collections/:collection/documents/:document', writeEnabled, bodyParser.json(), async (req, res, next) => {
-  const server     = req.params.server;
-  const database   = req.params.database;
-  const collection = req.params.collection;
-  const document   = req.params.document;
-  const partial    = req.query.partial === 'true';
+api.post(
+  "/servers/:server/databases/:database/collections/:collection/documents/:document",
+  writeEnabled,
+  bodyParser.json(),
+  async (req, res, next) => {
+    const server = req.params.server;
+    const database = req.params.database;
+    const collection = req.params.collection;
+    const document = req.params.document;
+    const partial = req.query.partial === "true";
 
-  try {
-    const c = await factory.mongoManager.getCollection(server, database, collection);
-    if (!c) {
-      return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
+    try {
+      const c = await factory.mongoManager.getCollection(server, database, collection);
+      if (!c) {
+        return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
+      }
+      const update = await c.updateOne(document, req.body, partial);
+
+      return res.json({
+        ok:     true,
+        update: update,
+      });
+    } catch (err) {
+      return next(err);
     }
-    const update = await c.updateOne(document, req.body, partial);
+  },
+);
 
-    return res.json({
-      ok:     true,
-      update: update
-    });
-  } catch (err) {
-    return next(err);
-  }
-})
+api.delete(
+  "/servers/:server/databases/:database/collections/:collection/documents/:document",
+  writeEnabled,
+  async (req, res, next) => {
+    const server = req.params.server;
+    const database = req.params.database;
+    const collection = req.params.collection;
+    const document = req.params.document;
 
-api.delete('/servers/:server/databases/:database/collections/:collection/documents/:document', writeEnabled, async (req, res, next) => {
-  const server     = req.params.server;
-  const database   = req.params.database;
-  const collection = req.params.collection;
-  const document   = req.params.document;
+    try {
+      const c = await factory.mongoManager.getCollection(server, database, collection);
+      if (!c) {
+        return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
+      }
 
-  try {
-    const c = await factory.mongoManager.getCollection(server, database, collection);
-    if (!c) {
-      return next(new Error(`Collection not found: ${server}.${database}.${collection}`));
+      await c.removeOne(document);
+
+      return res.json({
+        ok: true,
+      });
+    } catch (err) {
+      return next(err);
     }
+  },
+);
 
-    await c.removeOne(document);
-
-    return res.json({
-      ok: true
-    });
-  } catch (err) {
-    return next(err);
-  }
-});
-
-api.get('/servers/:server/databases/:database/collections/:collection/query', async (req, res, next) => {
-  const server     = req.params.server;
-  const database   = req.params.database;
+api.get("/servers/:server/databases/:database/collections/:collection/query", async (req, res, next) => {
+  const server = req.params.server;
+  const database = req.params.database;
   const collection = req.params.collection;
 
   let query = req.query.q;
@@ -172,9 +181,13 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
   }
 
   let limit = parseInt(req.query.limit as string, 10);
-  if (isNaN(limit)) { limit = 20; }
+  if (isNaN(limit)) {
+    limit = 20;
+  }
   let skip = parseInt(req.query.skip as string, 10);
-  if (isNaN(skip)) { skip = 0; }
+  if (isNaN(skip)) {
+    skip = 0;
+  }
 
   const c = await factory.mongoManager.getCollection(server, database, collection);
   if (!c) {
@@ -186,16 +199,16 @@ api.get('/servers/:server/databases/:database/collections/:collection/query', as
 
     return res.json({
       ok:      true,
-      results: results
+      results: results,
     });
   } catch (err) {
     return next(err);
   }
 });
 
-api.get('/servers/:server/databases/:database/collections/:collection/count', async (req, res, next) => {
-  const server     = req.params.server;
-  const database   = req.params.database;
+api.get("/servers/:server/databases/:database/collections/:collection/count", async (req, res, next) => {
+  const server = req.params.server;
+  const database = req.params.database;
   const collection = req.params.collection;
 
   let query = req.query.q;
@@ -217,7 +230,7 @@ api.get('/servers/:server/databases/:database/collections/:collection/count', as
 
     return res.json({
       ok:    true,
-      count: count
+      count: count,
     });
   } catch (err) {
     return next(err);

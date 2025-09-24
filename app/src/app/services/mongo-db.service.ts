@@ -1,13 +1,13 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Injectable } from "@angular/core";
+import { HttpClient, HttpErrorResponse } from "@angular/common/http";
+import { Observable, of } from "rxjs";
+import { catchError } from "rxjs/operators";
 
-import { ServerJSON } from '../../../../lib/Server';
-import { DatabaseJSON } from '../../../../lib/Database';
-import { CollectionJSON } from '../../../../lib/Collection';
+import { ServerJSON } from "../../../../lib/Server";
+import { DatabaseJSON } from "../../../../lib/Database";
+import { CollectionJSON } from "../../../../lib/Collection";
 
-import { NotificationsService } from './notifications.service';
+import { NotificationsService } from "./notifications.service";
 
 export { ServerJSON, DatabaseJSON, CollectionJSON };
 
@@ -15,14 +15,17 @@ export { ServerJSON, DatabaseJSON, CollectionJSON };
 export class MongoDbService {
   private apiBaseUrl: string = "api";
 
-  constructor(private http: HttpClient, private notifService: NotificationsService) { }
+  constructor(
+    private http: HttpClient,
+    private notifService: NotificationsService,
+  ) {}
 
   private handleError(error: HttpErrorResponse) {
     const message = error.error.message || `${error.name}: ${error.statusText}`;
     this.notifService.notifyError(message);
     return of({
       ok:      false,
-      message: message
+      message: message,
     });
   }
 
@@ -30,40 +33,32 @@ export class MongoDbService {
     // The following cast is required to get the right typing
     // since we expect and receive an Observable<T> and not a
     // Observable<HttpEvent<T>>. Weird
-    return <any>this.http.get<T>(path, options)
-      .pipe(
-        catchError((err) => this.handleError(err))
-      ) as Observable<T>;
+    return (<any>this.http.get<T>(path, options).pipe(catchError((err) => this.handleError(err)))) as Observable<T>;
   }
 
   private post<T>(path: string, body: any, options?: any) {
     // The following cast is required to get the right typing
     // since we expect and receive an Observable<T> and not a
     // Observable<HttpEvent<T>>. Weird
-    return <any>this.http.post<T>(path, body, options)
-      .pipe(
-        catchError((err) => this.handleError(err))
-      ) as Observable<T>;
+    return (<any>(
+      this.http.post<T>(path, body, options).pipe(catchError((err) => this.handleError(err)))
+    )) as Observable<T>;
   }
 
   private put<T>(path: string, body: any, options?: any) {
     // The following cast is required to get the right typing
     // since we expect and receive an Observable<T> and not a
     // Observable<HttpEvent<T>>. Weird
-    return <any>this.http.put<T>(path, body, options)
-      .pipe(
-        catchError((err) => this.handleError(err))
-      ) as Observable<T>;
+    return (<any>(
+      this.http.put<T>(path, body, options).pipe(catchError((err) => this.handleError(err)))
+    )) as Observable<T>;
   }
 
   private delete<T>(path: string, options?: any) {
     // The following cast is required to get the right typing
     // since we expect and receive an Observable<T> and not a
     // Observable<HttpEvent<T>>. Weird
-    return <any>this.http.delete<T>(path, options)
-      .pipe(
-        catchError((err) => this.handleError(err))
-      ) as Observable<T>;
+    return (<any>this.http.delete<T>(path, options).pipe(catchError((err) => this.handleError(err)))) as Observable<T>;
   }
 
   isReadOnly() {
@@ -83,7 +78,7 @@ export class MongoDbService {
   }
 
   getDatabases(server: string) {
-    return this.get<DatabaseJSON[]>(`${this.apiBaseUrl}/servers/${server}/databases`)
+    return this.get<DatabaseJSON[]>(`${this.apiBaseUrl}/servers/${server}/databases`);
   }
 
   getCollections(server: string, database: string) {
@@ -91,38 +86,55 @@ export class MongoDbService {
   }
 
   getDocument(server: string, database: string, collection: string, document: string) {
-    return this.get(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/documents/${document}`);
+    return this.get(
+      `${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/documents/${document}`,
+    );
   }
 
-  query(server: string, database: string, collection: string, query: any, project: any, sort: any, skip: number = 0, limit: number = 20) {
+  query(
+    server: string,
+    database: string,
+    collection: string,
+    query: any,
+    project: any,
+    sort: any,
+    skip: number = 0,
+    limit: number = 20,
+  ) {
     return this.get(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/query`, {
       params: {
-        q:     query,
-        sort:  sort,
-        skip:  `${skip}`,
-        limit: `${limit}`,
-        project: `${project}`
-      }
+        q:       query,
+        sort:    sort,
+        skip:    `${skip}`,
+        limit:   `${limit}`,
+        project: `${project}`,
+      },
     });
   }
 
   update(server: string, database: string, collection: string, document: string, update: any, partial: boolean) {
-    return this.post(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/documents/${document}`, update, {
-      params: {
-        partial: `${partial}`
-      }
-    });
+    return this.post(
+      `${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/documents/${document}`,
+      update,
+      {
+        params: {
+          partial: `${partial}`,
+        },
+      },
+    );
   }
 
   remove(server: string, database: string, collection: string, document: string) {
-    return this.delete(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/documents/${document}`);
+    return this.delete(
+      `${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/documents/${document}`,
+    );
   }
 
   count(server: string, database: string, collection: string, query: any) {
     return this.get(`${this.apiBaseUrl}/servers/${server}/databases/${database}/collections/${collection}/count`, {
       params: {
-        q: query
-      }
+        q: query,
+      },
     });
   }
 }

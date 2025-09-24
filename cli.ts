@@ -1,25 +1,25 @@
 #!/usr/bin/env node
 
-import * as child_process from 'child_process';
-import * as path from 'path';
+import * as child_process from "child_process";
+import * as path from "path";
 
-import { createCommand } from 'commander';
-import * as figlet from 'figlet';
-import chalk from 'chalk';
-import * as server from './server';
+import { createCommand } from "commander";
+import * as figlet from "figlet";
+import chalk from "chalk";
+import * as server from "./server";
 
 const program = createCommand();
 program
-  .version(require('../package.json').version)
-  .usage('start [--pm2] [--forever]')
-  .description('MongoDB client for the web')
-  .option('--pm2', 'Run using pm2')
-  .option('--forever', 'Run using forever')
+  .version(require("../package.json").version)
+  .usage("start [--pm2] [--forever]")
+  .description("MongoDB client for the web")
+  .option("--pm2", "Run using pm2")
+  .option("--forever", "Run using forever")
   .action(start)
   .parse(process.argv);
 
-async function start(cmd: 'start', options: any) {
-  console.log(chalk.rgb(175, 188, 207)(figlet.textSync('Mongoku')) + '\n');
+async function start(cmd: "start", options: any) {
+  console.log(chalk.rgb(175, 188, 207)(figlet.textSync("Mongoku")) + "\n");
 
   if (cmd !== "start") {
     return program.help();
@@ -27,7 +27,7 @@ async function start(cmd: 'start', options: any) {
 
   const pm2 = options.pm2;
   const forever = options.forever;
-  const entryPath = path.join(__dirname, 'server.js');
+  const entryPath = path.join(__dirname, "server.js");
 
   if (pm2 && forever) {
     console.log("Cannot launch with both PM2 and Forever. You need to chose one.");

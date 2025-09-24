@@ -1,14 +1,15 @@
 .row.collections-component {
-	.table {
-		margin-bottom: 0;
-		color: var(--text);
+  .table {
+    margin-bottom: 0;
+    color: var(--text);
 
-		th, td {
-			padding: 10px 22px;
-		}
+    th,
+    td {
+      padding: 10px 22px;
+    }
 
-		thead {
-			background-color: var(--color-3);
-		}
-	}
+    thead {
+      background-color: var(--color-3);
+    }
+  }
 }

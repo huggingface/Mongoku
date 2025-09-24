@@ -9,26 +9,32 @@
       </thead>
       <tbody>
         <tr *ngFor="let database of databases">
-          <td><a routerLink="/servers/{{ server }}/databases/{{ database.name }}/collections">{{ database.name }}</a></td>
           <td>
-            <span class="dotted"
-                  [ngbPopover]="popCollection"
-                  placement="auto right"
-                  triggers="manual"
-                  #p1="ngbPopover"
-                  (mouseenter)="toggleCollection(p1, database.collections)"
-                  (mouseleave)="toggle(p1)"
-            >{{ database.collections.length }}</span>
+            <a routerLink="/servers/{{ server }}/databases/{{ database.name }}/collections">{{ database.name }}</a>
           </td>
           <td>
-            <span class="dotted"
-                  [ngbPopover]="popStats"
-                  placement="auto right"
-                  triggers="manual"
-                  #p2="ngbPopover"
-                  (mouseenter)="toggleStats(p2, database)"
-                  (mouseleave)="toggle(p2)"
-            >{{ database.size | bytes }}</span>
+            <span
+              class="dotted"
+              [ngbPopover]="popCollection"
+              placement="auto right"
+              triggers="manual"
+              #p1="ngbPopover"
+              (mouseenter)="toggleCollection(p1, database.collections)"
+              (mouseleave)="toggle(p1)"
+              >{{ database.collections.length }}</span
+            >
+          </td>
+          <td>
+            <span
+              class="dotted"
+              [ngbPopover]="popStats"
+              placement="auto right"
+              triggers="manual"
+              #p2="ngbPopover"
+              (mouseenter)="toggleStats(p2, database)"
+              (mouseleave)="toggle(p2)"
+              >{{ database.size | bytes }}</span
+            >
           </td>
         </tr>
         <tr *ngIf="databases.length == 0 && !loading">
@@ -57,7 +63,7 @@
           <td>{{ item.size | bytes }}</td>
         </tr>
         <tr *ngIf="clipped">
-          <td colspan=2>{{ clipped }} more items...</td>
+          <td colspan="2">{{ clipped }} more items...</td>
         </tr>
       </tbody>
     </table>

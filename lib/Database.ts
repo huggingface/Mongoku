@@ -1,7 +1,7 @@
-import * as MongoDb from 'mongodb';
+import * as MongoDb from "mongodb";
 
-import { Collection, CollectionJSON } from './Collection';
-import { Utils } from './Utils';
+import { Collection, CollectionJSON } from "./Collection";
+import { Utils } from "./Utils";
 
 export interface DatabaseJSON {
   name:           string;
@@ -11,21 +11,21 @@ export interface DatabaseJSON {
   storageSize:    number;
   totalIndexSize: number;
   empty:          boolean;
-  collections:    CollectionJSON[]
+  collections:    CollectionJSON[];
 }
 
 export class Database {
-  private _db:    MongoDb.Db;
+  private _db: MongoDb.Db;
 
-  name: string;
-  size: number;
-  empty: boolean;
+  name:        string;
+  size:        number;
+  empty:       boolean;
 
   constructor(name: string, size: number, empty: boolean, db: MongoDb.Db) {
-    this.name  = name;
-    this.size  = size;
+    this.name = name;
+    this.size = size;
     this.empty = empty;
-    this._db   = db;
+    this._db = db;
   }
 
   async collections() {
@@ -57,13 +57,13 @@ export class Database {
     for (const collection of collections) {
       const json = await collection.toJson();
       totalObjSize += json.avgObjSize * json.count;
-      totalObjNr   += json.count;
-      storageSize  += json.storageSize;
-      indexSize    += json.totalIndexSize;
-      dataSize     += json.dataSize;
+      totalObjNr += json.count;
+      storageSize += json.storageSize;
+      indexSize += json.totalIndexSize;
+      dataSize += json.dataSize;
       csJson.push(json);
     }
-    Utils.fieldSort(csJson, 'name');
+    Utils.fieldSort(csJson, "name");
 
     return {
       name:           this.name,
@@ -73,7 +73,7 @@ export class Database {
       storageSize:    storageSize,
       totalIndexSize: indexSize,
       empty:          this.empty,
-      collections:    csJson
-    }
+      collections:    csJson,
+    };
   }
 }

@@ -1,7 +1,7 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import { Pipe, PipeTransform } from "@angular/core";
 
 @Pipe({
-  name: 'number'
+  name: "number",
 })
 export class NumberPipe implements PipeTransform {
   private pad(n: number) {
@@ -29,9 +29,8 @@ export class NumberPipe implements PipeTransform {
 
     let text = `${value}`;
     if (parts.length > 0) {
-      text += `,${parts.join(',')}`;
+      text += `,${parts.join(",")}`;
     }
     return text;
   }
-
 }

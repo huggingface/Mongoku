@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter, OnChanges } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnChanges } from "@angular/core";
 
 export interface SearchParams {
   query:   string;
@@ -9,13 +9,13 @@ export interface SearchParams {
 }
 
 @Component({
-  selector: 'search-box',
-  templateUrl: './search-box.component.html',
-  styleUrls: ['./search-box.component.scss']
+  selector:    "search-box",
+  templateUrl: "./search-box.component.html",
+  styleUrls:   ["./search-box.component.scss"],
 })
 export class SearchBoxComponent implements OnInit, OnChanges {
   @Output() search = new EventEmitter();
-  @Input()  params: SearchParams;
+  @Input() params: SearchParams;
 
   private ready = false;
   private defaults = {
@@ -23,13 +23,13 @@ export class SearchBoxComponent implements OnInit, OnChanges {
     project: "{}",
     limit:   20,
     skip:    0,
-    sort:    ""
+    sort:    "",
   };
   show = {
     limit:   false,
     skip:    false,
     sort:    false,
-    project: false
+    project: false,
   };
 
   ngOnInit() {
@@ -50,7 +50,9 @@ export class SearchBoxComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges() {
-    if (!this.ready) { return; }
+    if (!this.ready) {
+      return;
+    }
 
     this.go();
   }
@@ -64,7 +66,7 @@ export class SearchBoxComponent implements OnInit, OnChanges {
   }
 
   canAddParams() {
-    return Object.values(this.show).some(v => !v);
+    return Object.values(this.show).some((v) => !v);
   }
 
   go() {
