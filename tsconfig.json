@@ -7,6 +7,7 @@
 		"strictNullChecks": true,
 		"lib": ["es6", "es2016", "es2017"],
 		"skipLibCheck": true,
+		"esModuleInterop": true,
 		"sourceMap": true // Needed for debugging with VSCode
 	},
 	"exclude": [

@@ -59,21 +59,15 @@ docker run -d --name mongoku -p 3100:3100 yournamehere/mongoku
 If you want to manually build and run mongoku, just clone this repository and run the following:
 
 ```bash
-# Install the angular cli if you don't have it already
-npm install -g typescript @angular/cli
-npm install
-
 # Build the front
 cd app
 npm install
-ng build
+npm run build
 
 # And the back
 cd ..
-tsc
-
-# Run
-node dist/server.js
+npm install
+npm start
 ```
 
 ### Configuration
