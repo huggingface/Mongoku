@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { SearchParams } from '$lib/types';
+	import type { SearchParams } from "$lib/types";
 
 	interface Props {
 		params: SearchParams;
@@ -11,18 +11,18 @@
 	let show = $state({
 		limit: params.limit !== 20,
 		skip: params.skip !== 0,
-		sort: params.sort !== '',
-		project: params.project !== ''
+		sort: params.sort !== "",
+		project: params.project !== "",
 	});
 
 	function toggle(type: keyof typeof show) {
 		show[type] = !show[type];
 		if (!show[type]) {
 			// Reset to default when hiding
-			if (type === 'limit') params.limit = 20;
-			if (type === 'skip') params.skip = 0;
-			if (type === 'sort') params.sort = '';
-			if (type === 'project') params.project = '';
+			if (type === "limit") params.limit = 20;
+			if (type === "skip") params.skip = 0;
+			if (type === "sort") params.sort = "";
+			if (type === "project") params.project = "";
 			onsearch();
 		}
 	}
@@ -32,14 +32,14 @@
 	}
 
 	function handleKeyPress(event: KeyboardEvent) {
-		if (event.key === 'Enter') {
+		if (event.key === "Enter") {
 			onsearch();
 		}
 	}
 
 	function go() {
-		if (params.query === '') {
-			params.query = '{}';
+		if (params.query === "") {
+			params.query = "{}";
 		}
 		onsearch();
 	}
@@ -48,37 +48,22 @@
 <div class="search-box">
 	<div class="search-row">
 		<label>Query:</label>
-		<input
-			type="text"
-			bind:value={params.query}
-			onkeypress={handleKeyPress}
-			placeholder="&#123;&#125;"
-		/>
+		<input type="text" bind:value={params.query} onkeypress={handleKeyPress} placeholder="&#123;&#125;" />
 	</div>
 
 	{#if show.project}
 		<div class="search-row">
 			<label>Project:</label>
-			<input
-				type="text"
-				bind:value={params.project}
-				onkeypress={handleKeyPress}
-				placeholder="&#123;&#125;"
-			/>
-			<button class="btn btn-sm btn-default" onclick={() => toggle('project')}>×</button>
+			<input type="text" bind:value={params.project} onkeypress={handleKeyPress} placeholder="&#123;&#125;" />
+			<button class="btn btn-sm btn-default" onclick={() => toggle("project")}>×</button>
 		</div>
 	{/if}
 
 	{#if show.sort}
 		<div class="search-row">
 			<label>Sort:</label>
-			<input
-				type="text"
-				bind:value={params.sort}
-				onkeypress={handleKeyPress}
-				placeholder="&#123;&#125;"
-			/>
-			<button class="btn btn-sm btn-default" onclick={() => toggle('sort')}>×</button>
+			<input type="text" bind:value={params.sort} onkeypress={handleKeyPress} placeholder="&#123;&#125;" />
+			<button class="btn btn-sm btn-default" onclick={() => toggle("sort")}>×</button>
 		</div>
 	{/if}
 
@@ -86,7 +71,7 @@
 		<div class="search-row">
 			<label>Skip:</label>
 			<input type="number" bind:value={params.skip} onkeypress={handleKeyPress} min="0" />
-			<button class="btn btn-sm btn-default" onclick={() => toggle('skip')}>×</button>
+			<button class="btn btn-sm btn-default" onclick={() => toggle("skip")}>×</button>
 		</div>
 	{/if}
 
@@ -94,7 +79,7 @@
 		<div class="search-row">
 			<label>Limit:</label>
 			<input type="number" bind:value={params.limit} onkeypress={handleKeyPress} min="1" />
-			<button class="btn btn-sm btn-default" onclick={() => toggle('limit')}>×</button>
+			<button class="btn btn-sm btn-default" onclick={() => toggle("limit")}>×</button>
 		</div>
 	{/if}
 
@@ -104,16 +89,16 @@
 				<button class="btn btn-sm btn-default">Add Parameter</button>
 				<div class="dropdown-content">
 					{#if !show.project}
-						<button onclick={() => toggle('project')}>Project</button>
+						<button onclick={() => toggle("project")}>Project</button>
 					{/if}
 					{#if !show.sort}
-						<button onclick={() => toggle('sort')}>Sort</button>
+						<button onclick={() => toggle("sort")}>Sort</button>
 					{/if}
 					{#if !show.skip}
-						<button onclick={() => toggle('skip')}>Skip</button>
+						<button onclick={() => toggle("skip")}>Skip</button>
 					{/if}
 					{#if !show.limit}
-						<button onclick={() => toggle('limit')}>Limit</button>
+						<button onclick={() => toggle("limit")}>Limit</button>
 					{/if}
 				</div>
 			</div>

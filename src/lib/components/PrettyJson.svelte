@@ -1,8 +1,10 @@
 <script lang="ts">
-	import { notificationStore } from '$lib/stores/notifications.svelte';
-	import type { MongoDocument } from '$lib/types';
-	import { parseJSON } from '$lib/utils/jsonParser';
-	import { onMount } from 'svelte';
+	import { notificationStore } from "$lib/stores/notifications.svelte";
+	import type { MongoDocument } from "$lib/types";
+	import { parseJSON } from "$lib/utils/jsonParser";
+	import { onMount } from "svelte";
+
+	/* eslint-disable @typescript-eslint/no-explicit-any */
 
 	interface Props {
 		json: MongoDocument;
@@ -17,7 +19,7 @@
 
 	let containerRef = $state<HTMLDivElement>();
 	let editorVisible = $state(false);
-	let editJson = $state('');
+	let editJson = $state("");
 	let removing = $state(false);
 	let editorRef = $state<HTMLTextAreaElement>();
 
@@ -27,8 +29,8 @@
 
 	function renderJson() {
 		if (!containerRef) return;
-		containerRef.innerHTML = '';
-		const view = createView('_', { _: json });
+		containerRef.innerHTML = "";
+		const view = createView("_", { _: json });
 		containerRef.appendChild(view);
 	}
 
@@ -36,34 +38,34 @@
 		let value = holder[key];
 
 		// Handle different types
-		if (typeof value === 'string') {
+		if (typeof value === "string") {
 			return createQuote(value);
-		} else if (typeof value === 'number') {
-			const span = document.createElement('span');
-			span.className = 'value number';
+		} else if (typeof value === "number") {
+			const span = document.createElement("span");
+			span.className = "value number";
 			span.textContent = String(value);
 			return span;
-		} else if (typeof value === 'boolean') {
-			const span = document.createElement('span');
-			span.className = 'value boolean';
+		} else if (typeof value === "boolean") {
+			const span = document.createElement("span");
+			span.className = "value boolean";
 			span.textContent = String(value);
 			return span;
 		} else if (value === null) {
-			const span = document.createElement('span');
-			span.className = 'value null';
-			span.textContent = 'null';
+			const span = document.createElement("span");
+			span.className = "value null";
+			span.textContent = "null";
 			return span;
-		} else if (typeof value === 'object') {
+		} else if (typeof value === "object") {
 			// Handle MongoDB special types
-			if (value.$type === 'ObjectId') {
-				return createFnCall('ObjectId', [createQuote(value.$value)], 'function');
+			if (value.$type === "ObjectId") {
+				return createFnCall("ObjectId", [createQuote(value.$value)], "function");
 			}
-			if (value.$type === 'Date') {
-				return createFnCall('Date', [createQuote(value.$value)], 'function');
+			if (value.$type === "Date") {
+				return createFnCall("Date", [createQuote(value.$value)], "function");
 			}
-			if (value.$type === 'RegExp') {
-				const span = document.createElement('span');
-				span.className = 'value regexp';
+			if (value.$type === "RegExp") {
+				const span = document.createElement("span");
+				span.className = "value regexp";
 				span.textContent = `/${value.$value.$pattern}/${value.$value.$flags}`;
 				return span;
 			}
@@ -71,13 +73,13 @@
 			// Handle arrays
 			if (Array.isArray(value)) {
 				if (value.length === 0) {
-					const span = document.createElement('span');
-					span.className = 'value array';
-					span.textContent = '[]';
+					const span = document.createElement("span");
+					span.className = "value array";
+					span.textContent = "[]";
 					return span;
 				}
 
-				return createCollapsible('array', value, (val) => {
+				return createCollapsible("array", value, (val) => {
 					const elements: HTMLElement[] = [];
 					for (let i = 0; i < val.length; i++) {
 						elements.push(createView(String(i), val));
@@ -89,22 +91,22 @@
 			// Handle objects
 			const keys = Object.keys(value);
 			if (keys.length === 0) {
-				const span = document.createElement('span');
-				span.className = 'value object';
-				span.textContent = '{}';
+				const span = document.createElement("span");
+				span.className = "value object";
+				span.textContent = "{}";
 				return span;
 			}
 
-			return createCollapsible('object', value, (val) => {
+			return createCollapsible("object", value, (val) => {
 				const elements: HTMLElement[] = [];
 				for (const k of keys) {
-					const propSpan = document.createElement('span');
-					propSpan.className = 'prop';
+					const propSpan = document.createElement("span");
+					propSpan.className = "prop";
 
-					const keyEl = document.createElement('var');
+					const keyEl = document.createElement("var");
 					keyEl.textContent = k;
 					propSpan.appendChild(keyEl);
-					propSpan.appendChild(document.createTextNode(': '));
+					propSpan.appendChild(document.createTextNode(": "));
 					propSpan.appendChild(createView(k, val));
 
 					elements.push(propSpan);
@@ -113,70 +115,70 @@
 			});
 		}
 
-		const span = document.createElement('span');
+		const span = document.createElement("span");
 		span.textContent = String(value);
 		return span;
 	}
 
 	function createCollapsible(
-		type: 'array' | 'object',
+		type: "array" | "object",
 		value: any,
-		renderContent: (val: any) => HTMLElement[]
+		renderContent: (val: any) => HTMLElement[],
 	): HTMLElement {
-		const wrapper = document.createElement('span');
-		wrapper.className = `collapsible-wrapper ${autoCollapse ? 'collapsed' : 'expanded'}`;
+		const wrapper = document.createElement("span");
+		wrapper.className = `collapsible-wrapper ${autoCollapse ? "collapsed" : "expanded"}`;
 
-		const toggle = document.createElement('span');
-		toggle.className = 'collapse-toggle';
-		toggle.textContent = autoCollapse ? '▶' : '▼';
+		const toggle = document.createElement("span");
+		toggle.className = "collapse-toggle";
+		toggle.textContent = autoCollapse ? "▶" : "▼";
 		toggle.onclick = (e) => {
 			e.stopPropagation();
-			toggleCollapse(wrapper, content, toggle, type);
+			toggleCollapse(wrapper, content, toggle);
 		};
 
-		const container = document.createElement('span');
+		const container = document.createElement("span");
 		container.className = `value ${type}`;
 
-		const openBracket = type === 'array' ? '[' : '{';
-		const closeBracket = type === 'array' ? ']' : '}';
+		const openBracket = type === "array" ? "[" : "{";
+		const closeBracket = type === "array" ? "]" : "}";
 
-		const content = document.createElement('span');
-		content.className = 'collapsible-content';
+		const content = document.createElement("span");
+		content.className = "collapsible-content";
 
 		if (autoCollapse) {
-			content.style.display = 'none';
+			content.style.display = "none";
 		}
 
 		wrapper.appendChild(toggle);
 		wrapper.appendChild(container);
 		container.appendChild(document.createTextNode(openBracket));
 
-		const contentWrapper = document.createElement('span');
-		contentWrapper.className = 'content-inner';
-		contentWrapper.appendChild(document.createTextNode('\n    '));
+		const contentWrapper = document.createElement("span");
+		contentWrapper.className = "content-inner";
+		contentWrapper.appendChild(document.createTextNode("\n    "));
 
 		const elements = renderContent(value);
 		elements.forEach((element, i) => {
 			if (i > 0) {
-				contentWrapper.appendChild(document.createTextNode(',\n    '));
+				contentWrapper.appendChild(document.createTextNode(",\n    "));
 			}
 			contentWrapper.appendChild(element);
 		});
 
-		contentWrapper.appendChild(document.createTextNode('\n'));
+		contentWrapper.appendChild(document.createTextNode("\n"));
 		content.appendChild(contentWrapper);
 
 		// Summary for collapsed state
-		const summary = document.createElement('span');
-		summary.className = 'collapsed-summary';
-		if (type === 'array') {
-			summary.textContent = `... ${value.length} item${value.length !== 1 ? 's' : ''}`;
+		const summary = document.createElement("span");
+		summary.className = "collapsed-summary";
+		if (type === "array") {
+			summary.textContent = `... ${value.length} item${value.length !== 1 ? "s" : ""}`;
 		} else {
 			const keyCount = Object.keys(value).length;
-			summary.textContent = `... ${keyCount} key${keyCount !== 1 ? 's' : ''}`;
+			summary.textContent = `... ${keyCount} key${keyCount !== 1 ? "s" : ""}`;
 		}
 		if (!autoCollapse) {
-			summary.style.display = 'none';
+			summary.style.display = "none";
 		}
 
 		container.appendChild(content);
@@ -186,34 +188,29 @@
 		return wrapper;
 	}
 
-	function toggleCollapse(
-		wrapper: HTMLElement,
-		content: HTMLElement,
-		toggle: HTMLElement,
-		type: 'array' | 'object'
-	) {
-		const isCollapsed = wrapper.classList.contains('collapsed');
+	function toggleCollapse(wrapper: HTMLElement, content: HTMLElement, toggle: HTMLElement) {
+		const isCollapsed = wrapper.classList.contains("collapsed");
 
 		if (isCollapsed) {
-			wrapper.classList.remove('collapsed');
-			wrapper.classList.add('expanded');
-			toggle.textContent = '▼';
-			content.style.display = '';
-			const summary = wrapper.querySelector('.collapsed-summary') as HTMLElement;
-			if (summary) summary.style.display = 'none';
+			wrapper.classList.remove("collapsed");
+			wrapper.classList.add("expanded");
+			toggle.textContent = "▼";
+			content.style.display = "";
+			const summary = wrapper.querySelector(".collapsed-summary") as HTMLElement;
+			if (summary) summary.style.display = "none";
 		} else {
-			wrapper.classList.add('collapsed');
-			wrapper.classList.remove('expanded');
-			toggle.textContent = '▶';
-			content.style.display = 'none';
-			const summary = wrapper.querySelector('.collapsed-summary') as HTMLElement;
-			if (summary) summary.style.display = 'inline';
+			wrapper.classList.add("collapsed");
+			wrapper.classList.remove("expanded");
+			toggle.textContent = "▶";
+			content.style.display = "none";
+			const summary = wrapper.querySelector(".collapsed-summary") as HTMLElement;
+			if (summary) summary.style.display = "inline";
 		}
 	}
 
 	function createQuote(str: string): HTMLElement {
-		const span = document.createElement('span');
-		span.className = 'value quoted';
+		const span = document.createElement("span");
+		span.className = "value quoted";
 
 		// Check if it's a URL
 		const isUrl = /^https?:\/\/[^\s]+$/.test(str);
@@ -221,15 +218,15 @@
 		span.appendChild(document.createTextNode('"'));
 
 		if (isUrl) {
-			const link = document.createElement('a');
-			link.className = 'string';
+			const link = document.createElement("a");
+			link.className = "string";
 			link.href = str;
 			link.textContent = str;
-			link.target = '_blank';
+			link.target = "_blank";
 			span.appendChild(link);
 		} else {
-			const strSpan = document.createElement('span');
-			strSpan.className = 'string';
+			const strSpan = document.createElement("span");
+			strSpan.className = "string";
 			strSpan.textContent = str;
 			span.appendChild(strSpan);
 		}
@@ -239,17 +236,17 @@
 	}
 
 	function createFnCall(fn: string, values: HTMLElement[], className: string): HTMLElement {
-		const span = document.createElement('span');
+		const span = document.createElement("span");
 		span.className = `call ${className}`;
 
 		span.appendChild(document.createTextNode(`${fn}(`));
 		values.forEach((value, i) => {
 			span.appendChild(value);
 			if (i < values.length - 1) {
-				span.appendChild(document.createTextNode(', '));
+				span.appendChild(document.createTextNode(", "));
 			}
 		});
-		span.appendChild(document.createTextNode(')'));
+		span.appendChild(document.createTextNode(")"));
 
 		return span;
 	}
@@ -261,16 +258,16 @@
 
 	function disableEditor() {
 		editorVisible = false;
-		editJson = '';
+		editJson = "";
 	}
 
 	function save() {
 		try {
-			const updatedJson = parseJSON(editJson, false);
+			const updatedJson = parseJSON(editJson);
 			disableEditor();
 			onedit?.(updatedJson);
 		} catch (err: any) {
-			notificationStore.notifyError(err.message || 'Invalid JSON');
+			notificationStore.notifyError(err.message || "Invalid JSON");
 		}
 	}
 
@@ -333,7 +330,7 @@
 	}
 
 	.pretty-json {
-		font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+		font-family: "Consolas", "Monaco", "Courier New", monospace;
 		font-size: 14px;
 		line-height: 1.6;
 		white-space: pre-wrap;
@@ -418,7 +415,7 @@
 		textarea {
 			width: 100%;
 			min-height: 300px;
-			font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+			font-family: "Consolas", "Monaco", "Courier New", monospace;
 			font-size: 14px;
 			line-height: 1.6;
 			padding: 10px;

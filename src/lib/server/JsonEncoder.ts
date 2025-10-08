@@ -40,7 +40,7 @@ export default class JsonEncoder {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	static decode(obj: any): any {
 		if (obj && obj.$type === "ObjectId") {
-			return new ObjectId(obj.$value);
+			return ObjectId.createFromHexString(obj.$value);
 		}
 		if (obj && obj.$type === "Date") {
 			return new Date(obj.$value);

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { PageData } from './$types';
-	import Panel from '$lib/components/Panel.svelte';
-	import { formatBytes, formatNumber } from '$lib/utils/filters';
+	import Panel from "$lib/components/Panel.svelte";
+	import { formatBytes, formatNumber } from "$lib/utils/filters";
+	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
 </script>
@@ -27,10 +27,10 @@
 							<td>
 								<a
 									href="/servers/{encodeURIComponent(data.server)}/databases/{encodeURIComponent(
-										data.database
-									)}/collections/{encodeURIComponent(
-										collection.name
-									)}/explore?query={encodeURIComponent('{}')}&sort=&project=&skip=0&limit=20"
+										data.database,
+									)}/collections/{encodeURIComponent(collection.name)}/explore?query={encodeURIComponent(
+										'{}',
+									)}&sort=&project=&skip=0&limit=20"
 								>
 									{collection.name}
 								</a>

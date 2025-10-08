@@ -1,5 +1,5 @@
-import { MongoManager } from "./MongoManager";
 import { HostsManager } from "./HostsManager";
+import { MongoManager } from "./MongoManager";
 
 class Factory {
 	private get _initializedError() {

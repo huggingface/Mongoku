@@ -1,24 +1,24 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import Panel from '$lib/components/Panel.svelte';
-	import PrettyJson from '$lib/components/PrettyJson.svelte';
-	import SearchBox from '$lib/components/SearchBox.svelte';
-	import { notificationStore } from '$lib/stores/notifications.svelte';
-	import type { MongoDocument, SearchParams } from '$lib/types';
-	import { formatNumber } from '$lib/utils/filters';
-	import type { PageData } from './$types';
+	import { goto } from "$app/navigation";
+	import Panel from "$lib/components/Panel.svelte";
+	import PrettyJson from "$lib/components/PrettyJson.svelte";
+	import SearchBox from "$lib/components/SearchBox.svelte";
+	import { notificationStore } from "$lib/stores/notifications.svelte";
+	import type { MongoDocument, SearchParams } from "$lib/types";
+	import { formatNumber } from "$lib/utils/filters";
+	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
 
 	let loading = $state({
 		content: false,
-		count: false
+		count: false,
 	});
 
 	let items = $state<MongoDocument[]>(data.results || []);
 	let count = $state({
 		total: data.count || 0,
-		start: data.params.skip
+		start: data.params.skip,
 	});
 
 	let params = $state<SearchParams>({ ...data.params });
@@ -32,51 +32,48 @@
 
 	async function update() {
 		const queryParams = new URLSearchParams();
-		queryParams.set('query', params.query || '{}');
-		queryParams.set('sort', params.sort || '');
-		queryParams.set('project', params.project || '');
-		queryParams.set('skip', String(params.skip));
-		queryParams.set('limit', String(params.limit));
+		queryParams.set("query", params.query || "{}");
+		queryParams.set("sort", params.sort || "");
+		queryParams.set("project", params.project || "");
+		queryParams.set("skip", String(params.skip));
+		queryParams.set("limit", String(params.limit));
 
 		await goto(
 			`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}/explore?${queryParams.toString()}`,
-			{ invalidateAll: true }
+			{ invalidateAll: true },
 		);
 	}
 
 	function goToDocument(documentId: string) {
 		goto(
-			`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}/documents/${documentId}`
+			`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}/documents/${documentId}`,
 		);
 	}
 
 	async function editDocument(_id: any, json: any) {
-		const partial =
-			params.project &&
-			params.project !== '{}' &&
-			Object.keys(JSON.parse(params.project)).length > 0;
+		const partial = params.project && params.project !== "{}" && Object.keys(JSON.parse(params.project)).length > 0;
 		const newId = json?._id?.$value;
 		const oldId = _id?.$value;
 
 		if (newId !== oldId) {
-			notificationStore.notifyError('ObjectId changed. This is not supported, update canceled.');
+			notificationStore.notifyError("ObjectId changed. This is not supported, update canceled.");
 			return;
 		}
 
 		try {
 			const response = await fetch(
-				`/api/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}/documents/${oldId}${partial ? '?partial=true' : ''}`,
+				`/api/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}/documents/${oldId}${partial ? "?partial=true" : ""}`,
 				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify(json)
-				}
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(json),
+				},
 			);
 
 			if (response.ok) {
 				const result = await response.json();
 				if (result.ok) {
-					notificationStore.notifySuccess('Document updated successfully');
+					notificationStore.notifySuccess("Document updated successfully");
 					// Update the document in the list
 					const index = items.findIndex((item) => item._id?.$value === oldId);
 					if (index !== -1) {
@@ -85,10 +82,10 @@
 				}
 			} else {
 				const error = await response.text();
-				notificationStore.notifyError(error || 'Failed to update document');
+				notificationStore.notifyError(error || "Failed to update document");
 			}
 		} catch (error: any) {
-			notificationStore.notifyError(error.message || 'Failed to update document');
+			notificationStore.notifyError(error.message || "Failed to update document");
 		}
 	}
 
@@ -99,18 +96,18 @@
 		try {
 			const response = await fetch(
 				`/api/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}/documents/${documentId}`,
-				{ method: 'DELETE' }
+				{ method: "DELETE" },
 			);
 
 			if (response.ok) {
-				notificationStore.notifySuccess('Document removed successfully');
+				notificationStore.notifySuccess("Document removed successfully");
 				items = items.filter((item) => item._id?.$value !== documentId);
 			} else {
 				const error = await response.text();
-				notificationStore.notifyError(error || 'Failed to remove document');
+				notificationStore.notifyError(error || "Failed to remove document");
 			}
 		} catch (error: any) {
-			notificationStore.notifyError(error.message || 'Failed to remove document');
+			notificationStore.notifyError(error.message || "Failed to remove document");
 		}
 	}
 
@@ -135,9 +132,7 @@
 		<div class="infos">
 			<div class="summary">
 				{#if count.total > 0}
-					<span
-						>{formatNumber(count.start + 1)} - {formatNumber(count.start + items.length)} of
-					</span>
+					<span>{formatNumber(count.start + 1)} - {formatNumber(count.start + items.length)} of </span>
 				{/if}
 				{formatNumber(count.total)} Documents
 			</div>

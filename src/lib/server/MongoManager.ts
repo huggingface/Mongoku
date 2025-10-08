@@ -9,6 +9,8 @@ import { type DatabaseJSON } from "./Database";
 import { type Host } from "./HostsManager";
 import { Server, type ServerJSON } from "./Server";
 
+export type ServerError = { name: string; error: { message: string; code?: number | string; name: string } };
+
 export class MongoManager {
 	private _servers: {
 		[name: string]: Server | MongoError;
@@ -78,11 +80,8 @@ export class MongoManager {
 		delete this._servers[name];
 	}
 
-	async getServersJson(): Promise<
-		(ServerJSON | { name: string; error: { code?: number | string; name: string; message: string } })[]
-	> {
-		const servers: (ServerJSON | { name: string; error: { code?: number | string; name: string; message: string } })[] =
-			[];
+	async getServersJson(): Promise<(ServerJSON | ServerError)[]> {
+		const servers: (ServerJSON | ServerError)[] = [];
 		for (const [name, server] of Object.entries(this._servers)) {
 			if (server instanceof Error) {
 				servers.push({

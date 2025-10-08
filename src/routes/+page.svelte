@@ -1,13 +1,13 @@
 <script lang="ts">
-	import Panel from '$lib/components/Panel.svelte';
-	import { notificationStore } from '$lib/stores/notifications.svelte';
-	import { formatBytes, serverName } from '$lib/utils/filters';
-	import type { PageData } from './$types';
+	import Panel from "$lib/components/Panel.svelte";
+	import { notificationStore } from "$lib/stores/notifications.svelte";
+	import { formatBytes, serverName } from "$lib/utils/filters";
+	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
 
 	let adding = $state(false);
-	let newServer = $state('');
+	let newServer = $state("");
 	let loading = $state(false);
 	let showRemoveModal = $state(false);
 	let serverToRemove = $state<any>(null);
@@ -17,24 +17,24 @@
 
 		loading = true;
 		try {
-			const response = await fetch('/api/servers', {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ url: newServer })
+			const response = await fetch("/api/servers", {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ url: newServer }),
 			});
 
 			if (response.ok) {
-				newServer = '';
+				newServer = "";
 				adding = false;
-				notificationStore.notifySuccess('Server added successfully');
+				notificationStore.notifySuccess("Server added successfully");
 				// Reload the page to get updated servers
 				window.location.reload();
 			} else {
 				const error = await response.text();
-				notificationStore.notifyError(error || 'Failed to add server');
+				notificationStore.notifyError(error || "Failed to add server");
 			}
 		} catch (error: any) {
-			notificationStore.notifyError(error.message || 'Failed to add server');
+			notificationStore.notifyError(error.message || "Failed to add server");
 		} finally {
 			loading = false;
 		}
@@ -55,26 +55,25 @@
 
 		try {
 			const response = await fetch(`/api/servers/${encodeURIComponent(serverToRemove.name)}`, {
-				method: 'DELETE'
+				method: "DELETE",
 			});
 
 			if (response.ok) {
-				notificationStore.notifySuccess('Server removed successfully');
+				notificationStore.notifySuccess("Server removed successfully");
 				closeRemoveModal();
 				// Reload the page to get updated servers
 				window.location.reload();
 			} else {
 				const error = await response.text();
-				notificationStore.notifyError(error || 'Failed to remove server');
+				notificationStore.notifyError(error || "Failed to remove server");
 			}
 		} catch (error: any) {
-			notificationStore.notifyError(error.message || 'Failed to remove server');
+			notificationStore.notifyError(error.message || "Failed to remove server");
 		}
 	}
 
-	
 	function handleKeyDown(e: KeyboardEvent) {
-		if (e.key === 'Escape') {
+		if (e.key === "Escape") {
 			closeRemoveModal();
 		}
 	}
@@ -88,7 +87,7 @@
 			<span>Servers</span>
 			<div class="actions">
 				<button class="btn btn-default btn-sm" onclick={() => (adding = !adding)}>
-					{adding ? 'Cancel' : 'Add Server'}
+					{adding ? "Cancel" : "Add Server"}
 				</button>
 				{#if adding}
 					<input
@@ -97,11 +96,7 @@
 						bind:value={newServer}
 						disabled={loading}
 					/>
-					<button
-						class="btn btn-outline-success btn-sm"
-						onclick={addServer}
-						disabled={!newServer.length || loading}
-					>
+					<button class="btn btn-outline-success btn-sm" onclick={addServer} disabled={!newServer.length || loading}>
 						Add
 					</button>
 				{/if}
@@ -122,7 +117,7 @@
 					{#each data.servers as server}
 						<tr>
 							<td>
-								{#if server.error}
+								{#if "error" in server && server.error}
 									<span class="error">
 										<span class="badge badge-danger" title={server.error.message}>Error</span>
 										{serverName(server.name)}
@@ -134,20 +129,17 @@
 								{/if}
 							</td>
 							<td>
-								{#if server.databases}
+								{#if "databases" in server && server.databases}
 									<span class="dotted" title="Databases">{server.databases.length}</span>
 								{/if}
 							</td>
 							<td>
-								{#if server.size !== undefined}
+								{#if "size" in server && server.size !== undefined}
 									{formatBytes(server.size)}
 								{/if}
 							</td>
 							<td class="actions">
-								<button
-									class="btn btn-outline-danger btn-sm"
-									onclick={() => openRemoveModal(server)}
-								>
+								<button class="btn btn-outline-danger btn-sm" onclick={() => openRemoveModal(server)}>
 									Remove from list
 								</button>
 							</td>
@@ -172,8 +164,7 @@
 		<div class="modal" onclick={(e) => e.stopPropagation()}>
 			<div class="modal-body">
 				<p>
-					Are you sure you want to remove this server? This will only remove it from this list. You
-					can add it back.
+					Are you sure you want to remove this server? This will only remove it from this list. You can add it back.
 				</p>
 			</div>
 			<div class="modal-footer">
@@ -189,7 +180,7 @@
 		padding: 40px 0;
 	}
 
-	input[type='text'] {
+	input[type="text"] {
 		min-width: 400px;
 	}
 </style>
