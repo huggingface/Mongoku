@@ -42,5 +42,6 @@
   },
   "files": [
     "/dist"
-  ]
+  ],
+  "packageManager": "pnpm@10.11.0"
 }
