@@ -1,0 +1,267 @@
+@import "@fontsource/cuprum";
+@import "@fontsource/rajdhani";
+
+:root {
+	--color-1: hsl(216, 26%, 15%);
+	--color-2: hsl(220, 23%, 21%);
+	--color-3: hsl(217, 20%, 25%);
+	--color-4: hsl(220, 20%, 30%);
+
+	--background-color: var(--color-1);
+	--panel-bg: var(--color-2);
+	--panel-title: var(--color-2);
+	--panel-body: var(--color-2);
+	--border-color: var(--color-3);
+
+	--text: hsl(0, 0%, 88%);
+	--text-inverse: hsl(0, 0%, 12%);
+	--text-darker: hsl(0, 0%, 57%);
+	--text-lighter: hsl(0, 0%, 100%);
+	--link: hsl(211, 100%, 89%);
+
+	--error: hsl(0, 78%, 28%);
+
+	--button-danger: #a31515;
+	--button-danger-l: #a54c4c;
+	--button-success: #008000;
+	--button-success-l: #4e994e;
+	--button-light: hsl(0, 0%, 88%);
+
+	--code-namespace: #9cdcfe;
+	--code-boolean: #569cd6;
+	--code-null: #569cd6;
+	--code-numbers: #b5cea8;
+	--code-string: #ce9178;
+	--code-links: #4e94ce;
+	--code-summary: #6a9955;
+	--code-regexp: #ce696b;
+	--code-function: #dcdcaa;
+}
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	background-color: var(--background-color);
+	font-family: "Rajdhani", sans-serif;
+	color: var(--text);
+	min-height: 100vh;
+}
+
+.app {
+	min-height: 100vh;
+}
+
+.container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 20px;
+}
+
+.navbar {
+	background-color: var(--color-2);
+	border-bottom: 1px solid var(--color-3);
+	padding: 15px 0;
+}
+
+.navbar-brand {
+	font-size: 25px;
+	font-family: "Cuprum", sans-serif;
+	color: var(--text);
+	text-decoration: none;
+	font-weight: 500;
+}
+
+a {
+	color: var(--link);
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+.btn {
+	padding: 8px 16px;
+	border: 1px solid;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 14px;
+	font-family: "Rajdhani", sans-serif;
+	transition: all 0.2s;
+}
+
+.btn-sm {
+	padding: 5px 12px;
+	font-size: 13px;
+}
+
+.btn-default {
+	background-color: var(--color-1);
+	color: var(--text);
+	border-color: var(--color-4);
+}
+
+.btn-default:hover {
+	background-color: var(--color-3);
+}
+
+.btn-danger {
+	background-color: var(--button-danger-l);
+	color: var(--text-lighter);
+	border-color: var(--button-danger);
+}
+
+.btn-danger:hover {
+	background-color: var(--button-danger);
+}
+
+.btn-success {
+	background-color: var(--button-success-l);
+	color: var(--text-lighter);
+	border-color: var(--button-success);
+}
+
+.btn-success:hover {
+	background-color: var(--button-success);
+}
+
+.btn-outline-danger {
+	background: transparent;
+	color: var(--button-danger);
+	border-color: var(--button-danger);
+}
+
+.btn-outline-danger:hover {
+	background-color: var(--button-danger-l);
+	color: var(--text-lighter);
+}
+
+.btn-outline-success {
+	background: transparent;
+	color: var(--button-success);
+	border-color: var(--button-success);
+}
+
+.btn-outline-success:hover {
+	background-color: var(--button-success-l);
+	color: var(--text-lighter);
+}
+
+.btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+input[type="text"],
+input[type="number"],
+textarea {
+	background-color: var(--color-1);
+	color: var(--text);
+	border: 1px solid var(--color-4);
+	border-radius: 4px;
+	padding: 8px 12px;
+	font-family: "Rajdhani", sans-serif;
+	font-size: 14px;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+textarea:focus {
+	outline: none;
+	border-color: var(--link);
+}
+
+.table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 10px;
+}
+
+.table th,
+.table td {
+	padding: 12px;
+	text-align: left;
+	border-bottom: 1px solid var(--border-color);
+}
+
+.table th {
+	font-weight: 500;
+	color: var(--text-lighter);
+}
+
+.table tbody tr:hover {
+	background-color: var(--color-3);
+}
+
+.table .actions {
+	text-align: right;
+}
+
+.center {
+	text-align: center;
+}
+
+.loading {
+	text-align: center;
+	padding: 40px;
+	color: var(--text-darker);
+}
+
+.error {
+	color: var(--error);
+}
+
+.badge {
+	display: inline-block;
+	padding: 4px 8px;
+	border-radius: 3px;
+	font-size: 12px;
+	margin-right: 8px;
+}
+
+.badge-danger {
+	background-color: var(--button-danger);
+	color: var(--text-lighter);
+}
+
+.dotted {
+	border-bottom: 1px dotted var(--text);
+	cursor: help;
+}
+
+.modal-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+}
+
+.modal {
+	background-color: var(--color-2);
+	border: 1px solid var(--color-3);
+	border-radius: 4px;
+	max-width: 500px;
+	width: 90%;
+}
+
+.modal-body {
+	padding: 20px;
+}
+
+.modal-footer {
+	border-top: 1px solid var(--color-3);
+	padding: 15px 20px;
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+}
