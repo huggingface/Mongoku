@@ -28,11 +28,11 @@ export class Database {
 	}
 
 	async collections() {
-		const cs = await this._db.collections();
+		const cs = await this._db.listCollections().toArray();
 		const collections: Collection[] = [];
 
 		for (const c of cs) {
-			const collection = new Collection(c);
+			const collection = new Collection(this._db.collection(c.name), c.type);
 			collections.push(collection);
 		}
 
@@ -52,15 +52,14 @@ export class Database {
 		let dataSize = 0;
 
 		const collections = await this.collections();
-		const csJson: CollectionJSON[] = [];
-		for (const collection of collections) {
-			const json = await collection.toJson();
+		const csJson = await Promise.all(collections.map(collection => collection.toJson()));
+		
+		for (const json of csJson) {
 			totalObjSize += json.avgObjSize * json.count;
 			totalObjNr += json.count;
 			storageSize += json.storageSize;
 			indexSize += json.totalIndexSize;
 			dataSize += json.dataSize;
-			csJson.push(json);
 		}
 		csJson.sort((a, b) => a.name.localeCompare(b.name));
 

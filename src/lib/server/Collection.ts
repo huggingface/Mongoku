@@ -19,13 +19,15 @@ export interface CollectionJSON {
 export class Collection {
 	private _collection: MongoDb.Collection;
 	private countTimeout = parseInt(process.env.MONGOKU_COUNT_TIMEOUT!, 10) || 5000;
+	private _type?: "view" | "timeseries" | "collection" | string;
 
 	get name() {
 		return this._collection.collectionName;
 	}
 
-	constructor(collection: MongoDb.Collection) {
+	constructor(collection: MongoDb.Collection, type?: "view" | "timeseries" | "collection" | string) {
 		this._collection = collection;
+		this._type = type;
 	}
 
 	async findOne(document: string) {
@@ -95,20 +97,22 @@ export class Collection {
 			indexSizes: {},
 		};
 
-		stats = (await this._collection
-			.aggregate([
-				{
-					$collStats: {
-						// latencyStats: { histograms: <boolean> },
-						storageStats: {
-							/* scale: <number>*/
+		if (this._type !== "view") {
+			stats = (await this._collection
+				.aggregate([
+					{
+						$collStats: {
+							// latencyStats: { histograms: <boolean> },
+							storageStats: {
+								/* scale: <number>*/
+							},
+							count: {},
+							// queryExecStats: {}
 						},
-						count: {},
-						// queryExecStats: {}
 					},
-				},
-			])
-			.next()) as typeof stats;
+				])
+				.next()) as typeof stats;
+		}
 
 		return {
 			name: this.name,

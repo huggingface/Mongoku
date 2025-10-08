@@ -7,7 +7,8 @@
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
-		"ghcr.io/joshuanianji/devcontainer-features/mount-pnpm-store:1": {}
+		"ghcr.io/joshuanianji/devcontainer-features/mount-pnpm-store:1": {},
+		"ghcr.io/devcontainers-extra/features/mongosh-homebrew:1": {}
 	},
 
 	"runArgs": ["--add-host=host.docker.internal:host-gateway"],

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Breadcrumbs from "$lib/components/Breadcrumbs.svelte";
 	import Notifications from "$lib/components/Notifications.svelte";
 	import "../app.css";
 
@@ -8,7 +9,10 @@
 <div class="app">
 	<nav class="navbar">
 		<div class="container">
-			<a href="/" class="navbar-brand">Mongoku</a>
+			<div class="navbar-content">
+				<a href="/" class="navbar-brand">Mongoku</a>
+				<Breadcrumbs />
+			</div>
 		</div>
 	</nav>
 

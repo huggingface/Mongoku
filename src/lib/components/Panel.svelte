@@ -12,7 +12,10 @@
 		border: 1px solid var(--border-color);
 		border-radius: 4px;
 		margin-bottom: 20px;
-		padding: 20px;
+		padding-left: 20px;
+		padding-right: 20px;
+		padding-top: 5px;
+		padding-bottom: 5px;
 
 		:global(.title) {
 			display: flex;

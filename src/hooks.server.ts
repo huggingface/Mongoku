@@ -1,6 +1,9 @@
 import { getFactory } from "$lib/server/factoryInstance";
 import type { Handle } from "@sveltejs/kit";
 
+// Bigger than the default 10, helpful with MongoDB errors
+Error.stackTraceLimit = 100;
+
 // Initialize the factory on server startup
 let initialized = false;
 

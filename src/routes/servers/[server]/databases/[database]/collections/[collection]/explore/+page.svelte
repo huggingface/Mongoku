@@ -150,7 +150,7 @@
 	{#if loading.content}
 		<div class="loading">Loading...</div>
 	{:else}
-		{#each items as item (item._id?.$value || Math.random())}
+		{#each items as item (item._id?.$value)}
 			<PrettyJson
 				json={item}
 				autoCollapse={true}

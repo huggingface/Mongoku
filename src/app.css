@@ -67,6 +67,11 @@ body {
 	padding: 15px 0;
 }
 
+.navbar-content {
+	display: flex;
+	align-items: center;
+}
+
 .navbar-brand {
 	font-size: 25px;
 	font-family: "Cuprum", sans-serif;

@@ -2,7 +2,7 @@
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import type { MongoDocument } from "$lib/types";
 	import { parseJSON } from "$lib/utils/jsonParser";
-	import { onMount } from "svelte";
+	import JsonValue from "./JsonValue.svelte";
 
 	/* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -17,238 +17,20 @@
 
 	let { json, autoCollapse = false, readOnly = false, ongo, onedit, onremove }: Props = $props();
 
-	let containerRef = $state<HTMLDivElement>();
 	let editorVisible = $state(false);
 	let editJson = $state("");
 	let removing = $state(false);
 	let editorRef = $state<HTMLTextAreaElement>();
 
-	onMount(() => {
-		renderJson();
-	});
-
-	function renderJson() {
-		if (!containerRef) return;
-		containerRef.innerHTML = "";
-		const view = createView("_", { _: json });
-		containerRef.appendChild(view);
-	}
-
-	function createView(key: string, holder: any): HTMLElement {
-		let value = holder[key];
-
-		// Handle different types
-		if (typeof value === "string") {
-			return createQuote(value);
-		} else if (typeof value === "number") {
-			const span = document.createElement("span");
-			span.className = "value number";
-			span.textContent = String(value);
-			return span;
-		} else if (typeof value === "boolean") {
-			const span = document.createElement("span");
-			span.className = "value boolean";
-			span.textContent = String(value);
-			return span;
-		} else if (value === null) {
-			const span = document.createElement("span");
-			span.className = "value null";
-			span.textContent = "null";
-			return span;
-		} else if (typeof value === "object") {
-			// Handle MongoDB special types
-			if (value.$type === "ObjectId") {
-				return createFnCall("ObjectId", [createQuote(value.$value)], "function");
-			}
-			if (value.$type === "Date") {
-				return createFnCall("Date", [createQuote(value.$value)], "function");
-			}
-			if (value.$type === "RegExp") {
-				const span = document.createElement("span");
-				span.className = "value regexp";
-				span.textContent = `/${value.$value.$pattern}/${value.$value.$flags}`;
-				return span;
-			}
-
-			// Handle arrays
-			if (Array.isArray(value)) {
-				if (value.length === 0) {
-					const span = document.createElement("span");
-					span.className = "value array";
-					span.textContent = "[]";
-					return span;
-				}
-
-				return createCollapsible("array", value, (val) => {
-					const elements: HTMLElement[] = [];
-					for (let i = 0; i < val.length; i++) {
-						elements.push(createView(String(i), val));
-					}
-					return elements;
-				});
-			}
-
-			// Handle objects
-			const keys = Object.keys(value);
-			if (keys.length === 0) {
-				const span = document.createElement("span");
-				span.className = "value object";
-				span.textContent = "{}";
-				return span;
-			}
-
-			return createCollapsible("object", value, (val) => {
-				const elements: HTMLElement[] = [];
-				for (const k of keys) {
-					const propSpan = document.createElement("span");
-					propSpan.className = "prop";
-
-					const keyEl = document.createElement("var");
-					keyEl.textContent = k;
-					propSpan.appendChild(keyEl);
-					propSpan.appendChild(document.createTextNode(": "));
-					propSpan.appendChild(createView(k, val));
-
-					elements.push(propSpan);
-				}
-				return elements;
-			});
+	// Extract timestamp from ObjectId
+	function getTimestampFromObjectId(objectId: string): Date | null {
+		try {
+			// ObjectId is 24 hex characters, first 8 represent timestamp
+			const timestamp = parseInt(objectId.substring(0, 8), 16);
+			return new Date(timestamp * 1000);
+		} catch {
+			return null;
 		}
-
-		const span = document.createElement("span");
-		span.textContent = String(value);
-		return span;
-	}
-
-	function createCollapsible(
-		type: "array" | "object",
-		value: any,
-		renderContent: (val: any) => HTMLElement[],
-	): HTMLElement {
-		const wrapper = document.createElement("span");
-		wrapper.className = `collapsible-wrapper ${autoCollapse ? "collapsed" : "expanded"}`;
-
-		const toggle = document.createElement("span");
-		toggle.className = "collapse-toggle";
-		toggle.textContent = autoCollapse ? "▶" : "▼";
-		toggle.onclick = (e) => {
-			e.stopPropagation();
-			toggleCollapse(wrapper, content, toggle);
-		};
-
-		const container = document.createElement("span");
-		container.className = `value ${type}`;
-
-		const openBracket = type === "array" ? "[" : "{";
-		const closeBracket = type === "array" ? "]" : "}";
-
-		const content = document.createElement("span");
-		content.className = "collapsible-content";
-
-		if (autoCollapse) {
-			content.style.display = "none";
-		}
-
-		wrapper.appendChild(toggle);
-		wrapper.appendChild(container);
-		container.appendChild(document.createTextNode(openBracket));
-
-		const contentWrapper = document.createElement("span");
-		contentWrapper.className = "content-inner";
-		contentWrapper.appendChild(document.createTextNode("\n    "));
-
-		const elements = renderContent(value);
-		elements.forEach((element, i) => {
-			if (i > 0) {
-				contentWrapper.appendChild(document.createTextNode(",\n    "));
-			}
-			contentWrapper.appendChild(element);
-		});
-
-		contentWrapper.appendChild(document.createTextNode("\n"));
-		content.appendChild(contentWrapper);
-
-		// Summary for collapsed state
-		const summary = document.createElement("span");
-		summary.className = "collapsed-summary";
-		if (type === "array") {
-			summary.textContent = `... ${value.length} item${value.length !== 1 ? "s" : ""}`;
-		} else {
-			const keyCount = Object.keys(value).length;
-			summary.textContent = `... ${keyCount} key${keyCount !== 1 ? "s" : ""}`;
-		}
-		if (!autoCollapse) {
-			summary.style.display = "none";
-		}
-
-		container.appendChild(content);
-		container.appendChild(summary);
-		container.appendChild(document.createTextNode(closeBracket));
-
-		return wrapper;
-	}
-
-	function toggleCollapse(wrapper: HTMLElement, content: HTMLElement, toggle: HTMLElement) {
-		const isCollapsed = wrapper.classList.contains("collapsed");
-
-		if (isCollapsed) {
-			wrapper.classList.remove("collapsed");
-			wrapper.classList.add("expanded");
-			toggle.textContent = "▼";
-			content.style.display = "";
-			const summary = wrapper.querySelector(".collapsed-summary") as HTMLElement;
-			if (summary) summary.style.display = "none";
-		} else {
-			wrapper.classList.add("collapsed");
-			wrapper.classList.remove("expanded");
-			toggle.textContent = "▶";
-			content.style.display = "none";
-			const summary = wrapper.querySelector(".collapsed-summary") as HTMLElement;
-			if (summary) summary.style.display = "inline";
-		}
-	}
-
-	function createQuote(str: string): HTMLElement {
-		const span = document.createElement("span");
-		span.className = "value quoted";
-
-		// Check if it's a URL
-		const isUrl = /^https?:\/\/[^\s]+$/.test(str);
-
-		span.appendChild(document.createTextNode('"'));
-
-		if (isUrl) {
-			const link = document.createElement("a");
-			link.className = "string";
-			link.href = str;
-			link.textContent = str;
-			link.target = "_blank";
-			span.appendChild(link);
-		} else {
-			const strSpan = document.createElement("span");
-			strSpan.className = "string";
-			strSpan.textContent = str;
-			span.appendChild(strSpan);
-		}
-
-		span.appendChild(document.createTextNode('"'));
-		return span;
-	}
-
-	function createFnCall(fn: string, values: HTMLElement[], className: string): HTMLElement {
-		const span = document.createElement("span");
-		span.className = `call ${className}`;
-
-		span.appendChild(document.createTextNode(`${fn}(`));
-		values.forEach((value, i) => {
-			span.appendChild(value);
-			if (i < values.length - 1) {
-				span.appendChild(document.createTextNode(", "));
-			}
-		});
-		span.appendChild(document.createTextNode(")"));
-
-		return span;
 	}
 
 	function enableEditor() {
@@ -291,29 +73,46 @@
 </script>
 
 <div class="pretty-json-container">
-	{#if !editorVisible}
-		<div class="pretty-json" bind:this={containerRef}></div>
-
-		{#if !readOnly}
-			<div class="actions">
-				{#if json._id}
-					<button class="btn btn-sm btn-default" onclick={goToDocument}>View Full Document</button>
-				{/if}
-				<button class="btn btn-sm btn-default" onclick={enableEditor}>Edit</button>
-				{#if !removing}
-					<button class="btn btn-sm btn-outline-danger" onclick={showRemove}>Remove</button>
-				{:else}
-					<button class="btn btn-sm btn-danger" onclick={confirmRemove}>Confirm Remove</button>
-					<button class="btn btn-sm btn-default" onclick={cancelRemove}>Cancel</button>
+	{#if json._id}
+		<div class="title">
+			<div class="object-info">
+				<div class="objectid">
+					<button type="button" class="objectid-link" onclick={goToDocument}>{json._id?.$value}</button>
+					{#if json._id?.$value}
+						{@const timestamp = getTimestampFromObjectId(json._id.$value)}
+						{#if timestamp}
+							<span class="date">{timestamp.toLocaleString()}</span>
+						{/if}
+					{/if}
+				</div>
+				{#if !readOnly}
+					<div class="actions">
+						<button class="btn btn-outline-light btn-sm" onclick={enableEditor}>Edit</button>
+						<button class="btn btn-outline-danger btn-sm" onclick={showRemove}>Remove</button>
+					</div>
 				{/if}
 			</div>
-		{/if}
-	{:else}
-		<div class="editor">
-			<textarea bind:this={editorRef} bind:value={editJson}></textarea>
-			<div class="editor-actions">
-				<button class="btn btn-success" onclick={save}>Save (Ctrl+Enter)</button>
-				<button class="btn btn-default" onclick={disableEditor}>Cancel</button>
+		</div>
+	{/if}
+
+	<div class="pretty-json">
+		<JsonValue value={json} {autoCollapse} collapsed={false} />
+	</div>
+
+	<div class="editor" class:visible={editorVisible}>
+		<div class="editor-actions">
+			<button class="btn btn-success" onclick={save}>Save</button>
+			<button class="btn btn-default" onclick={disableEditor}>Cancel</button>
+		</div>
+		<textarea bind:this={editorRef} bind:value={editJson}></textarea>
+	</div>
+
+	{#if removing}
+		<div class="remove-layer">
+			<p>Are you sure?</p>
+			<div class="remove-actions">
+				<button class="btn btn-danger" onclick={confirmRemove}>Yes - Remove</button>
+				<button class="btn btn-success" onclick={cancelRemove}>No - Cancel</button>
 			</div>
 		</div>
 	{/if}
@@ -329,93 +128,77 @@
 		position: relative;
 	}
 
-	.pretty-json {
-		font-family: "Consolas", "Monaco", "Courier New", monospace;
-		font-size: 14px;
-		line-height: 1.6;
-		white-space: pre-wrap;
-		word-wrap: break-word;
+	.title {
+		.object-info {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
 
-		:global(.collapsible-wrapper) {
-			display: inline;
-			position: relative;
-		}
+			.objectid {
+				font-size: 1.2em;
 
-		:global(.collapse-toggle) {
-			display: inline-block;
-			width: 16px;
-			cursor: pointer;
-			user-select: none;
-			color: var(--text-secondary, #888);
-			font-size: 12px;
-			margin-right: 4px;
-			transition: color 0.2s;
+				.objectid-link {
+					background: none;
+					border: none;
+					color: var(--text);
+					text-decoration: none;
+					cursor: pointer;
+					font-size: inherit;
+					font-family: inherit;
+					padding: 0;
 
-			&:hover {
-				color: var(--text, #fff);
-			}
-		}
-
-		:global(.collapsed-summary) {
-			color: var(--text-secondary, #888);
-			font-style: italic;
-			margin: 0 4px;
-		}
-
-		:global(.value) {
-			&:global(.number) {
-				color: var(--code-numbers);
-			}
-
-			&:global(.boolean) {
-				color: var(--code-boolean);
-			}
-
-			&:global(.null) {
-				color: var(--code-null);
-			}
-
-			&:global(.quoted) {
-				:global(.string) {
-					color: var(--code-string);
+					&:hover {
+						text-decoration: underline;
+					}
 				}
 
-				:global(a.string) {
-					color: var(--code-links);
-					text-decoration: underline;
+				.date {
+					margin-left: 20px;
+					font-size: 0.7em;
+					color: var(--text-secondary, #888);
 				}
 			}
 
-			&:global(.regexp) {
-				color: var(--code-regexp);
+			.actions {
+				display: none;
+
+				& > .btn {
+					margin-left: 10px;
+					padding: 2px 5px 0;
+				}
 			}
 		}
 
-		:global(.call) {
-			&:global(.function) {
-				color: var(--code-function);
-			}
-		}
-
-		:global(var) {
-			color: var(--code-namespace);
-			font-style: normal;
+		&:hover .object-info .actions {
+			display: initial;
 		}
 	}
 
-	.actions {
-		display: flex;
-		gap: 10px;
-		margin-top: 15px;
-		padding-top: 15px;
-		border-top: 1px solid var(--border-color);
+	.pretty-json {
+		font-family: "Source Code Pro", "Consolas", "Monaco", "Courier New", monospace;
+		font-size: 0.9em;
+		line-height: 1.3;
+		white-space: pre-wrap;
+		word-wrap: break-word;
+		position: relative;
 	}
 
 	.editor {
+		display: none;
+		position: absolute;
+		height: 100%;
+		z-index: 100;
+		width: 100%;
+		top: 0;
+
+		&.visible {
+			display: block;
+		}
+
 		textarea {
 			width: 100%;
 			min-height: 300px;
-			font-family: "Consolas", "Monaco", "Courier New", monospace;
+			font-family: "Source Code Pro", "Consolas", "Monaco", "Courier New", monospace;
 			font-size: 14px;
 			line-height: 1.6;
 			padding: 10px;
@@ -428,8 +211,47 @@
 	}
 
 	.editor-actions {
-		display: flex;
-		gap: 10px;
-		margin-top: 15px;
+		position: absolute;
+		z-index: 10;
+		right: 20px;
+		top: 15px;
+
+		& > .btn {
+			margin-left: 10px;
+			padding: 2px 5px 0;
+		}
+	}
+
+	.remove-layer {
+		position: absolute;
+		z-index: 10;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		border-radius: 5px;
+		background: var(--text-inverse);
+		opacity: 0.7;
+
+		p {
+			color: var(--text);
+			text-align: center;
+			margin-top: 20px;
+			font-size: 2em;
+		}
+
+		.remove-actions {
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			top: 0;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+
+			.btn {
+				margin: 20px;
+			}
+		}
 	}
 </style>
