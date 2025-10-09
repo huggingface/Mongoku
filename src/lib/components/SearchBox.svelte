@@ -28,7 +28,7 @@
 	}
 </script>
 
-<div class="flex items-stretch w-full text-[var(--text)] relative mb-6">
+<div class="flex items-stretch w-full">
 	<!-- Parameters group -->
 	<div class="flex-grow">
 		<!-- Query input (always shown) -->
@@ -119,7 +119,7 @@
 
 	<!-- Toggle optional fields button -->
 	<button
-		class="btn btn-default !w-12 !rounded-none !border-r-0 text-2xl leading-none"
+		class="btn btn-default !w-12 !rounded-none !border-r-0 text-2xl leading-none font-bold !py-1.5"
 		onclick={() => {
 			showOptionalFields = !showOptionalFields;
 		}}
@@ -128,7 +128,7 @@
 	</button>
 
 	<!-- Search button -->
-	<button class="btn btn-success !w-12 !rounded-l-none !rounded-r-md font-bold" onclick={go}> GO! </button>
+	<button class="btn btn-success !rounded-l-none !rounded-r-md font-bold !py-1.5" onclick={go}> GO! </button>
 </div>
 
 <style lang="postcss">

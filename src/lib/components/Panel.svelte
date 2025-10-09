@@ -2,7 +2,7 @@
 	import type { Snippet } from "svelte";
 
 	interface Props {
-		children: Snippet;
+		children?: Snippet;
 		title?: string;
 		actions?: Snippet;
 	}
@@ -21,7 +21,7 @@
 			{/if}
 		</div>
 	{/if}
-	{@render children()}
+	{@render children?.()}
 </div>
 
 <style lang="postcss">

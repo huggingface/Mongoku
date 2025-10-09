@@ -124,7 +124,6 @@
 		border: 1px solid var(--border-color);
 		border-radius: 4px;
 		padding: 15px;
-		margin-bottom: 15px;
 		position: relative;
 	}
 

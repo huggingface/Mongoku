@@ -37,21 +37,19 @@
 						href: `/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections`,
 					});
 
-					if (segments.length >= 7 && segments[5] && segments[6]) {
+					if (segments.length >= 6 && segments[5]) {
 						const collection = decodeURIComponent(params.collection || "");
-						const action = segments[6];
 
-						if (action === "explore") {
-							// /servers/{server}/databases/{database}/collections/{collection}/explore
+						if (segments.length === 6) {
+							// /servers/{server}/databases/{database}/collections/{collection}
 							breadcrumbs.push({
 								label: collection,
-								href: `/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(collection)}/explore`,
 							});
-						} else if (action === "documents" && segments.length >= 8) {
+						} else if (segments.length >= 7 && segments[6] === "documents" && segments[7]) {
 							// /servers/{server}/databases/{database}/collections/{collection}/documents/{document}
 							breadcrumbs.push({
 								label: collection,
-								href: `/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(collection)}/explore`,
+								href: `/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(collection)}`,
 							});
 
 							const document = decodeURIComponent(params.document || "");

@@ -6,7 +6,7 @@
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import type { MongoDocument, SearchParams } from "$lib/types";
 	import { formatNumber } from "$lib/utils/filters";
-	import type { PageData } from "./$types";
+	import type { PageData } from "./explore/$types";
 
 	let { data }: { data: PageData } = $props();
 
@@ -39,7 +39,7 @@
 		queryParams.set("limit", String(params.limit));
 
 		await goto(
-			`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}/explore?${queryParams.toString()}`,
+			`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}?${queryParams.toString()}`,
 			{ invalidateAll: true },
 		);
 	}
@@ -127,24 +127,20 @@
 
 <SearchBox {params} onsearch={update} />
 
-<Panel>
-	<div class="infos">
-		<div class="summary">
-			{#if count.total > 0}
-				<span>{formatNumber(count.start + 1)} - {formatNumber(count.start + items.length)} of </span>
-			{/if}
-			{formatNumber(count.total)} Documents
-		</div>
-		<div class="actions">
-			{#if hasPrevious}
-				<button class="btn btn-default" onclick={previous}>Previous</button>
-			{/if}
-			{#if hasNext}
-				<button class="btn btn-default" onclick={next}>Next</button>
-			{/if}
-		</div>
-	</div>
-</Panel>
+{#snippet actions()}
+	{#if hasPrevious}
+		<button class="btn btn-default" onclick={previous}>Previous</button>
+	{/if}
+	{#if hasNext}
+		<button class="btn btn-default" onclick={next}>Next</button>
+	{/if}
+{/snippet}
+<Panel
+	title={count.total > 0
+		? `${formatNumber(count.start + 1)} - ${formatNumber(count.start + items.length)} of ${formatNumber(count.total)} Documents`
+		: "Documents"}
+	{actions}
+></Panel>
 
 {#if loading.content}
 	<div class="loading">Loading...</div>

@@ -7,12 +7,12 @@
 </script>
 
 <div style="min-height: 100vh">
-	<nav class="navbar px-8 py-4 flex items-center mb-4">
+	<nav class="navbar px-6 py-4 flex items-center">
 		<a href="/" class="text-2xl font-medium">Mongoku</a>
 		<Breadcrumbs />
 	</nav>
 
-	<div class="px-8">
+	<div class="px-6 py-6 flex flex-col gap-6">
 		<Notifications />
 		{@render children()}
 	</div>
