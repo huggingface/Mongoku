@@ -59,6 +59,9 @@ function buildObject(node: Node | Expression): unknown {
 		}
 
 		case "UnaryExpression": {
+			if (node.operator === "-" && node.argument.type === "Literal" && typeof node.argument.value === "number") {
+				return -node.argument.value;
+			}
 			// const arg = buildObject(node.argument);
 			// const exp = node.prefix ? `${node.operator}${arg}` : `${arg}${node.operator}`;
 

@@ -3,41 +3,23 @@
 
 	interface Props {
 		params: SearchParams;
-		onsearch: () => void;
 	}
 
-	let { params = $bindable(), onsearch }: Props = $props();
+	let { params = $bindable() }: Props = $props();
 
 	// Show optional fields - start with all hidden
 	let showOptionalFields = $state(
 		params.sort !== "{}" || params.project !== "{}" || params.skip !== 0 || params.limit !== 20,
 	);
-
-	// Determine which is the last visible input for proper border styling
-	let lastVisibleInput = $derived(showOptionalFields ? "project" : "query");
-
-	function handleKeyPress(event: KeyboardEvent) {
-		if (event.key === "Enter") {
-			go();
-		}
-	}
-
-	function go() {
-		if (params.query === "") {
-			params.query = "{}";
-		}
-		onsearch();
-	}
 </script>
 
-<div class="flex items-stretch w-full">
+<form class="flex items-stretch w-full" method="GET" action="?">
 	<!-- Parameters group -->
 	<div class="flex-grow">
 		<!-- Query input (always shown) -->
 		<div class="flex items-stretch w-full h-10">
 			<div
-				class="min-w-[100px] flex justify-center items-center border border-[var(--color-4)] {lastVisibleInput ===
-				'query'
+				class="min-w-[100px] flex justify-center items-center border border-[var(--color-4)] {!showOptionalFields
 					? 'border-b rounded-bl-md'
 					: 'border-b-0'} bg-[var(--color-1)] rounded-tl-md"
 			>
@@ -46,8 +28,8 @@
 			<input
 				type="text"
 				bind:value={params.query}
-				onkeypress={handleKeyPress}
 				placeholder={"{}"}
+				name="query"
 				class="flex-grow border-0 bg-[var(--color-3)] pl-2.5 font-mono"
 			/>
 		</div>
@@ -63,7 +45,7 @@
 				<input
 					type="text"
 					bind:value={params.sort}
-					onkeypress={handleKeyPress}
+					name="sort"
 					placeholder={"{}"}
 					class="flex-grow border-0 border-t border-[var(--color-4)] bg-[var(--color-3)] pl-2.5 font-mono"
 				/>
@@ -79,7 +61,7 @@
 				<input
 					type="number"
 					bind:value={params.skip}
-					onkeypress={handleKeyPress}
+					name="skip"
 					min="0"
 					class="flex-grow border-0 border-t border-[var(--color-4)] bg-[var(--color-3)] pl-2.5 font-mono"
 				/>
@@ -95,7 +77,7 @@
 				<input
 					type="number"
 					bind:value={params.limit}
-					onkeypress={handleKeyPress}
+					name="limit"
 					min="1"
 					class="flex-grow border-0 border-t border-[var(--color-4)] bg-[var(--color-3)] pl-2.5 font-mono"
 				/>
@@ -111,7 +93,7 @@
 				<input
 					type="text"
 					bind:value={params.project}
-					onkeypress={handleKeyPress}
+					name="project"
 					placeholder={"{}"}
 					class="flex-grow border-0 border-t border-[var(--color-4)] bg-[var(--color-3)] pl-2.5 font-mono"
 				/>
@@ -122,6 +104,7 @@
 	<!-- Toggle optional fields button -->
 	<button
 		class="btn btn-default !w-12 !rounded-none !border-r-0 text-2xl leading-none font-bold !py-1.5"
+		type="button"
 		onclick={() => {
 			showOptionalFields = !showOptionalFields;
 		}}
@@ -130,8 +113,8 @@
 	</button>
 
 	<!-- Search button -->
-	<button class="btn btn-success !rounded-l-none !rounded-r-md font-bold !py-1.5" onclick={go}> GO! </button>
-</div>
+	<button class="btn btn-success !rounded-l-none !rounded-r-md font-bold !py-1.5" type="submit"> GO! </button>
+</form>
 
 <style lang="postcss">
 	input {

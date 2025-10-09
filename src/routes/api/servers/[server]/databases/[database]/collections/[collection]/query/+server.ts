@@ -1,30 +1,34 @@
 import { getFactory } from "$lib/server/factoryInstance";
+import { parseJSON } from "$lib/utils/jsonParser";
 import { error, json } from "@sveltejs/kit";
+import type { Document, Sort } from "mongodb";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ params, url }) => {
-	let query = url.searchParams.get("q") || "{}";
-	let sort = url.searchParams.get("sort") || "{}";
+	const query = url.searchParams.get("q") || "{}";
+	const sort = url.searchParams.get("sort") || "{}";
 	const project = url.searchParams.get("project") || "{}";
 	const limit = parseInt(url.searchParams.get("limit") || "20", 10);
 	const skip = parseInt(url.searchParams.get("skip") || "0", 10);
 
 	// Parse JSON strings
+	let queryDoc: unknown;
 	try {
-		query = JSON.parse(query);
+		queryDoc = parseJSON(query);
 	} catch (err) {
 		return error(400, `Invalid query: ${query} - ${err}`);
 	}
 
+	let sortDoc: Sort;
 	try {
-		sort = JSON.parse(sort);
+		sortDoc = parseJSON(sort) as Sort;
 	} catch (err) {
 		return error(400, `Invalid sort: ${sort} - ${err}`);
 	}
 
 	let projectDoc: Document;
 	try {
-		projectDoc = JSON.parse(project);
+		projectDoc = parseJSON(project) as Document;
 	} catch (err) {
 		return error(400, `Invalid project: ${project} - ${err}`);
 	}
@@ -36,7 +40,7 @@ export const GET: RequestHandler = async ({ params, url }) => {
 		return error(404, `Collection not found: ${params.server}.${params.database}.${params.collection}`);
 	}
 
-	const results = await c.find(query, projectDoc, sort, limit, skip);
+	const results = await c.find(queryDoc, projectDoc, sortDoc, limit, skip);
 
 	return json({
 		ok: true,

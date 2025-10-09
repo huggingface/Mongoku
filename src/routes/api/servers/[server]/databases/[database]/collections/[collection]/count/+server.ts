@@ -1,12 +1,14 @@
 import { getFactory } from "$lib/server/factoryInstance";
+import { parseJSON } from "$lib/utils/jsonParser";
 import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ params, url }) => {
-	let query = url.searchParams.get("q") || "{}";
+	const query = url.searchParams.get("q") || "{}";
 
+	let queryDoc: unknown;
 	try {
-		query = JSON.parse(query);
+		queryDoc = parseJSON(query);
 	} catch (err) {
 		return error(400, `Invalid query: ${query} - ${err}`);
 	}
@@ -18,7 +20,7 @@ export const GET: RequestHandler = async ({ params, url }) => {
 		return error(404, `Collection not found: ${params.server}.${params.database}.${params.collection}`);
 	}
 
-	const count = await c.count(query);
+	const count = await c.count(queryDoc);
 
 	return json({
 		ok: true,

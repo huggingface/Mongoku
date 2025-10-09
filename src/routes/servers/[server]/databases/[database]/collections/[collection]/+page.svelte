@@ -119,12 +119,12 @@
 	}
 </script>
 
-<SearchBox bind:params onsearch={update} />
+<SearchBox bind:params />
 
 <Panel
 	title={count.total > 0
 		? `${formatNumber(count.start + 1)} - ${formatNumber(count.start + items.length)} of ${formatNumber(count.total)} Documents`
-		: "Documents"}
+		: "No documents"}
 >
 	{#snippet actions()}
 		{#if hasPrevious}
