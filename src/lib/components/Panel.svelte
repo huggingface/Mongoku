@@ -6,7 +6,7 @@
 	{@render children()}
 </div>
 
-<style lang="scss">
+<style lang="postcss">
 	.panel {
 		background-color: var(--panel-bg);
 		border: 1px solid var(--border-color);

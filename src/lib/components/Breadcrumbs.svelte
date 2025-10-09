@@ -91,10 +91,10 @@
 	</nav>
 {/if}
 
-<style lang="scss">
+<style lang="postcss">
 	.breadcrumbs {
 		margin-left: 20px;
-		font-size: 14px;
+		font-size: 16px;
 	}
 
 	.breadcrumb-list {
@@ -113,7 +113,7 @@
 	}
 
 	.breadcrumb-link {
-		color: var(--text-darker);
+		color: var(--text);
 		text-decoration: none;
 		transition: color 0.2s;
 
@@ -124,7 +124,7 @@
 	}
 
 	.breadcrumb-current {
-		color: var(--text);
+		color: var(--text-darker);
 		font-weight: 500;
 	}
 

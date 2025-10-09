@@ -163,7 +163,7 @@
 	{/if}
 </div>
 
-<style lang="scss">
+<style lang="postcss">
 	.explore-page {
 		padding: 40px 0;
 	}

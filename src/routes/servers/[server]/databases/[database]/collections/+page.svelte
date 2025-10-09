@@ -59,7 +59,7 @@
 	</Panel>
 </div>
 
-<style lang="scss">
+<style lang="postcss">
 	.collections-page {
 		padding: 40px 0;
 	}

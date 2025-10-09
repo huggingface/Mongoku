@@ -1,3 +1,4 @@
+@import "tailwindcss";
 @import "@fontsource/cuprum";
 @import "@fontsource/rajdhani";
 
@@ -56,7 +57,6 @@ body {
 }
 
 .container {
-	max-width: 1200px;
 	margin: 0 auto;
 	padding: 0 20px;
 }
@@ -74,7 +74,6 @@ body {
 
 .navbar-brand {
 	font-size: 25px;
-	font-family: "Cuprum", sans-serif;
 	color: var(--text);
 	text-decoration: none;
 	font-weight: 500;

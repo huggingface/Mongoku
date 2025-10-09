@@ -118,7 +118,7 @@
 	{/if}
 </div>
 
-<style lang="scss">
+<style lang="postcss">
 	.pretty-json-container {
 		background-color: var(--panel-bg);
 		border: 1px solid var(--border-color);

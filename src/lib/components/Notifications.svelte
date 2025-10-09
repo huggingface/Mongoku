@@ -11,7 +11,7 @@
 	{/each}
 </div>
 
-<style lang="scss">
+<style lang="postcss">
 	.notifications {
 		position: fixed;
 		top: 80px;

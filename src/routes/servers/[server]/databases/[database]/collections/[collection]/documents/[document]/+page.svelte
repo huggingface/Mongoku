@@ -93,7 +93,7 @@
 	</Panel>
 </div>
 
-<style lang="scss">
+<style lang="postcss">
 	.document-page {
 		padding: 40px 0;
 	}

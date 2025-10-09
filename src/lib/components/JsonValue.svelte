@@ -1,6 +1,8 @@
 <script lang="ts">
 	import JsonValue from "./JsonValue.svelte";
 
+	const INDENT = "    ";
+
 	interface Props {
 		value: any;
 		key?: string;
@@ -9,16 +11,17 @@
 		/** is it collapsed at top level */
 		collapsed?: boolean;
 		depth?: number;
+		localTopLevel?: boolean;
 	}
 
-	let { value, key, autoCollapse = false, collapsed = false, depth = 0 }: Props = $props();
+	let { value, key, autoCollapse = false, collapsed = false, localTopLevel = true, depth = 0 }: Props = $props();
 
 	function toggleCollapse() {
 		collapsed = !collapsed;
 	}
 
 	function getIndent(level: number): string {
-		return "  ".repeat(level);
+		return INDENT.repeat(level);
 	}
 
 	function isUrl(str: string): boolean {
@@ -66,6 +69,7 @@
 			{autoCollapse}
 			collapsed={autoCollapse}
 			depth={depth + 1}
+			localTopLevel={false}
 		/>
 	</span>
 {:else}
@@ -105,7 +109,7 @@
 							<br />{getIndent(depth + 1)}<JsonValue
 								value={item}
 								{autoCollapse}
-								collapsed={autoCollapse}
+								collapsed={false}
 								depth={depth + 1}
 							/>{/each}
 						<br />{getIndent(depth)}
@@ -120,9 +124,9 @@
 			<span class="value object">{"{}"}</span>
 		{:else}
 			<span class="collapsible-wrapper" class:collapsed class:expanded={!collapsed}>
-				<button class="collapse-toggle" onclick={toggleCollapse}>
-					{collapsed ? "▶" : "▼"}
-				</button><span class="value object">
+				{#if depth !== 0}<button class="collapse-toggle" class:local-top-level={localTopLevel} onclick={toggleCollapse}>
+						{collapsed ? "▶" : "▼"}
+					</button>{/if}<span class="value object">
 					{"{"}<span class="collapsible-content" class:hidden={collapsed}
 						>{#each Object.keys(value) as objKey, i}
 							<JsonValue value={value[objKey]} key={objKey} {autoCollapse} collapsed={autoCollapse} {depth} />{/each}
@@ -141,31 +145,10 @@
 	{/if},
 {/if}
 
-<style lang="scss">
+<style lang="postcss">
 	.prop {
 		position: relative;
 		display: block;
-
-		&.collapsible {
-			.collapse-toggle {
-				display: inline-block;
-				width: 16px;
-				cursor: pointer;
-				user-select: none;
-				color: var(--text-secondary, #888);
-				font-size: 12px;
-				margin-right: 4px;
-				transition: color 0.2s;
-				background: none;
-				border: none;
-				padding: 0;
-				font-family: inherit;
-
-				&:hover {
-					color: var(--text, #fff);
-				}
-			}
-		}
 	}
 
 	.collapsible-wrapper {
@@ -185,6 +168,12 @@
 			border: none;
 			padding: 0;
 			font-family: inherit;
+
+			&.local-top-level {
+				position: absolute;
+				left: -18px;
+				margin-top: 4px;
+			}
 
 			&:hover {
 				color: var(--text, #fff);
