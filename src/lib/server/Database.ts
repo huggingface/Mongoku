@@ -52,8 +52,8 @@ export class Database {
 		let dataSize = 0;
 
 		const collections = await this.collections();
-		const csJson = await Promise.all(collections.map(collection => collection.toJson()));
-		
+		const csJson = await Promise.all(collections.map((collection) => collection.toJson()));
+
 		for (const json of csJson) {
 			totalObjSize += json.avgObjSize * json.count;
 			totalObjNr += json.count;
@@ -67,7 +67,7 @@ export class Database {
 			name: this.name,
 			size: this.size,
 			dataSize: dataSize,
-			avgObjSize: totalObjSize / totalObjNr,
+			avgObjSize: Math.round(totalObjSize / totalObjNr),
 			storageSize: storageSize,
 			totalIndexSize: indexSize,
 			empty: this.empty,

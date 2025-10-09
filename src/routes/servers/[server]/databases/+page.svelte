@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Panel from "$lib/components/Panel.svelte";
+	import TooltipTable from "$lib/components/TooltipTable.svelte";
 	import { formatBytes } from "$lib/utils/filters";
 	import type { PageData } from "./$types";
 
@@ -30,12 +31,41 @@
 						</td>
 						<td>
 							{#if database.collections}
-								<span class="dotted" title="Collections">{database.collections.length}</span>
+								<TooltipTable
+									columns={[
+										{ header: "Collection", key: "name", align: "left", maxWidth: "150px" },
+										{ header: "Size", key: "size", align: "right", formatter: formatBytes },
+									]}
+									rows={database.collections.map((collection) => ({
+										name: collection.name,
+										size: collection.size,
+									}))}
+								>
+									{database.collections.length}
+								</TooltipTable>
 							{/if}
 						</td>
 						<td>
 							{#if database.size !== undefined}
-								{formatBytes(database.size)}
+								<TooltipTable
+									columns={[
+										{ header: "Metric", key: "metric", align: "left" },
+										{ header: "Value", key: "value", align: "right" },
+									]}
+									rows={[
+										{ metric: "Total Size", value: database.size },
+										{ metric: "Data Size", value: database.dataSize },
+										{ metric: "Storage Size", value: database.storageSize },
+										{ metric: "Index Size", value: database.totalIndexSize },
+										{ metric: "Avg Object Size", value: database.avgObjSize },
+										{ metric: "Empty", value: database.empty ? "Yes" : "No" },
+									].map((row) => ({
+										...row,
+										value: typeof row.value === "number" ? formatBytes(row.value) : row.value,
+									}))}
+								>
+									{formatBytes(database.size)}
+								</TooltipTable>
 							{/if}
 						</td>
 					</tr>

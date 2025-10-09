@@ -72,6 +72,17 @@
 	}
 }
 
+@layer utilities {
+	.dotted {
+		border-bottom: 1px dotted var(--text);
+		cursor: help;
+	}
+
+	.error {
+		color: var(--error);
+	}
+}
+
 @layer components {
 	.btn {
 		@apply px-4 py-2 rounded-md cursor-pointer font-medium transition-all duration-200 border;
@@ -162,69 +173,56 @@
 	.table tbody tr:hover {
 		background-color: var(--color-1-5);
 	}
-}
 
-.center {
-	text-align: center;
-}
+	.badge {
+		display: inline-block;
+		padding: 4px 8px;
+		border-radius: 3px;
+		font-size: 12px;
+		margin-right: 8px;
+	}
 
-.loading {
-	text-align: center;
-	padding: 40px;
-	color: var(--text-darker);
-}
+	.badge-danger {
+		background-color: var(--button-danger);
+		color: var(--text-lighter);
+	}
 
-.error {
-	color: var(--error);
-}
+	.modal-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.5);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 1000;
+	}
 
-.badge {
-	display: inline-block;
-	padding: 4px 8px;
-	border-radius: 3px;
-	font-size: 12px;
-	margin-right: 8px;
-}
+	.modal {
+		background-color: var(--color-2);
+		border: 1px solid var(--color-3);
+		border-radius: 4px;
+		max-width: 500px;
+		width: 90%;
+	}
 
-.badge-danger {
-	background-color: var(--button-danger);
-	color: var(--text-lighter);
-}
+	.modal-body {
+		padding: 20px;
+	}
 
-.dotted {
-	border-bottom: 1px dotted var(--text);
-	cursor: help;
-}
+	.modal-footer {
+		border-top: 1px solid var(--color-3);
+		padding: 15px 20px;
+		display: flex;
+		justify-content: flex-end;
+		gap: 10px;
+	}
 
-.modal-overlay {
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background-color: rgba(0, 0, 0, 0.5);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: 1000;
-}
-
-.modal {
-	background-color: var(--color-2);
-	border: 1px solid var(--color-3);
-	border-radius: 4px;
-	max-width: 500px;
-	width: 90%;
-}
-
-.modal-body {
-	padding: 20px;
-}
-
-.modal-footer {
-	border-top: 1px solid var(--color-3);
-	padding: 15px 20px;
-	display: flex;
-	justify-content: flex-end;
-	gap: 10px;
+	.loading {
+		text-align: center;
+		padding: 40px;
+		color: var(--text-darker);
+	}
 }

@@ -5,7 +5,6 @@ import factory from "./Factory";
 
 import { inspect } from "node:util";
 import { Collection, type CollectionJSON } from "./Collection";
-import { type DatabaseJSON } from "./Database";
 import { type Host } from "./HostsManager";
 import { Server, type ServerJSON } from "./Server";
 
@@ -43,7 +42,7 @@ export class MongoManager {
 		}
 	}
 
-	private getServer(name: string) {
+	getServer(name: string) {
 		const server = this._servers[name] || this._servers[`${name}:27017`];
 		if (!server) {
 			throw new Error("Server does not exist");
@@ -99,16 +98,6 @@ export class MongoManager {
 		}
 		servers.sort((a, b) => a.name.localeCompare(b.name));
 		return servers;
-	}
-
-	async getDatabasesJson(serverName: string): Promise<DatabaseJSON[]> {
-		const server = this.getServer(serverName);
-		if (server instanceof Error) {
-			return [];
-		}
-
-		const json = await server.toJson();
-		return json.databases;
 	}
 
 	async getCollectionsJson(serverName: string, databaseName: string): Promise<CollectionJSON[]> {

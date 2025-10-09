@@ -86,7 +86,7 @@ export class Collection {
 	}
 
 	async toJson(): Promise<CollectionJSON> {
-		let stats = {
+		const stats = {
 			size: 0,
 			count: 0,
 			avgObjSize: 0,
@@ -98,20 +98,47 @@ export class Collection {
 		};
 
 		if (this._type !== "view") {
-			stats = (await this._collection
+			const agg = (await this._collection
 				.aggregate([
 					{
 						$collStats: {
 							// latencyStats: { histograms: <boolean> },
-							storageStats: {
-								/* scale: <number>*/
-							},
+							storageStats: {},
 							count: {},
 							// queryExecStats: {}
 						},
 					},
 				])
-				.next()) as typeof stats;
+				.next()) as {
+				ns: string;
+				host: string;
+				localTime: Date;
+				storageStats: {
+					size: number;
+					count: number;
+					numOrphanDocs: number;
+					storageSize: number;
+					freeStorageSize: number;
+					capped: boolean;
+					wiredTiger: unknown;
+					nindexes: number;
+					indexDetails: Record<string, unknown>;
+					indexBuilds: Array<unknown>;
+					totalIndexSize: number;
+					indexSizes: Record<string, number>;
+					totalSize: number;
+					scaleFactor: number;
+				};
+				count: number;
+			};
+			stats.size = agg.storageStats.size;
+			stats.count = agg.storageStats.count;
+			stats.avgObjSize = Math.round(agg.storageStats.size / agg.storageStats.count);
+			stats.storageSize = agg.storageStats.storageSize;
+			stats.capped = agg.storageStats.capped;
+			stats.nindexes = agg.storageStats.nindexes;
+			stats.totalIndexSize = agg.storageStats.totalIndexSize;
+			stats.indexSizes = agg.storageStats.indexSizes;
 		}
 
 		return {
