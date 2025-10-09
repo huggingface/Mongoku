@@ -23,7 +23,7 @@
 							<a
 								href="/servers/{encodeURIComponent(data.server)}/databases/{encodeURIComponent(
 									data.database,
-								)}/collections/{encodeURIComponent(collection.name)}/explore?query={encodeURIComponent(
+								)}/collections/{encodeURIComponent(collection.name)}?query={encodeURIComponent(
 									'{}',
 								)}&sort=&project=&skip=0&limit=20"
 							>

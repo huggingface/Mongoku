@@ -3,6 +3,7 @@
 	import type { MongoDocument } from "$lib/types";
 	import { parseJSON } from "$lib/utils/jsonParser";
 	import JsonValue from "./JsonValue.svelte";
+	import Panel from "./Panel.svelte";
 
 	/* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -10,12 +11,23 @@
 		json: MongoDocument;
 		autoCollapse?: boolean;
 		readOnly?: boolean;
-		ongo?: (id: string) => void;
 		onedit?: (json: any) => void;
 		onremove?: () => void;
+		server: string;
+		database: string;
+		collection: string;
 	}
 
-	let { json, autoCollapse = false, readOnly = false, ongo, onedit, onremove }: Props = $props();
+	let {
+		json,
+		autoCollapse = false,
+		readOnly = false,
+		onedit,
+		onremove,
+		server,
+		database,
+		collection,
+	}: Props = $props();
 
 	let editorVisible = $state(false);
 	let editJson = $state("");
@@ -53,12 +65,6 @@
 		}
 	}
 
-	function goToDocument() {
-		if (json._id?.$value) {
-			ongo?.(json._id.$value);
-		}
-	}
-
 	function showRemove() {
 		removing = true;
 	}
@@ -72,185 +78,61 @@
 	}
 </script>
 
-<div class="pretty-json-container">
-	{#if json._id}
-		<div class="title">
-			<div class="object-info">
-				<div class="objectid">
-					<button type="button" class="objectid-link" onclick={goToDocument}>{json._id?.$value}</button>
-					{#if json._id?.$value}
-						{@const timestamp = getTimestampFromObjectId(json._id.$value)}
-						{#if timestamp}
-							<span class="date">{timestamp.toLocaleString()}</span>
-						{/if}
+<Panel>
+	{#snippet title()}
+		{#if json._id}
+			<div class="">
+				<a
+					type="button"
+					class="bg-transparent border-none text-[var(--text)] no-underline cursor-pointer text-xl font-inherit p-0 hover:underline"
+					href={`/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(collection)}/documents/${json._id?.$value}`}
+				>
+					{json._id?.$value}
+				</a>
+				{#if json._id?.$value}
+					{@const timestamp = getTimestampFromObjectId(json._id.$value)}
+					{#if timestamp}
+						<span class="ml-2 text-md text-[var(--text-secondary,#888)]">{timestamp.toLocaleString()}</span>
 					{/if}
-				</div>
-				{#if !readOnly}
-					<div class="actions">
-						<button class="btn btn-outline-light btn-sm" onclick={enableEditor}>Edit</button>
-						<button class="btn btn-outline-danger btn-sm" onclick={showRemove}>Remove</button>
-					</div>
 				{/if}
 			</div>
-		</div>
-	{/if}
+		{/if}
+	{/snippet}
 
-	<div class="pretty-json">
-		<JsonValue value={json} {autoCollapse} collapsed={false} />
-	</div>
-
-	<div class="editor" class:visible={editorVisible}>
-		<div class="editor-actions">
-			<button class="btn btn-success" onclick={save}>Save</button>
-			<button class="btn btn-default" onclick={disableEditor}>Cancel</button>
-		</div>
-		<textarea bind:this={editorRef} bind:value={editJson}></textarea>
-	</div>
-
-	{#if removing}
-		<div class="remove-layer">
-			<p>Are you sure?</p>
-			<div class="remove-actions">
-				<button class="btn btn-danger" onclick={confirmRemove}>Yes - Remove</button>
-				<button class="btn btn-success" onclick={cancelRemove}>No - Cancel</button>
+	{#snippet actions()}
+		{#if !readOnly}
+			<div class="hidden group-hover:block">
+				<button class="btn btn-outline-light btn-sm ml-2 -my-2" onclick={enableEditor}>Edit</button>
+				<button class="btn btn-outline-danger btn-sm ml-2 -my-2" onclick={showRemove}>Remove</button>
 			</div>
+		{/if}
+	{/snippet}
+
+	<div class="p-4 relative border-t border-[var(--border-color)]">
+		<div class="font-mono text-sm leading-tight whitespace-pre-wrap break-words relative">
+			<JsonValue value={json} {autoCollapse} collapsed={false} />
 		</div>
-	{/if}
-</div>
 
-<style lang="postcss">
-	.pretty-json-container {
-		background-color: var(--panel-bg);
-		border: 1px solid var(--border-color);
-		border-radius: 4px;
-		padding: 15px;
-		position: relative;
-	}
+		<div class="hidden absolute h-full z-[100] w-full top-0" class:block={editorVisible}>
+			<div class="absolute z-10 right-5 top-4">
+				<button class="btn btn-success ml-2" onclick={save}>Save</button>
+				<button class="btn btn-default ml-2" onclick={disableEditor}>Cancel</button>
+			</div>
+			<textarea
+				bind:this={editorRef}
+				bind:value={editJson}
+				class="w-full min-h-[300px] font-mono text-sm leading-relaxed p-2.5 bg-[var(--color-1)] text-[var(--text)] border border-[var(--border-color)] rounded resize-y"
+			></textarea>
+		</div>
 
-	.title {
-		.object-info {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-
-			.objectid {
-				font-size: 1.2em;
-
-				.objectid-link {
-					background: none;
-					border: none;
-					color: var(--text);
-					text-decoration: none;
-					cursor: pointer;
-					font-size: inherit;
-					font-family: inherit;
-					padding: 0;
-
-					&:hover {
-						text-decoration: underline;
-					}
-				}
-
-				.date {
-					margin-left: 20px;
-					font-size: 0.7em;
-					color: var(--text-secondary, #888);
-				}
-			}
-
-			.actions {
-				display: none;
-
-				& > .btn {
-					margin-left: 10px;
-					padding: 2px 5px 0;
-				}
-			}
-		}
-
-		&:hover .object-info .actions {
-			display: initial;
-		}
-	}
-
-	.pretty-json {
-		font-family: "Source Code Pro", "Consolas", "Monaco", "Courier New", monospace;
-		font-size: 0.9em;
-		line-height: 1.3;
-		white-space: pre-wrap;
-		word-wrap: break-word;
-		position: relative;
-	}
-
-	.editor {
-		display: none;
-		position: absolute;
-		height: 100%;
-		z-index: 100;
-		width: 100%;
-		top: 0;
-
-		&.visible {
-			display: block;
-		}
-
-		textarea {
-			width: 100%;
-			min-height: 300px;
-			font-family: "Source Code Pro", "Consolas", "Monaco", "Courier New", monospace;
-			font-size: 14px;
-			line-height: 1.6;
-			padding: 10px;
-			background-color: var(--color-1);
-			color: var(--text);
-			border: 1px solid var(--border-color);
-			border-radius: 4px;
-			resize: vertical;
-		}
-	}
-
-	.editor-actions {
-		position: absolute;
-		z-index: 10;
-		right: 20px;
-		top: 15px;
-
-		& > .btn {
-			margin-left: 10px;
-			padding: 2px 5px 0;
-		}
-	}
-
-	.remove-layer {
-		position: absolute;
-		z-index: 10;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		border-radius: 5px;
-		background: var(--text-inverse);
-		opacity: 0.7;
-
-		p {
-			color: var(--text);
-			text-align: center;
-			margin-top: 20px;
-			font-size: 2em;
-		}
-
-		.remove-actions {
-			position: absolute;
-			width: 100%;
-			height: 100%;
-			top: 0;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-
-			.btn {
-				margin: 20px;
-			}
-		}
-	}
-</style>
+		{#if removing}
+			<div class="absolute z-10 top-0 left-0 w-full h-full rounded bg-[var(--text-inverse)] opacity-70">
+				<p class="text-[var(--text)] text-center mt-5 text-2xl">Are you sure?</p>
+				<div class="absolute w-full h-full top-0 flex justify-center items-center">
+					<button class="btn btn-danger m-5" onclick={confirmRemove}>Yes - Remove</button>
+					<button class="btn btn-success m-5" onclick={cancelRemove}>No - Cancel</button>
+				</div>
+			</div>
+		{/if}
+	</div>
+</Panel>

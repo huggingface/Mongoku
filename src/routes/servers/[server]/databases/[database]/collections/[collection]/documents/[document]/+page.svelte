@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
-	import Panel from "$lib/components/Panel.svelte";
 	import PrettyJson from "$lib/components/PrettyJson.svelte";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import type { PageData } from "./$types";
@@ -65,7 +64,7 @@
 				notificationStore.notifySuccess("Document removed successfully");
 				// Navigate back to the collection explore page
 				goto(
-					`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}/explore?query=${encodeURIComponent("{}")}&sort=&project=&skip=0&limit=20`,
+					`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}?query=${encodeURIComponent("{}")}&sort=&project=&skip=0&limit=20`,
 				);
 			} else {
 				const error = await response.text();
@@ -77,12 +76,18 @@
 	}
 </script>
 
-<Panel title="Document">
-	{#if loading}
-		<div class="loading">Loading...</div>
-	{:else if item}
-		<PrettyJson json={item} readOnly={data.readOnly} onedit={editDocument} onremove={removeDocument} />
-	{:else}
-		<div class="text-center">Document not found</div>
-	{/if}
-</Panel>
+{#if loading}
+	<div class="loading">Loading...</div>
+{:else if item}
+	<PrettyJson
+		json={item}
+		readOnly={data.readOnly}
+		onedit={editDocument}
+		onremove={removeDocument}
+		server={data.server}
+		database={data.database}
+		collection={data.collection}
+	/>
+{:else}
+	<div class="text-center">Document not found</div>
+{/if}

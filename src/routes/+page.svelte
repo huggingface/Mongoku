@@ -82,24 +82,25 @@
 
 <svelte:window on:keydown={handleKeyDown} />
 
-{#snippet actions()}
-	<button class="btn btn-default btn-sm" onclick={() => (adding = !adding)}>
-		{adding ? "Cancel" : "Add Server"}
-	</button>
-	{#if adding}
-		<input
-			type="text"
-			placeholder="mongodb://user:password@hostname:port?directConnection=true"
-			bind:value={newServer}
-			disabled={loading}
-			class="form-input"
-		/>
-		<button class="btn btn-outline-success btn-sm" onclick={addServer} disabled={!newServer.length || loading}>
-			Add
+<Panel title="Servers">
+	{#snippet actions()}
+		<button class="btn btn-default btn-sm" onclick={() => (adding = !adding)}>
+			{adding ? "Cancel" : "Add Server"}
 		</button>
-	{/if}
-{/snippet}
-<Panel title="Servers" {actions}>
+		{#if adding}
+			<input
+				type="text"
+				placeholder="mongodb://user:password@hostname:port?directConnection=true"
+				bind:value={newServer}
+				disabled={loading}
+				class="form-input"
+			/>
+			<button class="btn btn-outline-success btn-sm" onclick={addServer} disabled={!newServer.length || loading}>
+				Add
+			</button>
+		{/if}
+	{/snippet}
+
 	<table class="table">
 		<thead>
 			<tr>

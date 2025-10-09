@@ -52,11 +52,8 @@
 								href: `/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(collection)}`,
 							});
 
-							const document = decodeURIComponent(params.document || "");
-							// Show truncated document ID
-							const documentLabel = document.length > 12 ? `${document.substring(0, 12)}...` : document;
 							breadcrumbs.push({
-								label: `Document: ${documentLabel}`,
+								label: decodeURIComponent(params.document || "[Document]"),
 							});
 						}
 					}

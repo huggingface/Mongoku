@@ -128,7 +128,7 @@
 						{collapsed ? "▶" : "▼"}
 					</button>{/if}<span class="value object">
 					{"{"}<span class="collapsible-content" class:hidden={collapsed}
-						>{#each Object.keys(value) as objKey, i}
+						>{#each Object.keys(value) as objKey}
 							<JsonValue value={value[objKey]} key={objKey} {autoCollapse} collapsed={autoCollapse} {depth} />{/each}
 					</span>{#if collapsed}
 						<span class="collapsed-summary"
@@ -142,7 +142,7 @@
 		{/if}
 	{:else}
 		<span>{String(value)}</span>
-	{/if},
+	{/if}{#if depth !== 0},{/if}
 {/if}
 
 <style lang="postcss">

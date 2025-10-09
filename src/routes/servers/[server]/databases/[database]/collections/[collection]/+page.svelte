@@ -6,7 +6,7 @@
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import type { MongoDocument, SearchParams } from "$lib/types";
 	import { formatNumber } from "$lib/utils/filters";
-	import type { PageData } from "./explore/$types";
+	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
 
@@ -127,20 +127,20 @@
 
 <SearchBox {params} onsearch={update} />
 
-{#snippet actions()}
-	{#if hasPrevious}
-		<button class="btn btn-default" onclick={previous}>Previous</button>
-	{/if}
-	{#if hasNext}
-		<button class="btn btn-default" onclick={next}>Next</button>
-	{/if}
-{/snippet}
 <Panel
 	title={count.total > 0
 		? `${formatNumber(count.start + 1)} - ${formatNumber(count.start + items.length)} of ${formatNumber(count.total)} Documents`
 		: "Documents"}
-	{actions}
-></Panel>
+>
+	{#snippet actions()}
+		{#if hasPrevious}
+			<button class="btn btn-default" onclick={previous}>Previous</button>
+		{/if}
+		{#if hasNext}
+			<button class="btn btn-default" onclick={next}>Next</button>
+		{/if}
+	{/snippet}
+</Panel>
 
 {#if loading.content}
 	<div class="loading">Loading...</div>
@@ -150,9 +150,11 @@
 			json={item}
 			autoCollapse={true}
 			readOnly={data.readOnly}
-			ongo={goToDocument}
 			onedit={(json) => editDocument(item._id, json)}
 			onremove={() => removeDocument(item._id)}
+			server={data.server}
+			database={data.database}
+			collection={data.collection}
 		/>
 	{/each}
 {/if}

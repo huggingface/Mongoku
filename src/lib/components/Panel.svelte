@@ -3,7 +3,7 @@
 
 	interface Props {
 		children?: Snippet;
-		title?: string;
+		title?: string | Snippet;
 		actions?: Snippet;
 	}
 
@@ -12,8 +12,12 @@
 
 <div class="panel rounded-md">
 	{#if title}
-		<div class="px-4 py-2 flex justify-between items-center text-lg uppercase font-medium">
-			<span>{title}</span>
+		<div class="px-4 py-2 flex justify-between items-center text-lg uppercase font-medium group">
+			{#if typeof title === "string"}
+				<span>{title}</span>
+			{:else}
+				{@render title()}
+			{/if}
 			{#if actions}
 				<div class="flex gap-2 items-center">
 					{@render actions()}
