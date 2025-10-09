@@ -43,144 +43,125 @@
 	--border: 1px solid var(--color-3);
 }
 
-body {
-	background-color: var(--background-color);
-	font-family: "Rajdhani", sans-serif;
-	color: var(--text);
-	min-height: 100vh;
+@layer base {
+	body {
+		background-color: var(--background-color);
+		font-family: "Rajdhani", sans-serif;
+		color: var(--text);
+		min-height: 100vh;
+	}
+
+	a:hover {
+		text-decoration: underline;
+	}
+
+	input[type="text"],
+	input[type="number"],
+	textarea {
+		@apply rounded-md px-2 py-1.5 text-sm;
+		background-color: var(--color-1);
+		color: var(--text);
+		border: 1px solid var(--color-4);
+	}
+
+	input[type="text"]:focus,
+	input[type="number"]:focus,
+	textarea:focus {
+		outline: none;
+		border-color: var(--link);
+	}
 }
 
-.app {
-	min-height: 100vh;
-}
+@layer components {
+	.btn {
+		@apply px-4 py-2 rounded-md cursor-pointer font-medium transition-all duration-200 border;
+	}
 
-.container {
-	margin: 0 auto;
-	padding: 0 20px;
-}
+	.btn-sm {
+		@apply px-2 py-1.5 text-sm;
+	}
 
-a:hover {
-	text-decoration: underline;
-}
+	.btn-default {
+		background-color: var(--color-1);
+		color: var(--text);
+		border-color: var(--color-4);
+	}
 
-.btn {
-	padding: 8px 16px;
-	border: 1px solid;
-	border-radius: 4px;
-	cursor: pointer;
-	font-size: 14px;
-	font-family: "Rajdhani", sans-serif;
-	transition: all 0.2s;
-}
+	.btn-default:hover {
+		background-color: var(--color-3);
+	}
 
-.btn-sm {
-	padding: 5px 12px;
-	font-size: 13px;
-}
+	.btn-danger {
+		background-color: var(--button-danger-l);
+		color: var(--text-lighter);
+		border-color: var(--button-danger);
+	}
 
-.btn-default {
-	background-color: var(--color-1);
-	color: var(--text);
-	border-color: var(--color-4);
-}
+	.btn-danger:hover {
+		background-color: var(--button-danger);
+	}
 
-.btn-default:hover {
-	background-color: var(--color-3);
-}
+	.btn-success {
+		background-color: var(--button-success-l);
+		color: var(--text-lighter);
+		border-color: var(--button-success);
+	}
 
-.btn-danger {
-	background-color: var(--button-danger-l);
-	color: var(--text-lighter);
-	border-color: var(--button-danger);
-}
+	.btn-success:hover {
+		background-color: var(--button-success);
+	}
 
-.btn-danger:hover {
-	background-color: var(--button-danger);
-}
+	.btn-outline-danger {
+		background: transparent;
+		color: var(--button-danger);
+		border-color: var(--button-danger);
+	}
 
-.btn-success {
-	background-color: var(--button-success-l);
-	color: var(--text-lighter);
-	border-color: var(--button-success);
-}
+	.btn-outline-danger:hover {
+		background-color: var(--button-danger-l);
+		color: var(--text-lighter);
+	}
 
-.btn-success:hover {
-	background-color: var(--button-success);
-}
+	.btn-outline-success {
+		background: transparent;
+		color: var(--button-success);
+		border-color: var(--button-success);
+	}
 
-.btn-outline-danger {
-	background: transparent;
-	color: var(--button-danger);
-	border-color: var(--button-danger);
-}
+	.btn-outline-success:hover {
+		background-color: var(--button-success-l);
+		color: var(--text-lighter);
+	}
 
-.btn-outline-danger:hover {
-	background-color: var(--button-danger-l);
-	color: var(--text-lighter);
-}
+	.btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
 
-.btn-outline-success {
-	background: transparent;
-	color: var(--button-success);
-	border-color: var(--button-success);
-}
+	.table {
+		width: 100%;
+		border-collapse: collapse;
+	}
 
-.btn-outline-success:hover {
-	background-color: var(--button-success-l);
-	color: var(--text-lighter);
-}
+	.table thead tr {
+		background-color: var(--color-3);
+	}
 
-.btn:disabled {
-	opacity: 0.5;
-	cursor: not-allowed;
-}
+	.table th,
+	.table td {
+		padding: 12px;
+		text-align: left;
+		border-bottom: 1px solid var(--border-color);
+	}
 
-input[type="text"],
-input[type="number"],
-textarea {
-	background-color: var(--color-1);
-	color: var(--text);
-	border: 1px solid var(--color-4);
-	border-radius: 4px;
-	padding: 8px 12px;
-	font-family: "Rajdhani", sans-serif;
-	font-size: 14px;
-}
+	.table th {
+		font-weight: 500;
+		color: var(--text-lighter);
+	}
 
-input[type="text"]:focus,
-input[type="number"]:focus,
-textarea:focus {
-	outline: none;
-	border-color: var(--link);
-}
-
-.table {
-	width: 100%;
-	border-collapse: collapse;
-}
-
-.table thead tr {
-	background-color: var(--color-3);
-}
-
-.table th,
-.table td {
-	padding: 12px;
-	text-align: left;
-	border-bottom: 1px solid var(--border-color);
-}
-
-.table th {
-	font-weight: 500;
-	color: var(--text-lighter);
-}
-
-.table tbody tr:hover {
-	background-color: var(--color-1-5);
-}
-
-.table .actions {
-	text-align: right;
+	.table tbody tr:hover {
+		background-color: var(--color-1-5);
+	}
 }
 
 .center {

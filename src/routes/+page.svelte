@@ -92,6 +92,7 @@
 			placeholder="mongodb://user:password@hostname:port?directConnection=true"
 			bind:value={newServer}
 			disabled={loading}
+			class="form-input"
 		/>
 		<button class="btn btn-outline-success btn-sm" onclick={addServer} disabled={!newServer.length || loading}>
 			Add
@@ -134,7 +135,7 @@
 								{formatBytes(server.size)}
 							{/if}
 						</td>
-						<td class="actions" style="width: 140px">
+						<td style="width: 140px">
 							<button
 								class="btn btn-outline-danger btn-sm -my-2 hidden group-hover:inline"
 								onclick={() => openRemoveModal(server)}
@@ -147,7 +148,7 @@
 			{:else}
 				<tr>
 					<td colspan="4">
-						<div class="center">No servers...</div>
+						<div class="text-center">No servers...</div>
 					</td>
 				</tr>
 			{/if}

@@ -6,7 +6,7 @@
 	let { children } = $props();
 </script>
 
-<div class="app">
+<div style="min-height: 100vh">
 	<nav class="navbar px-8 py-4 flex items-center mb-4">
 		<a href="/" class="text-2xl font-medium">Mongoku</a>
 		<Breadcrumbs />

@@ -6,11 +6,7 @@
 	let { data }: { data: PageData } = $props();
 </script>
 
-<Panel>
-	<div class="title">
-		<span>Databases on {data.server}</span>
-	</div>
-
+<Panel title="Databases on {data.server}">
 	<table class="table">
 		<thead>
 			<tr>
@@ -47,7 +43,7 @@
 			{:else}
 				<tr>
 					<td colspan="3">
-						<div class="center">No databases...</div>
+						<div class="text-center">No databases...</div>
 					</td>
 				</tr>
 			{/if}

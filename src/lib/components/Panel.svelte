@@ -3,8 +3,8 @@
 
 	interface Props {
 		children: Snippet;
-		title: string;
-		actions: Snippet;
+		title?: string;
+		actions?: Snippet;
 	}
 
 	let { children, title, actions }: Props = $props();
@@ -14,9 +14,11 @@
 	{#if title}
 		<div class="px-4 py-2 flex justify-between items-center text-lg uppercase font-medium">
 			<span>{title}</span>
-			<div class="flex gap-2 items-center">
-				{@render actions()}
-			</div>
+			{#if actions}
+				<div class="flex gap-2 items-center">
+					{@render actions()}
+				</div>
+			{/if}
 		</div>
 	{/if}
 	{@render children()}
