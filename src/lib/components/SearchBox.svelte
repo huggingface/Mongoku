@@ -6,10 +6,12 @@
 		onsearch: () => void;
 	}
 
-	let { params, onsearch }: Props = $props();
+	let { params = $bindable(), onsearch }: Props = $props();
 
 	// Show optional fields - start with all hidden
-	let showOptionalFields = $state(false);
+	let showOptionalFields = $state(
+		params.sort !== "{}" || params.project !== "{}" || params.skip !== 0 || params.limit !== 20,
+	);
 
 	// Determine which is the last visible input for proper border styling
 	let lastVisibleInput = $derived(showOptionalFields ? "project" : "query");

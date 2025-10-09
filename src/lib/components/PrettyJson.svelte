@@ -113,7 +113,7 @@
 			<JsonValue value={json} {autoCollapse} collapsed={false} />
 		</div>
 
-		<div class="hidden absolute h-full z-[100] w-full top-0" class:block={editorVisible}>
+		<div class="absolute h-full z-[100] w-full top-0 left-0" class:hidden={!editorVisible} class:block={editorVisible}>
 			<div class="absolute z-10 right-5 top-4">
 				<button class="btn btn-success ml-2" onclick={save}>Save</button>
 				<button class="btn btn-default ml-2" onclick={disableEditor}>Cancel</button>

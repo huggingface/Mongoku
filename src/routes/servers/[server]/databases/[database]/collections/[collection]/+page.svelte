@@ -44,12 +44,6 @@
 		);
 	}
 
-	function goToDocument(documentId: string) {
-		goto(
-			`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}/documents/${documentId}`,
-		);
-	}
-
 	async function editDocument(_id: any, json: any) {
 		const partial = params.project && params.project !== "{}" && Object.keys(JSON.parse(params.project)).length > 0;
 		const newId = json?._id?.$value;
@@ -125,7 +119,7 @@
 	}
 </script>
 
-<SearchBox {params} onsearch={update} />
+<SearchBox bind:params onsearch={update} />
 
 <Panel
 	title={count.total > 0
@@ -134,10 +128,10 @@
 >
 	{#snippet actions()}
 		{#if hasPrevious}
-			<button class="btn btn-default" onclick={previous}>Previous</button>
+			<button class="btn btn-default btn-sm -my-2" onclick={previous}>Previous</button>
 		{/if}
 		{#if hasNext}
-			<button class="btn btn-default" onclick={next}>Next</button>
+			<button class="btn btn-default btn-sm -my-2" onclick={next}>Next</button>
 		{/if}
 	{/snippet}
 </Panel>
