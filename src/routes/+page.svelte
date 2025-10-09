@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { invalidateAll } from "$app/navigation";
 	import Panel from "$lib/components/Panel.svelte";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import { formatBytes, serverName } from "$lib/utils/filters";
@@ -28,7 +29,7 @@
 				adding = false;
 				notificationStore.notifySuccess("Server added successfully");
 				// Reload the page to get updated servers
-				window.location.reload();
+				await invalidateAll();
 			} else {
 				const error = await response.text();
 				notificationStore.notifyError(error || "Failed to add server");
@@ -81,81 +82,78 @@
 
 <svelte:window on:keydown={handleKeyDown} />
 
-<div class="servers-page">
-	<Panel>
-		<div class="title">
-			<span>Servers</span>
-			<div class="actions">
-				<button class="btn btn-default btn-sm" onclick={() => (adding = !adding)}>
-					{adding ? "Cancel" : "Add Server"}
-				</button>
-				{#if adding}
-					<input
-						type="text"
-						placeholder="mongodb://user:password@hostname:port?directConnection=true"
-						bind:value={newServer}
-						disabled={loading}
-					/>
-					<button class="btn btn-outline-success btn-sm" onclick={addServer} disabled={!newServer.length || loading}>
-						Add
-					</button>
-				{/if}
-			</div>
-		</div>
-
-		<table class="table">
-			<thead>
-				<tr>
-					<th>Name</th>
-					<th>Databases</th>
-					<th>Size</th>
-					<th></th>
-				</tr>
-			</thead>
-			<tbody>
-				{#if data.servers && data.servers.length > 0}
-					{#each data.servers as server}
-						<tr>
-							<td>
-								{#if "error" in server && server.error}
-									<span class="error">
-										<span class="badge badge-danger" title={server.error.message}>Error</span>
-										{serverName(server.name)}
-									</span>
-								{:else}
-									<a href="/servers/{encodeURIComponent(serverName(server.name))}/databases">
-										{serverName(server.name)}
-									</a>
-								{/if}
-							</td>
-							<td>
-								{#if "databases" in server && server.databases}
-									<span class="dotted" title="Databases">{server.databases.length}</span>
-								{/if}
-							</td>
-							<td>
-								{#if "size" in server && server.size !== undefined}
-									{formatBytes(server.size)}
-								{/if}
-							</td>
-							<td class="actions">
-								<button class="btn btn-outline-danger btn-sm" onclick={() => openRemoveModal(server)}>
-									Remove from list
-								</button>
-							</td>
-						</tr>
-					{/each}
-				{:else}
-					<tr>
-						<td colspan="4">
-							<div class="center">No servers...</div>
+{#snippet actions()}
+	<button class="btn btn-default btn-sm" onclick={() => (adding = !adding)}>
+		{adding ? "Cancel" : "Add Server"}
+	</button>
+	{#if adding}
+		<input
+			type="text"
+			placeholder="mongodb://user:password@hostname:port?directConnection=true"
+			bind:value={newServer}
+			disabled={loading}
+		/>
+		<button class="btn btn-outline-success btn-sm" onclick={addServer} disabled={!newServer.length || loading}>
+			Add
+		</button>
+	{/if}
+{/snippet}
+<Panel title="Servers" {actions}>
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Databases</th>
+				<th>Size</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			{#if data.servers && data.servers.length > 0}
+				{#each data.servers as server}
+					<tr class="group">
+						<td>
+							{#if "error" in server && server.error}
+								<span class="error">
+									<span class="badge badge-danger" title={server.error.message}>Error</span>
+									{serverName(server.name)}
+								</span>
+							{:else}
+								<a href="/servers/{encodeURIComponent(serverName(server.name))}/databases">
+									{serverName(server.name)}
+								</a>
+							{/if}
+						</td>
+						<td>
+							{#if "databases" in server && server.databases}
+								<span class="dotted" title="Databases">{server.databases.length}</span>
+							{/if}
+						</td>
+						<td>
+							{#if "size" in server && server.size !== undefined}
+								{formatBytes(server.size)}
+							{/if}
+						</td>
+						<td class="actions" style="width: 140px">
+							<button
+								class="btn btn-outline-danger btn-sm -my-2 hidden group-hover:inline"
+								onclick={() => openRemoveModal(server)}
+							>
+								Remove from list
+							</button>
 						</td>
 					</tr>
-				{/if}
-			</tbody>
-		</table>
-	</Panel>
-</div>
+				{/each}
+			{:else}
+				<tr>
+					<td colspan="4">
+						<div class="center">No servers...</div>
+					</td>
+				</tr>
+			{/if}
+		</tbody>
+	</table>
+</Panel>
 
 {#if showRemoveModal}
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -176,10 +174,6 @@
 {/if}
 
 <style lang="postcss">
-	.servers-page {
-		padding: 40px 0;
-	}
-
 	input[type="text"] {
 		min-width: 400px;
 	}

@@ -77,24 +77,16 @@
 	}
 </script>
 
-<div class="document-page">
-	<Panel>
-		<div class="title">
-			<span>Document</span>
-		</div>
+<Panel>
+	<div class="title">
+		<span>Document</span>
+	</div>
 
-		{#if loading}
-			<div class="loading">Loading...</div>
-		{:else if item}
-			<PrettyJson json={item} readOnly={data.readOnly} onedit={editDocument} onremove={removeDocument} />
-		{:else}
-			<div class="center">Document not found</div>
-		{/if}
-	</Panel>
-</div>
-
-<style lang="postcss">
-	.document-page {
-		padding: 40px 0;
-	}
-</style>
+	{#if loading}
+		<div class="loading">Loading...</div>
+	{:else if item}
+		<PrettyJson json={item} readOnly={data.readOnly} onedit={editDocument} onremove={removeDocument} />
+	{:else}
+		<div class="center">Document not found</div>
+	{/if}
+</Panel>

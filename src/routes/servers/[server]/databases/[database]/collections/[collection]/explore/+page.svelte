@@ -125,49 +125,43 @@
 	}
 </script>
 
-<div class="explore-page">
-	<SearchBox {params} onsearch={update} />
+<SearchBox {params} onsearch={update} />
 
-	<Panel>
-		<div class="infos">
-			<div class="summary">
-				{#if count.total > 0}
-					<span>{formatNumber(count.start + 1)} - {formatNumber(count.start + items.length)} of </span>
-				{/if}
-				{formatNumber(count.total)} Documents
-			</div>
-			<div class="actions">
-				{#if hasPrevious}
-					<button class="btn btn-default" onclick={previous}>Previous</button>
-				{/if}
-				{#if hasNext}
-					<button class="btn btn-default" onclick={next}>Next</button>
-				{/if}
-			</div>
+<Panel>
+	<div class="infos">
+		<div class="summary">
+			{#if count.total > 0}
+				<span>{formatNumber(count.start + 1)} - {formatNumber(count.start + items.length)} of </span>
+			{/if}
+			{formatNumber(count.total)} Documents
 		</div>
-	</Panel>
+		<div class="actions">
+			{#if hasPrevious}
+				<button class="btn btn-default" onclick={previous}>Previous</button>
+			{/if}
+			{#if hasNext}
+				<button class="btn btn-default" onclick={next}>Next</button>
+			{/if}
+		</div>
+	</div>
+</Panel>
 
-	{#if loading.content}
-		<div class="loading">Loading...</div>
-	{:else}
-		{#each items as item (item._id?.$value)}
-			<PrettyJson
-				json={item}
-				autoCollapse={true}
-				readOnly={data.readOnly}
-				ongo={goToDocument}
-				onedit={(json) => editDocument(item._id, json)}
-				onremove={() => removeDocument(item._id)}
-			/>
-		{/each}
-	{/if}
-</div>
+{#if loading.content}
+	<div class="loading">Loading...</div>
+{:else}
+	{#each items as item (item._id?.$value)}
+		<PrettyJson
+			json={item}
+			autoCollapse={true}
+			readOnly={data.readOnly}
+			ongo={goToDocument}
+			onedit={(json) => editDocument(item._id, json)}
+			onremove={() => removeDocument(item._id)}
+		/>
+	{/each}
+{/if}
 
 <style lang="postcss">
-	.explore-page {
-		padding: 40px 0;
-	}
-
 	.infos {
 		display: flex;
 		justify-content: space-between;

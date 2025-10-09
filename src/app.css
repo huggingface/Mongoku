@@ -2,16 +2,18 @@
 @import "@fontsource/cuprum";
 @import "@fontsource/rajdhani";
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
 	--color-1: hsl(216, 26%, 15%);
+	--color-1-5: hsl(218, 25%, 18%);
 	--color-2: hsl(220, 23%, 21%);
 	--color-3: hsl(217, 20%, 25%);
 	--color-4: hsl(220, 20%, 30%);
 
 	--background-color: var(--color-1);
-	--panel-bg: var(--color-2);
-	--panel-title: var(--color-2);
-	--panel-body: var(--color-2);
 	--border-color: var(--color-3);
 
 	--text: hsl(0, 0%, 88%);
@@ -37,12 +39,8 @@
 	--code-summary: #6a9955;
 	--code-regexp: #ce696b;
 	--code-function: #dcdcaa;
-}
 
-* {
-	box-sizing: border-box;
-	margin: 0;
-	padding: 0;
+	--border: 1px solid var(--color-3);
 }
 
 body {
@@ -59,29 +57,6 @@ body {
 .container {
 	margin: 0 auto;
 	padding: 0 20px;
-}
-
-.navbar {
-	background-color: var(--color-2);
-	border-bottom: 1px solid var(--color-3);
-	padding: 15px 0;
-}
-
-.navbar-content {
-	display: flex;
-	align-items: center;
-}
-
-.navbar-brand {
-	font-size: 25px;
-	color: var(--text);
-	text-decoration: none;
-	font-weight: 500;
-}
-
-a {
-	color: var(--link);
-	text-decoration: none;
 }
 
 a:hover {
@@ -182,7 +157,10 @@ textarea:focus {
 .table {
 	width: 100%;
 	border-collapse: collapse;
-	margin-top: 10px;
+}
+
+.table thead tr {
+	background-color: var(--color-3);
 }
 
 .table th,
@@ -198,7 +176,7 @@ textarea:focus {
 }
 
 .table tbody tr:hover {
-	background-color: var(--color-3);
+	background-color: var(--color-1-5);
 }
 
 .table .actions {

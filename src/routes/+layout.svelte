@@ -7,17 +7,20 @@
 </script>
 
 <div class="app">
-	<nav class="navbar">
-		<div class="container">
-			<div class="navbar-content">
-				<a href="/" class="navbar-brand">Mongoku</a>
-				<Breadcrumbs />
-			</div>
-		</div>
+	<nav class="navbar px-8 py-4 flex items-center mb-4">
+		<a href="/" class="text-2xl font-medium">Mongoku</a>
+		<Breadcrumbs />
 	</nav>
 
-	<div class="container">
+	<div class="px-8">
 		<Notifications />
 		{@render children()}
 	</div>
 </div>
+
+<style lang="postcss">
+	.navbar {
+		background-color: var(--color-2);
+		border-bottom: var(--border);
+	}
+</style>
