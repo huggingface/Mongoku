@@ -3,8 +3,8 @@ import type { MongoDocument } from "$lib/types";
 
 export const load: PageLoad = async ({ params, url, fetch }) => {
 	const query = url.searchParams.get("query") || "{}";
-	const sort = url.searchParams.get("sort") || "";
-	const project = url.searchParams.get("project") || "";
+	const sort = url.searchParams.get("sort") || "{}";
+	const project = url.searchParams.get("project") || "{}";
 	const skip = parseInt(url.searchParams.get("skip") || "0", 10);
 	const limit = parseInt(url.searchParams.get("limit") || "20", 10);
 
