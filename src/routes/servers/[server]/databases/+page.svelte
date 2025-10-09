@@ -33,7 +33,7 @@
 							{#if database.collections}
 								<TooltipTable
 									columns={[
-										{ header: "Collection", key: "name", align: "left", maxWidth: "150px" },
+										{ header: "Collection", key: "name", align: "left" },
 										{ header: "Size", key: "size", align: "right", formatter: formatBytes },
 									]}
 									rows={database.collections.map((collection) => ({
@@ -48,6 +48,7 @@
 						<td>
 							{#if database.size !== undefined}
 								<TooltipTable
+									hideHeader
 									columns={[
 										{ header: "Metric", key: "metric", align: "left" },
 										{ header: "Value", key: "value", align: "right" },

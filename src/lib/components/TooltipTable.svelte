@@ -5,7 +5,6 @@
 		header: string;
 		key: string;
 		align?: "left" | "right" | "center";
-		maxWidth?: string;
 		formatter?: (value: any) => string;
 	}
 
@@ -17,10 +16,12 @@
 		columns,
 		rows,
 		children,
+		hideHeader,
 	}: {
 		columns: TableColumn[];
 		rows: TableRow[];
 		children: Snippet;
+		hideHeader?: boolean;
 	} = $props();
 
 	let showTooltip = $state(false);
@@ -89,7 +90,7 @@
 	</button>
 	{#if showTooltip}
 		<div
-			class="absolute bg-[var(--color-2)] border border-[var(--color-3)] rounded p-0 z-[1000] opacity-100 visible pointer-events-none whitespace-nowrap max-w-[300px] shadow-lg"
+			class="absolute bg-[var(--color-2)] border border-[var(--color-3)] rounded p-0 z-[1000] whitespace-nowrap shadow-lg"
 			bind:this={tooltipElement}
 			style:left={tooltipPosition.left}
 			style:right={tooltipPosition.right}
@@ -98,21 +99,23 @@
 			style:margin-top={tooltipPosition.marginTop}
 			style:margin-bottom={tooltipPosition.marginBottom}
 		>
-			<table class="w-full border-collapse text-base">
-				<thead>
-					<tr>
-						{#each columns as column}
-							<th
-								class="px-2 py-1 border-b border-[var(--color-3)] bg-[var(--color-4)] font-bold"
-								class:text-left={column.align === "left" || !column.align}
-								class:text-right={column.align === "right"}
-								class:text-center={column.align === "center"}
-							>
-								{column.header}
-							</th>
-						{/each}
-					</tr>
-				</thead>
+			<table class="w-full border-collapse text-base font-medium">
+				{#if !hideHeader}
+					<thead>
+						<tr>
+							{#each columns as column}
+								<th
+									class="px-2 py-1 border-b border-[var(--color-3)] bg-[var(--color-4)] font-bold"
+									class:text-left={column.align === "left" || !column.align}
+									class:text-right={column.align === "right"}
+									class:text-center={column.align === "center"}
+								>
+									{column.header}
+								</th>
+							{/each}
+						</tr>
+					</thead>
+				{/if}
 				<tbody>
 					{#each rows as row}
 						<tr>
@@ -122,10 +125,6 @@
 									class:text-left={column.align === "left" || !column.align}
 									class:text-right={column.align === "right"}
 									class:text-center={column.align === "center"}
-									class:max-w-[150px]={column.maxWidth === "150px"}
-									class:overflow-hidden={column.maxWidth === "150px"}
-									class:text-ellipsis={column.maxWidth === "150px"}
-									style:max-width={column.maxWidth && column.maxWidth !== "150px" ? column.maxWidth : ""}
 								>
 									{column.formatter ? column.formatter(row[column.key]) : row[column.key]}
 								</td>

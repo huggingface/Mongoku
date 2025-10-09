@@ -14,6 +14,11 @@ export interface CollectionJSON {
 	indexSizes: {
 		[name: string]: number;
 	};
+	indexes: Array<{
+		name: string;
+		key?: Record<string, number>;
+		size: number;
+	}>;
 }
 
 export class Collection {
@@ -141,6 +146,25 @@ export class Collection {
 			stats.indexSizes = agg.storageStats.indexSizes;
 		}
 
+		// Get index definitions
+		let indexes: Array<{ name: string; key?: Record<string, number>; size: number }> = [];
+		if (this._type !== "view") {
+			try {
+				const indexList = await this._collection.listIndexes().toArray();
+				indexes = indexList.map((index: { name: string; key: Record<string, number> }) => ({
+					name: index.name,
+					key: index.key,
+					size: (stats.indexSizes as Record<string, number>)[index.name] || 0,
+				}));
+			} catch {
+				// If we can't get index details, fall back to indexSizes
+				indexes = Object.entries(stats.indexSizes).map(([name, size]) => ({
+					name,
+					size: size as number,
+				}));
+			}
+		}
+
 		return {
 			name: this.name,
 			size: (stats.storageSize ?? 0) + (stats.totalIndexSize ?? 0),
@@ -152,6 +176,7 @@ export class Collection {
 			nIndexes: stats.nindexes,
 			totalIndexSize: stats.totalIndexSize ?? 0,
 			indexSizes: stats.indexSizes,
+			indexes,
 		};
 	}
 }

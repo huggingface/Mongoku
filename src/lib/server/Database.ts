@@ -45,7 +45,6 @@ export class Database {
 	}
 
 	async toJson() {
-		let totalObjSize = 0;
 		let totalObjNr = 0;
 		let storageSize = 0;
 		let indexSize = 0;
@@ -55,7 +54,6 @@ export class Database {
 		const csJson = await Promise.all(collections.map((collection) => collection.toJson()));
 
 		for (const json of csJson) {
-			totalObjSize += json.avgObjSize * json.count;
 			totalObjNr += json.count;
 			storageSize += json.storageSize;
 			indexSize += json.totalIndexSize;
@@ -67,7 +65,7 @@ export class Database {
 			name: this.name,
 			size: this.size,
 			dataSize: dataSize,
-			avgObjSize: Math.round(totalObjSize / totalObjNr),
+			avgObjSize: Math.round(storageSize / totalObjNr),
 			storageSize: storageSize,
 			totalIndexSize: indexSize,
 			empty: this.empty,
