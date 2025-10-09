@@ -4,6 +4,7 @@
 	const INDENT = "    ";
 
 	interface Props {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		value: any;
 		key?: string;
 		/** are sub items collapsed by default*/
@@ -28,6 +29,7 @@
 		return /^https?:\/\/[^\s]+$/.test(str);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	function getValueType(val: any): string {
 		if (val === null) return "null";
 		if (Array.isArray(val)) return "array";
@@ -78,6 +80,7 @@
 		<span class="value quoted">
 			"<span class="string" class:url={isUrl(value)}>
 				{#if isUrl(value)}
+					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 					<a href={value} target="_blank">{value}</a>
 				{:else}
 					{value}
@@ -105,7 +108,7 @@
 					{collapsed ? "▶" : "▼"}
 				</button><span class="value array">
 					[<span class="collapsible-content" class:hidden={collapsed}>
-						{#each value as item, i}
+						{#each value as item, i (i)}
 							<br />{getIndent(depth + 1)}<JsonValue
 								value={item}
 								{autoCollapse}
@@ -128,7 +131,7 @@
 						{collapsed ? "▶" : "▼"}
 					</button>{/if}<span class="value object">
 					{"{"}<span class="collapsible-content" class:hidden={collapsed}
-						>{#each Object.keys(value) as objKey}
+						>{#each Object.keys(value) as objKey (objKey)}
 							<JsonValue value={value[objKey]} key={objKey} {autoCollapse} collapsed={autoCollapse} {depth} />{/each}
 					</span>{#if collapsed}
 						<span class="collapsed-summary"
@@ -136,7 +139,7 @@
 						>
 					{:else}
 						{getIndent(depth)}
-					{/if}{"}"}
+					{/if}}
 				</span>
 			</span>
 		{/if}

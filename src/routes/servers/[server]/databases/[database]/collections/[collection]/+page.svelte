@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
+	import { resolve } from "$app/paths";
 	import Panel from "$lib/components/Panel.svelte";
 	import PrettyJson from "$lib/components/PrettyJson.svelte";
 	import SearchBox from "$lib/components/SearchBox.svelte";
@@ -31,6 +32,7 @@
 	});
 
 	async function update() {
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity
 		const queryParams = new URLSearchParams();
 		queryParams.set("query", params.query || "{}");
 		queryParams.set("sort", params.sort || "");
@@ -39,12 +41,14 @@
 		queryParams.set("limit", String(params.limit));
 
 		await goto(
-			`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}?${queryParams.toString()}`,
+			resolve(
+				`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}?${queryParams.toString()}`,
+			),
 			{ invalidateAll: true },
 		);
 	}
 
-	async function editDocument(_id: any, json: any) {
+	async function editDocument(_id: { $value?: string } | undefined, json: MongoDocument) {
 		const partial = params.project && params.project !== "{}" && Object.keys(JSON.parse(params.project)).length > 0;
 		const newId = json?._id?.$value;
 		const oldId = _id?.$value;
@@ -78,12 +82,12 @@
 				const error = await response.text();
 				notificationStore.notifyError(error || "Failed to update document");
 			}
-		} catch (error: any) {
-			notificationStore.notifyError(error.message || "Failed to update document");
+		} catch (error) {
+			notificationStore.notifyError(error instanceof Error ? error.message : "Failed to update document");
 		}
 	}
 
-	async function removeDocument(_id: any) {
+	async function removeDocument(_id: { $value?: string } | undefined) {
 		const documentId = _id?.$value;
 		if (!documentId) return;
 
@@ -100,8 +104,8 @@
 				const error = await response.text();
 				notificationStore.notifyError(error || "Failed to remove document");
 			}
-		} catch (error: any) {
-			notificationStore.notifyError(error.message || "Failed to remove document");
+		} catch (error) {
+			notificationStore.notifyError(error instanceof Error ? error.message : "Failed to remove document");
 		}
 	}
 

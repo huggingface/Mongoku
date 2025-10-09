@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from "$app/paths";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import type { MongoDocument } from "$lib/types";
 	import { parseJSON } from "$lib/utils/jsonParser";
@@ -131,7 +132,9 @@
 				<a
 					type="button"
 					class="bg-transparent border-none text-[var(--text)] no-underline cursor-pointer text-xl font-inherit p-0 hover:underline"
-					href={`/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(collection)}/documents/${json._id?.$value}`}
+					href={resolve(
+						`/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(collection)}/documents/${json._id?.$value}`,
+					)}
 				>
 					{json._id?.$value}
 				</a>

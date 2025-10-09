@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from "$app/paths";
 	import Panel from "$lib/components/Panel.svelte";
 	import TooltipTable from "$lib/components/TooltipTable.svelte";
 	import { formatBytes, formatNumber } from "$lib/utils/filters";
@@ -19,15 +20,15 @@
 		</thead>
 		<tbody>
 			{#if data.collections && data.collections.length > 0}
-				{#each data.collections as collection}
+				{#each data.collections as collection (collection.name)}
 					<tr>
 						<td>
 							<a
-								href="/servers/{encodeURIComponent(data.server)}/databases/{encodeURIComponent(
+								href={resolve(`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(
 									data.database,
 								)}/collections/{encodeURIComponent(collection.name)}?query={encodeURIComponent(
 									'{}',
-								)}&sort=&project=&skip=0&limit=20"
+								)}&sort=&project=&skip=0&limit=20`)}
 							>
 								{collection.name}
 							</a>
@@ -42,11 +43,11 @@
 								<TooltipTable
 									columns={[
 										{ header: "Index", key: "definition", align: "left" },
-										{ header: "Size", key: "size", align: "right", formatter: formatBytes },
+										{ header: "Size", key: "size", align: "right" },
 									]}
 									rows={(collection.indexes || []).map((index) => ({
 										definition: index.key ? JSON.stringify(index.key, null, 1) : index.name,
-										size: index.size,
+										size: formatBytes(index.size),
 									}))}
 								>
 									{formatNumber(collection.nIndexes)}

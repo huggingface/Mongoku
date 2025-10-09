@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { invalidateAll } from "$app/navigation";
+	import { resolve } from "$app/paths";
 	import Panel from "$lib/components/Panel.svelte";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import { formatBytes, serverName } from "$lib/utils/filters";
@@ -7,11 +8,13 @@
 
 	let { data }: { data: PageData } = $props();
 
+	type Server = PageData["servers"][number];
+
 	let adding = $state(false);
 	let newServer = $state("");
 	let loading = $state(false);
 	let showRemoveModal = $state(false);
-	let serverToRemove = $state<any>(null);
+	let serverToRemove = $state<Server | null>(null);
 
 	async function addServer() {
 		if (!newServer) return;
@@ -34,14 +37,14 @@
 				const error = await response.text();
 				notificationStore.notifyError(error || "Failed to add server");
 			}
-		} catch (error: any) {
-			notificationStore.notifyError(error.message || "Failed to add server");
+		} catch (error) {
+			notificationStore.notifyError(error instanceof Error ? error.message : "Failed to add server");
 		} finally {
 			loading = false;
 		}
 	}
 
-	function openRemoveModal(server: any) {
+	function openRemoveModal(server: Server) {
 		serverToRemove = server;
 		showRemoveModal = true;
 	}
@@ -68,8 +71,8 @@
 				const error = await response.text();
 				notificationStore.notifyError(error || "Failed to remove server");
 			}
-		} catch (error: any) {
-			notificationStore.notifyError(error.message || "Failed to remove server");
+		} catch (error) {
+			notificationStore.notifyError(error instanceof Error ? error.message : "Failed to remove server");
 		}
 	}
 
@@ -121,7 +124,7 @@
 									{serverName(server.name)}
 								</span>
 							{:else}
-								<a href="/servers/{encodeURIComponent(serverName(server.name))}/databases">
+								<a href={resolve(`/servers/${encodeURIComponent(serverName(server.name))}/databases`)}>
 									{serverName(server.name)}
 								</a>
 							{/if}

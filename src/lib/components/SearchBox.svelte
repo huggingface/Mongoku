@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
+	import { resolve } from "$app/paths";
 	import { page } from "$app/state";
 	import type { SearchParams } from "$lib/types";
 
@@ -30,11 +31,14 @@
 		counter++;
 		const formData = new FormData(form);
 		await goto(
-			page.url.pathname +
-				"?" +
-				[...formData.entries()]
-					.map((e) => encodeURIComponent(e[0]) + "=" + encodeURIComponent(e[1] as string))
-					.join("&"),
+			resolve(
+				(page.url.pathname +
+					"?" +
+					[...formData.entries()]
+						.map((e) => encodeURIComponent(e[0]) + "=" + encodeURIComponent(e[1] as string))
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						.join("&")) as any,
+			),
 			{
 				keepFocus: true,
 			},

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from "$app/paths";
 	import Panel from "$lib/components/Panel.svelte";
 	import TooltipTable from "$lib/components/TooltipTable.svelte";
 	import { formatBytes } from "$lib/utils/filters";
@@ -18,13 +19,15 @@
 		</thead>
 		<tbody>
 			{#if data.databases && data.databases.length > 0}
-				{#each data.databases as database}
+				{#each data.databases as database (database.name)}
 					<tr>
 						<td>
 							<a
-								href="/servers/{encodeURIComponent(data.server)}/databases/{encodeURIComponent(
-									database.name,
-								)}/collections"
+								href={resolve(
+									`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(
+										database.name,
+									)}/collections`,
+								)}
 							>
 								{database.name}
 							</a>
@@ -34,11 +37,11 @@
 								<TooltipTable
 									columns={[
 										{ header: "Collection", key: "name", align: "left" },
-										{ header: "Size", key: "size", align: "right", formatter: formatBytes },
+										{ header: "Size", key: "size", align: "right" },
 									]}
 									rows={database.collections.map((collection) => ({
 										name: collection.name,
-										size: collection.size,
+										size: formatBytes(collection.size),
 									}))}
 								>
 									{database.collections.length}

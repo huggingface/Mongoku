@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from "$app/paths";
 	import Breadcrumbs from "$lib/components/Breadcrumbs.svelte";
 	import Notifications from "$lib/components/Notifications.svelte";
 	import "../app.css";
@@ -8,7 +9,7 @@
 
 <div style="min-height: 100vh">
 	<nav class="navbar px-6 py-4 flex items-center">
-		<a href="/" class="text-2xl font-medium">Mongoku</a>
+		<a href={resolve("/")} class="text-2xl font-medium">Mongoku</a>
 		<Breadcrumbs />
 	</nav>
 

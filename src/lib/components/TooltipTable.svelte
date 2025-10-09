@@ -5,11 +5,10 @@
 		header: string;
 		key: string;
 		align?: "left" | "right" | "center";
-		formatter?: (value: any) => string;
 	}
 
 	interface TableRow {
-		[key: string]: any;
+		[key: string]: unknown;
 	}
 
 	let {
@@ -103,7 +102,7 @@
 				{#if !hideHeader}
 					<thead>
 						<tr>
-							{#each columns as column}
+							{#each columns as column, index (index)}
 								<th
 									class="px-2 py-1 border-b border-[var(--color-3)] bg-[var(--color-4)] font-bold"
 									class:text-left={column.align === "left" || !column.align}
@@ -117,16 +116,16 @@
 					</thead>
 				{/if}
 				<tbody>
-					{#each rows as row}
+					{#each rows as row, index (index)}
 						<tr>
-							{#each columns as column}
+							{#each columns as column, index (index)}
 								<td
 									class="px-2 py-1 border-b border-[var(--color-3)]"
 									class:text-left={column.align === "left" || !column.align}
 									class:text-right={column.align === "right"}
 									class:text-center={column.align === "center"}
 								>
-									{column.formatter ? column.formatter(row[column.key]) : row[column.key]}
+									{row[column.key]}
 								</td>
 							{/each}
 						</tr>

@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { page } from "$app/stores";
+	import { resolve } from "$app/paths";
+	import { page } from "$app/state";
 	import { serverName } from "$lib/utils/filters";
 
 	interface BreadcrumbItem {
@@ -64,16 +65,17 @@
 		return breadcrumbs;
 	}
 
-	$: breadcrumbs = getBreadcrumbs($page.url.pathname, $page.params);
+	const breadcrumbs = $derived(getBreadcrumbs(page.url.pathname, page.params));
 </script>
 
 {#if breadcrumbs.length > 0}
 	<nav class="breadcrumbs" aria-label="Breadcrumb">
 		<ol class="breadcrumb-list">
-			{#each breadcrumbs as crumb, index}
+			{#each breadcrumbs as crumb, index (index)}
 				<li class="breadcrumb-item">
 					{#if crumb.href && index < breadcrumbs.length - 1}
-						<a href={crumb.href} class="breadcrumb-link">{crumb.label}</a>
+						<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
+						<a href={resolve(crumb.href as any)} class="breadcrumb-link">{crumb.label}</a>
 					{:else}
 						<span class="breadcrumb-current">{crumb.label}</span>
 					{/if}

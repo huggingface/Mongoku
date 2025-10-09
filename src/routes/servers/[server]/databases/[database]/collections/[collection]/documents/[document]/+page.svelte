@@ -1,19 +1,17 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
+	import { resolve } from "$app/paths";
 	import PrettyJson from "$lib/components/PrettyJson.svelte";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
+	import type { MongoDocument } from "$lib/types";
 	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
 
 	let loading = $state(false);
-	let item = $state(data.document);
+	let item = $derived(data.document);
 
-	$effect(() => {
-		item = data.document;
-	});
-
-	async function editDocument(json: any) {
+	async function editDocument(json: MongoDocument) {
 		const newId = json?._id?.$value;
 		const oldId = item?._id?.$value;
 
@@ -43,8 +41,8 @@
 				const error = await response.text();
 				notificationStore.notifyError(error || "Failed to update document");
 			}
-		} catch (error: any) {
-			notificationStore.notifyError(error.message || "Failed to update document");
+		} catch (error) {
+			notificationStore.notifyError(error instanceof Error ? error.message : "Failed to update document");
 		} finally {
 			loading = false;
 		}
@@ -64,14 +62,16 @@
 				notificationStore.notifySuccess("Document removed successfully");
 				// Navigate back to the collection explore page
 				goto(
-					`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}?query=${encodeURIComponent("{}")}&sort=&project=&skip=0&limit=20`,
+					resolve(
+						`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}?query=${encodeURIComponent("{}")}&sort=&project=&skip=0&limit=20`,
+					),
 				);
 			} else {
 				const error = await response.text();
 				notificationStore.notifyError(error || "Failed to remove document");
 			}
-		} catch (error: any) {
-			notificationStore.notifyError(error.message || "Failed to remove document");
+		} catch (error) {
+			notificationStore.notifyError(error instanceof Error ? error.message : "Failed to remove document");
 		}
 	}
 </script>
