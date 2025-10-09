@@ -114,7 +114,8 @@ export class Collection {
 						},
 					},
 				])
-				.next()) as {
+				.next()
+				.catch(() => null)) as {
 				ns: string;
 				host: string;
 				localTime: Date;
@@ -135,15 +136,18 @@ export class Collection {
 					scaleFactor: number;
 				};
 				count: number;
-			};
-			stats.size = agg.storageStats.size;
-			stats.count = agg.storageStats.count;
-			stats.avgObjSize = Math.round(agg.storageStats.size / agg.storageStats.count);
-			stats.storageSize = agg.storageStats.storageSize;
-			stats.capped = agg.storageStats.capped;
-			stats.nindexes = agg.storageStats.nindexes;
-			stats.totalIndexSize = agg.storageStats.totalIndexSize;
-			stats.indexSizes = agg.storageStats.indexSizes;
+			} | null;
+
+			if (agg) {
+				stats.size = agg.storageStats.size;
+				stats.count = agg.storageStats.count;
+				stats.avgObjSize = Math.round(agg.storageStats.size / agg.storageStats.count);
+				stats.storageSize = agg.storageStats.storageSize;
+				stats.capped = agg.storageStats.capped;
+				stats.nindexes = agg.storageStats.nindexes;
+				stats.totalIndexSize = agg.storageStats.totalIndexSize;
+				stats.indexSizes = agg.storageStats.indexSizes;
+			}
 		}
 
 		// Get index definitions

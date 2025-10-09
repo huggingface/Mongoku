@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { goto } from "$app/navigation";
+	import { page } from "$app/state";
 	import type { SearchParams } from "$lib/types";
 
 	interface Props {
@@ -11,9 +13,38 @@
 	let showOptionalFields = $state(
 		params.sort !== "{}" || params.project !== "{}" || params.skip !== 0 || params.limit !== 20,
 	);
+
+	let counter = $state(Math.random());
+
+	let queryInput: HTMLInputElement | undefined;
+
+	$effect(() => {
+		if (queryInput) {
+			queryInput.setSelectionRange(1, 1 /* queryInput.value.length - 1 */);
+			queryInput.focus();
+		}
+	});
+
+	async function submit(event: SubmitEvent) {
+		event.preventDefault();
+		counter++;
+		const formData = new FormData(form);
+		await goto(
+			page.url.pathname +
+				"?" +
+				[...formData.entries()]
+					.map((e) => encodeURIComponent(e[0]) + "=" + encodeURIComponent(e[1] as string))
+					.join("&"),
+			{
+				keepFocus: true,
+			},
+		);
+	}
+
+	let form: HTMLFormElement | undefined;
 </script>
 
-<form class="flex items-stretch w-full" method="GET" action="?">
+<form class="flex items-stretch w-full" method="GET" action="?" onsubmit={submit} bind:this={form}>
 	<!-- Parameters group -->
 	<div class="flex-grow">
 		<!-- Query input (always shown) -->
@@ -27,6 +58,7 @@
 			</div>
 			<input
 				type="text"
+				bind:this={queryInput}
 				bind:value={params.query}
 				placeholder={"{}"}
 				name="query"
@@ -34,6 +66,7 @@
 			/>
 		</div>
 
+		<input type="hidden" value={counter} name="v" />
 		<!-- Sort input -->
 		{#if showOptionalFields}
 			<div class="flex items-stretch w-full h-10">
