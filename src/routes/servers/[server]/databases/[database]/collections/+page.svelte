@@ -24,11 +24,13 @@
 					<tr>
 						<td>
 							<a
-								href={resolve(`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(
-									data.database,
-								)}/collections/{encodeURIComponent(collection.name)}?query={encodeURIComponent(
-									'{}',
-								)}&sort=&project=&skip=0&limit=20`)}
+								href={resolve(
+									`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(
+										data.database,
+									)}/collections/${encodeURIComponent(collection.name)}?query=${encodeURIComponent(
+										"{}",
+									)}&sort=&project=&skip=0&limit=20`,
+								)}
 							>
 								{collection.name}
 							</a>
