@@ -33,20 +33,22 @@
 							</a>
 						</td>
 						<td>
-							{#if database.collections}
+							{#await database.collections}
+								{database.nCollections}
+							{:then collections}
 								<TooltipTable
 									columns={[
 										{ header: "Collection", key: "name", align: "left" },
 										{ header: "Size", key: "size", align: "right" },
 									]}
-									rows={database.collections.map((collection) => ({
+									rows={collections.map((collection) => ({
 										name: collection.name,
 										size: formatBytes(collection.size),
 									}))}
 								>
-									{database.collections.length}
+									{database.nCollections}
 								</TooltipTable>
-							{/if}
+							{/await}
 						</td>
 						<td>
 							{#if database.size !== undefined}

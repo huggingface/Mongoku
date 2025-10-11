@@ -1,4 +1,5 @@
 import { getCollectionJson, getMongo } from "$lib/server/mongo";
+import type { CollectionJSON, DatabaseStats } from "$lib/types";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -25,28 +26,24 @@ export const load: PageServerLoad = async ({ params }) => {
 	const databases = await Promise.all(
 		results.databases.map(async (d) => {
 			const db = client.db(d.name);
-			const collections = await db.listCollections().toArray();
+			const dbStats = (await db.stats()) as DatabaseStats;
 
-			const collectionsJson = await Promise.all(
-				collections.map((c) => getCollectionJson(db.collection(c.name), c.type)),
-			);
-
-			collectionsJson.sort((a, b) => a.name.localeCompare(b.name));
-
-			const totalObjNr = collectionsJson.reduce((sum, c) => sum + c.count, 0);
-			const storageSize = collectionsJson.reduce((sum, c) => sum + c.storageSize, 0);
-			const indexSize = collectionsJson.reduce((sum, c) => sum + c.totalIndexSize, 0);
-			const dataSize = collectionsJson.reduce((sum, c) => sum + c.dataSize, 0);
+			const collectionsJson = db
+				.listCollections()
+				.toArray()
+				.then((c) => c.sort((a, b) => a.name.localeCompare(b.name)))
+				.then((c) => Promise.all(c.map((c) => getCollectionJson(db.collection(c.name), c.type))));
 
 			return {
 				name: db.databaseName,
 				size: d.sizeOnDisk ?? 0,
-				dataSize,
-				avgObjSize: Math.round(storageSize / totalObjNr) || 0,
-				storageSize,
-				totalIndexSize: indexSize,
+				dataSize: dbStats.dataSize,
+				avgObjSize: dbStats.avgObjSize,
+				storageSize: dbStats.storageSize,
+				totalIndexSize: dbStats.indexSize,
 				empty: d.empty ?? true,
-				collections: collectionsJson,
+				nCollections: dbStats.collections,
+				collections: collectionsJson.catch(() => [] as CollectionJSON[]),
 			};
 		}),
 	);
