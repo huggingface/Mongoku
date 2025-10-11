@@ -119,39 +119,53 @@
 				{#each data.servers as server}
 					<tr class="group">
 						<td>
-							{#if "error" in server && server.error}
-								<span class="error">
-									<span class="badge badge-danger" title={server.error.message}>Error</span>
+							{#await server.details}
+								<span>
 									{serverName(server.name)}
 								</span>
-							{:else}
-								<a href={resolve(`/servers/${encodeURIComponent(serverName(server.name))}/databases`)}>
-									{serverName(server.name)}
-								</a>
-							{/if}
+							{:then details}
+								{#if "error" in details && details.error}
+									<span class="error">
+										<span class="badge badge-danger" title={details.error.message}>Error</span>
+										{serverName(server.name)}
+									</span>
+								{:else}
+									<a href={resolve(`/servers/${encodeURIComponent(serverName(server.name))}/databases`)}>
+										{serverName(server.name)}
+									</a>
+								{/if}
+							{/await}
 						</td>
 						<td>
-							{#if "databases" in server && server.databases}
-								<TooltipTable
-									columns={[
-										{ header: "Database", key: "name" },
-										{ header: "Collections", key: "collections" },
-										{ header: "Size", key: "size" },
-									]}
-									rows={server.databases.map((db) => ({
-										name: db.name,
-										collections: db.collections,
-										size: formatBytes(db.size),
-									}))}
-								>
-									{server.databases.length}
-								</TooltipTable>
-							{/if}
+							{#await server.details}
+								<span class="text-gray-400">...</span>
+							{:then details}
+								{#if "databases" in details && details.databases}
+									<TooltipTable
+										columns={[
+											{ header: "Database", key: "name" },
+											{ header: "Collections", key: "collections" },
+											{ header: "Size", key: "size" },
+										]}
+										rows={details.databases.map((db) => ({
+											name: db.name,
+											collections: db.collections,
+											size: formatBytes(db.size),
+										}))}
+									>
+										{details.databases.length}
+									</TooltipTable>
+								{/if}
+							{/await}
 						</td>
 						<td>
-							{#if "size" in server && server.size !== undefined}
-								{formatBytes(server.size)}
-							{/if}
+							{#await server.details}
+								<span class="text-gray-400">...</span>
+							{:then details}
+								{#if "size" in details && details.size !== undefined}
+									{formatBytes(details.size)}
+								{/if}
+							{/await}
 						</td>
 						<td style="width: 140px">
 							<button

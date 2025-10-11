@@ -1,7 +1,7 @@
 import type { CollectionJSON } from "$lib/types";
-import { MongoClient, MongoError, type Collection } from "mongodb";
+import { MongoClient, type Collection } from "mongodb";
 import { URL } from "url";
-import { HostsManager, type Host } from "./HostsManager";
+import { HostsManager } from "./HostsManager";
 
 export async function getCollectionJson(
 	collection: Collection,
@@ -88,7 +88,7 @@ export async function getCollectionJson(
 }
 
 class MongoConnections {
-	private clients: Map<string, MongoClient | MongoError> = new Map();
+	private clients: Map<string, MongoClient> = new Map();
 	private hostsManager: HostsManager;
 	private countTimeout = parseInt(process.env.MONGOKU_COUNT_TIMEOUT!, 10) || 5000;
 
@@ -99,55 +99,25 @@ class MongoConnections {
 	async initialize() {
 		await this.hostsManager.load();
 		const hosts = await this.hostsManager.getHosts();
-		await Promise.all(hosts.map((h: Host) => this.connect(h)));
-	}
 
-	private async connect(host: Host) {
-		const urlStr = host.path.startsWith("mongodb") ? host.path : `mongodb://${host.path}`;
-		const url = new URL(urlStr);
-		const hostname = url.host || host.path;
+		// Create MongoClient instances without connecting (lazy connection)
+		for (const host of hosts) {
+			const urlStr = host.path.startsWith("mongodb") ? host.path : `mongodb://${host.path}`;
+			try {
+				const url = new URL(urlStr);
+				const hostname = url.host || host.path;
 
-		if (this.clients.get(hostname) instanceof MongoClient) {
-			// Already connected
-			return;
-		}
-
-		try {
-			const client = new MongoClient(urlStr);
-			await client.connect();
-			this.clients.set(hostname, client);
-			console.info(`[${hostname}] Connected to ${hostname}`);
-			await this.checkAuth(hostname);
-		} catch (err) {
-			if (err instanceof MongoError) {
-				console.error(`Error while connecting to ${hostname}:`, err.code, err.message);
-				this.clients.set(hostname, err);
-			} else {
-				throw err;
-			}
-		}
-	}
-
-	private async checkAuth(name: string) {
-		const client = this.getClient(name);
-		if (client instanceof Error) {
-			return;
-		}
-
-		try {
-			await client.db("test").admin().listDatabases();
-		} catch (err) {
-			if (err instanceof MongoError) {
-				if (err.code == 13 && err.message.includes("Unauthorized")) {
-					this.clients.set(name, err);
+				if (!this.clients.has(hostname)) {
+					const client = new MongoClient(urlStr);
+					this.clients.set(hostname, client);
 				}
-			} else {
-				throw err;
+			} catch (err) {
+				console.error(`Failed to parse URL for host ${host.path}:`, err);
 			}
 		}
 	}
 
-	getClient(name: string): MongoClient | MongoError {
+	getClient(name: string): MongoClient {
 		const client = this.clients.get(name) || this.clients.get(`${name}:27017`);
 		if (!client) {
 			throw new Error("Server does not exist");
@@ -155,16 +125,14 @@ class MongoConnections {
 		return client;
 	}
 
-	listClients(): Array<{ name: string; client: MongoClient | MongoError }> {
-		return Array.from(this.clients.entries()).map(([name, client]) => ({ name, client }));
+	listClients(): Array<{ name: string; client: MongoClient }> {
+		return Array.from(this.clients.entries())
+			.filter(([, client]) => client instanceof MongoClient)
+			.map(([name, client]) => ({ name, client: client as MongoClient }));
 	}
 
 	getCollection(serverName: string, databaseName: string, collectionName: string) {
 		const client = this.getClient(serverName);
-		if (client instanceof Error) {
-			return undefined;
-		}
-
 		const db = client.db(databaseName);
 		return db.collection(collectionName);
 	}
@@ -175,7 +143,21 @@ class MongoConnections {
 
 	async addServer(hostPath: string) {
 		await this.hostsManager.add(hostPath);
-		await this.initialize();
+
+		// Add the new server client
+		const urlStr = hostPath.startsWith("mongodb") ? hostPath : `mongodb://${hostPath}`;
+		try {
+			const url = new URL(urlStr);
+			const hostname = url.host || hostPath;
+
+			if (!this.clients.has(hostname)) {
+				const client = new MongoClient(urlStr);
+				this.clients.set(hostname, client);
+			}
+		} catch (err) {
+			console.error(`Failed to parse URL for host ${hostPath}:`, err);
+			throw err;
+		}
 	}
 
 	async removeServer(name: string) {
@@ -186,11 +168,18 @@ class MongoConnections {
 
 // Singleton instance
 let mongoConnections: MongoConnections | null = null;
+let initPromise: Promise<MongoConnections> | null = null;
 
 export async function getMongo(): Promise<MongoConnections> {
 	if (!mongoConnections) {
-		mongoConnections = new MongoConnections();
-		await mongoConnections.initialize();
+		if (!initPromise) {
+			initPromise = (async () => {
+				mongoConnections = new MongoConnections();
+				await mongoConnections.initialize();
+				return mongoConnections;
+			})();
+		}
+		return initPromise;
 	}
 	return mongoConnections;
 }

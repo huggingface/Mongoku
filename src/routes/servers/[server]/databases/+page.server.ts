@@ -5,14 +5,6 @@ import type { PageServerLoad } from "./$types";
 export const load: PageServerLoad = async ({ params }) => {
 	const mongo = await getMongo();
 	const client = mongo.getClient(params.server);
-
-	if (client instanceof Error) {
-		return {
-			server: params.server,
-			databases: [],
-		};
-	}
-
 	const adminDb = client.db("test").admin();
 	const results = await adminDb.listDatabases();
 
