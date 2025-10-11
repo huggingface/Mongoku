@@ -11,25 +11,31 @@
 
 	let { data }: { data: PageData } = $props();
 
-	let loading = $state({
-		content: false,
-		count: false,
-	});
-
-	let items = $state<MongoDocument[]>(data.results || []);
-	let count = $state({
-		total: data.count || 0,
-		start: data.params.skip,
-	});
-
 	let params = $state<SearchParams>({ ...data.params });
 
+	// Handle errors from streamed promises
 	$effect(() => {
-		// Update when data changes
-		items = data.results || [];
-		count.total = data.count || 0;
-		count.start = data.params.skip;
+		// @ts-expect-error I just want to trigger the dependency
+		if (data.results) {
+			modifiedItems = null;
+		}
+		data.results.then((result) => {
+			if (result.error) {
+				notificationStore.notifyError(result.error);
+			}
+		});
 	});
+
+	$effect(() => {
+		data.count.then((result) => {
+			if (result.error) {
+				notificationStore.notifyError(result.error);
+			}
+		});
+	});
+
+	let modifiedItems = $state<MongoDocument[] | null>(null);
+	let items = $derived(modifiedItems ? { data: modifiedItems, error: null } : data.results);
 
 	async function update() {
 		// eslint-disable-next-line svelte/prefer-svelte-reactivity
@@ -48,7 +54,7 @@
 		);
 	}
 
-	async function editDocument(_id: { $value?: string } | undefined, json: MongoDocument) {
+	async function editDocument(_id: { $value?: string } | undefined, json: MongoDocument, items: MongoDocument[]) {
 		const partial = params.project && params.project !== "{}" && Object.keys(JSON.parse(params.project)).length > 0;
 		const newId = json?._id?.$value;
 		const oldId = _id?.$value;
@@ -77,6 +83,7 @@
 					if (index !== -1) {
 						items[index] = result.update;
 					}
+					modifiedItems = items;
 				}
 			} else {
 				const error = await response.text();
@@ -87,7 +94,7 @@
 		}
 	}
 
-	async function removeDocument(_id: { $value?: string } | undefined) {
+	async function removeDocument(_id: { $value?: string } | undefined, items: MongoDocument[]) {
 		const documentId = _id?.$value;
 		if (!documentId) return;
 
@@ -99,7 +106,7 @@
 
 			if (response.ok) {
 				notificationStore.notifySuccess("Document removed successfully");
-				items = items.filter((item) => item._id?.$value !== documentId);
+				modifiedItems = items.filter((item) => item._id?.$value !== documentId);
 			} else {
 				const error = await response.text();
 				notificationStore.notifyError(error || "Failed to remove document");
@@ -108,9 +115,6 @@
 			notificationStore.notifyError(error instanceof Error ? error.message : "Failed to remove document");
 		}
 	}
-
-	let hasNext = $derived(count.start + items.length < count.total);
-	let hasPrevious = $derived(count.start > 0);
 
 	function next() {
 		params.skip = params.skip + params.limit;
@@ -125,34 +129,56 @@
 
 <SearchBox bind:params />
 
-<Panel
-	title={count.total > 0
-		? `${formatNumber(count.start + 1)} - ${formatNumber(count.start + items.length)} of ${formatNumber(count.total)} Documents`
-		: "No documents"}
->
-	{#snippet actions()}
-		{#if hasPrevious}
-			<button class="btn btn-default btn-sm -my-2" onclick={previous}>Previous</button>
-		{/if}
-		{#if hasNext}
-			<button class="btn btn-default btn-sm -my-2" onclick={next}>Next</button>
-		{/if}
-	{/snippet}
-</Panel>
+{#await items}
+	<Panel title="Loading documents...">
+		{#snippet actions()}
+			<span class="text-sm text-gray-500">Loading...</span>
+		{/snippet}
+	</Panel>
+{:then resultsData}
+	{@const items = resultsData.data}
+	{#await data.count}
+		<Panel
+			title={items.length > 0
+				? `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} Documents (counting...)`
+				: "No documents"}
+		>
+			{#snippet actions()}
+				{#if data.params.skip > 0}
+					<button class="btn btn-default btn-sm -my-2" onclick={previous}>Previous</button>
+				{/if}
+			{/snippet}
+		</Panel>
+	{:then countData}
+		{@const count = countData.data}
+		{@const hasNext = data.params.skip + items.length < count}
+		{@const hasPrevious = data.params.skip > 0}
+		<Panel
+			title={count > 0
+				? `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} of ${formatNumber(count)} Documents`
+				: "No documents"}
+		>
+			{#snippet actions()}
+				{#if hasPrevious}
+					<button class="btn btn-default btn-sm -my-2" onclick={previous}>Previous</button>
+				{/if}
+				{#if hasNext}
+					<button class="btn btn-default btn-sm -my-2" onclick={next}>Next</button>
+				{/if}
+			{/snippet}
+		</Panel>
+	{/await}
 
-{#if loading.content}
-	<div class="loading">Loading...</div>
-{:else}
 	{#each items as item (item._id?.$value)}
 		<PrettyJson
 			json={item}
 			autoCollapse={true}
 			readOnly={data.readOnly}
-			onedit={(json) => editDocument(item._id, json)}
-			onremove={() => removeDocument(item._id)}
+			onedit={(json) => editDocument(item._id, json, items)}
+			onremove={() => removeDocument(item._id, items)}
 			server={data.server}
 			database={data.database}
 			collection={data.collection}
 		/>
 	{/each}
-{/if}
+{/await}
