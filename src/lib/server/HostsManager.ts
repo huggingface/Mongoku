@@ -4,7 +4,7 @@ import * as path from "node:path";
 
 export interface Host {
 	path: string;
-	_id?: string;
+	_id: string;
 }
 
 const DEFAULT_HOSTS = process.env.MONGOKU_DEFAULT_HOST
@@ -74,12 +74,15 @@ export class HostsManager {
 		return Array.from(this._hosts).map(([hostPath, id]) => ({ path: hostPath, _id: id }));
 	}
 
-	async add(hostPath: string): Promise<void> {
+	async add(hostPath: string): Promise<string> {
 		// Use existing ID if host already exists, generate new one if not
-		if (!this._hosts.has(hostPath)) {
-			this._hosts.set(hostPath, this._generateId());
+		let id = this._hosts.get(hostPath);
+		if (!id) {
+			id = this._generateId();
+			this._hosts.set(hostPath, id);
 		}
 		await this._saveToFile();
+		return id;
 	}
 
 	async remove(hostPath: string): Promise<void> {

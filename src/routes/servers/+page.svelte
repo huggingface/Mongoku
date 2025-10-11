@@ -116,7 +116,7 @@
 		</thead>
 		<tbody>
 			{#if data.servers && data.servers.length > 0}
-				{#each data.servers as server}
+				{#each data.servers as server (server._id)}
 					<tr class="group">
 						<td>
 							{#await server.details}

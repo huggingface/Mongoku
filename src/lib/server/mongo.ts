@@ -88,7 +88,12 @@ export async function getCollectionJson(
 }
 
 class MongoConnections {
+	/**
+	 * Todo: better system where we can have mutiple servers with same hostname, and labels for each server that
+	 * would be displayed in the UI instead of the hostname.
+	 */
 	private clients: Map<string, MongoClient> = new Map();
+	private clientIds: Map<string, string> = new Map(); // hostname -> _id
 	private hostsManager: HostsManager;
 	private countTimeout = parseInt(process.env.MONGOKU_COUNT_TIMEOUT!, 10) || 5000;
 
@@ -110,6 +115,7 @@ class MongoConnections {
 				if (!this.clients.has(hostname)) {
 					const client = new MongoClient(urlStr);
 					this.clients.set(hostname, client);
+					this.clientIds.set(hostname, host._id);
 				}
 			} catch (err) {
 				console.error(`Failed to parse URL for host ${host.path}:`, err);
@@ -125,10 +131,14 @@ class MongoConnections {
 		return client;
 	}
 
-	listClients(): Array<{ name: string; client: MongoClient }> {
+	listClients(): Array<{ name: string; _id: string; client: MongoClient }> {
 		return Array.from(this.clients.entries())
 			.filter(([, client]) => client instanceof MongoClient)
-			.map(([name, client]) => ({ name, client: client as MongoClient }));
+			.map(([name, client]) => ({
+				name,
+				_id: this.clientIds.get(name) || "",
+				client: client as MongoClient,
+			}));
 	}
 
 	getCollection(serverName: string, databaseName: string, collectionName: string) {
@@ -142,7 +152,7 @@ class MongoConnections {
 	}
 
 	async addServer(hostPath: string) {
-		await this.hostsManager.add(hostPath);
+		const id = await this.hostsManager.add(hostPath);
 
 		// Add the new server client
 		const urlStr = hostPath.startsWith("mongodb") ? hostPath : `mongodb://${hostPath}`;
@@ -153,6 +163,7 @@ class MongoConnections {
 			if (!this.clients.has(hostname)) {
 				const client = new MongoClient(urlStr);
 				this.clients.set(hostname, client);
+				this.clientIds.set(hostname, id);
 			}
 		} catch (err) {
 			console.error(`Failed to parse URL for host ${hostPath}:`, err);
@@ -163,6 +174,7 @@ class MongoConnections {
 	async removeServer(name: string) {
 		await this.hostsManager.remove(name);
 		this.clients.delete(name);
+		this.clientIds.delete(name);
 	}
 }
 
