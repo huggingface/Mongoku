@@ -13,3 +13,24 @@ export interface SearchParams {
 	limit: number;
 	skip: number;
 }
+
+/**
+ * Database stats as returned by the db.stats() method
+ *
+ * Type not exposed by MongoDB
+ */
+export interface DatabaseStats {
+	db: string;
+	collections: number;
+	views: number;
+	objects: number;
+	avgObjSize: number;
+	dataSize: number;
+	storageSize: number;
+	indexes: number;
+	indexSize: number;
+	totalSize: number;
+	fsUsedSize: number;
+	fsTotalSize: number;
+	ok: number;
+}

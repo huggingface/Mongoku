@@ -113,6 +113,10 @@ class MongoConnections {
 		return client;
 	}
 
+	listClients(): Array<{ name: string; client: MongoClient | MongoError }> {
+		return Array.from(this.clients.entries()).map(([name, client]) => ({ name, client }));
+	}
+
 	async addServer(hostPath: string) {
 		await this.hostsManager.add(hostPath);
 		await this.initialize();
@@ -121,60 +125,6 @@ class MongoConnections {
 	async removeServer(name: string) {
 		await this.hostsManager.remove(name);
 		this.clients.delete(name);
-	}
-
-	// Get all servers with their databases
-	async getServersJson(): Promise<(ServerJSON | ServerError)[]> {
-		const servers: (ServerJSON | ServerError)[] = [];
-
-		for (const [name, client] of this.clients.entries()) {
-			if (client instanceof Error) {
-				servers.push({
-					name: name,
-					error: {
-						code: client.code,
-						name: client.name,
-						message: client.message,
-					},
-				});
-			} else {
-				const serverJson = await this.getServerJson(name);
-				if (serverJson) {
-					servers.push(serverJson);
-				}
-			}
-		}
-
-		servers.sort((a, b) => a.name.localeCompare(b.name));
-		return servers;
-	}
-
-	private async getServerJson(name: string): Promise<ServerJSON | undefined> {
-		const client = this.getClient(name);
-		if (client instanceof Error) {
-			return undefined;
-		}
-
-		const adminDb = client.db("test").admin();
-		const results = await adminDb.listDatabases();
-		const size = results.totalSize ?? 0;
-
-		const databases: DatabaseJSON[] = [];
-		if (Array.isArray(results.databases)) {
-			for (const d of results.databases) {
-				const db = client.db(d.name);
-				const dbJson = await this.getDatabaseJson(db, d.sizeOnDisk ?? 0, d.empty ?? true);
-				databases.push(dbJson);
-			}
-		}
-
-		databases.sort((a, b) => a.name.localeCompare(b.name));
-
-		return {
-			name,
-			size,
-			databases,
-		};
 	}
 
 	// Get databases for a server

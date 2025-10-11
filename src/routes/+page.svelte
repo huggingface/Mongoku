@@ -2,6 +2,7 @@
 	import { invalidateAll } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import Panel from "$lib/components/Panel.svelte";
+	import TooltipTable from "$lib/components/TooltipTable.svelte";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import { formatBytes, serverName } from "$lib/utils/filters";
 	import type { PageData } from "./$types";
@@ -131,7 +132,20 @@
 						</td>
 						<td>
 							{#if "databases" in server && server.databases}
-								<span class="dotted" title="Databases">{server.databases.length}</span>
+								<TooltipTable
+									columns={[
+										{ header: "Database", key: "name" },
+										{ header: "Collections", key: "collections" },
+										{ header: "Size", key: "size" },
+									]}
+									rows={server.databases.map((db) => ({
+										name: db.name,
+										collections: db.collections,
+										size: formatBytes(db.size),
+									}))}
+								>
+									{server.databases.length}
+								</TooltipTable>
 							{/if}
 						</td>
 						<td>
