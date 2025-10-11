@@ -34,3 +34,23 @@ export interface DatabaseStats {
 	fsTotalSize: number;
 	ok: number;
 }
+
+export interface CollectionJSON {
+	name: string;
+	size: number;
+	dataSize: number;
+	count: number;
+	avgObjSize: number;
+	storageSize: number;
+	capped: boolean;
+	nIndexes: number;
+	totalIndexSize: number;
+	indexSizes: {
+		[name: string]: number;
+	};
+	indexes: Array<{
+		name: string;
+		key?: Record<string, number>;
+		size: number;
+	}>;
+}

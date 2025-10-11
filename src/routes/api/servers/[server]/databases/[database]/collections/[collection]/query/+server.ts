@@ -1,3 +1,4 @@
+import JsonEncoder from "$lib/server/JsonEncoder";
 import { getMongo } from "$lib/server/mongo";
 import { parseJSON } from "$lib/utils/jsonParser";
 import { error, json } from "@sveltejs/kit";
@@ -34,20 +35,20 @@ export const GET: RequestHandler = async ({ params, url }) => {
 	}
 
 	const mongo = await getMongo();
-	const results = await mongo.find(
-		params.server,
-		params.database,
-		params.collection,
-		queryDoc,
-		projectDoc,
-		sortDoc,
-		limit,
-		skip,
-	);
+	const collection = mongo.getCollection(params.server, params.database, params.collection);
 
-	if (!results) {
+	if (!collection) {
 		return error(404, `Collection not found: ${params.server}.${params.database}.${params.collection}`);
 	}
+
+	const results = await collection
+		.find(JsonEncoder.decode(queryDoc))
+		.project(projectDoc)
+		.sort(JsonEncoder.decode(sortDoc))
+		.limit(limit)
+		.skip(skip)
+		.map((obj) => JsonEncoder.encode(obj))
+		.toArray();
 
 	return json({
 		ok: true,
