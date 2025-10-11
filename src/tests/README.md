@@ -40,8 +40,7 @@ These tests verify that the read-only mode properly blocks write operations:
 
 #### Read Operations (Should Work Normally)
 
-- ✅ `GET /api/servers` - Listing servers
-- ✅ `GET /api/readonly` - Checking read-only status
+- ✅ Read operations work normally (read-only status is provided by `+layout.server.ts`)
 
 #### Non-Read-Only Mode
 

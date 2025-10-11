@@ -2,21 +2,11 @@ import { getMongo } from "$lib/server/mongo";
 import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 
-export const GET: RequestHandler = async ({ params }) => {
-	const mongo = await getMongo();
-	const doc = await mongo.findOne(params.server, params.database, params.collection, params.document);
-
-	if (!doc) {
-		return error(404, "This document does not exist");
+export const POST: RequestHandler = async ({ params, request, url }) => {
+	if (process.env.MONGOKU_READ_ONLY_MODE === "true") {
+		return error(403, "Read-only mode is enabled");
 	}
 
-	return json({
-		ok: true,
-		document: doc,
-	});
-};
-
-export const POST: RequestHandler = async ({ params, request, url }) => {
 	const mongo = await getMongo();
 	const body = await request.json();
 	const partial = url.searchParams.get("partial") === "true";
@@ -41,6 +31,10 @@ export const POST: RequestHandler = async ({ params, request, url }) => {
 };
 
 export const DELETE: RequestHandler = async ({ params }) => {
+	if (process.env.MONGOKU_READ_ONLY_MODE === "true") {
+		return error(403, "Read-only mode is enabled");
+	}
+
 	const mongo = await getMongo();
 	await mongo.removeOne(params.server, params.database, params.collection, params.document);
 

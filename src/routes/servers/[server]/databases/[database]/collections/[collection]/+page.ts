@@ -9,10 +9,6 @@ export const load: PageLoad = async ({ params, url, fetch }) => {
 	const skip = parseInt(url.searchParams.get("skip") || "0", 10);
 	const limit = parseInt(url.searchParams.get("limit") || "20", 10);
 
-	// Fetch read-only status
-	const readOnlyResponse = await fetch("/api/readonly");
-	const readOnlyData = await readOnlyResponse.json();
-
 	// Prepare query parameters
 	const queryParams = new URLSearchParams();
 	queryParams.set("q", query);
@@ -54,7 +50,6 @@ export const load: PageLoad = async ({ params, url, fetch }) => {
 		server: params.server,
 		database: params.database,
 		collection: params.collection,
-		readOnly: readOnlyData.readOnly || false,
 		results,
 		count,
 		params: {

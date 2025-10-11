@@ -191,41 +191,4 @@ describe("Read-Only Mode API Tests", () => {
 			}
 		});
 	});
-
-	describe("GET endpoints", () => {
-		it("should allow GET /api/servers in read-only mode", async () => {
-			process.env.MONGOKU_READ_ONLY_MODE = "true";
-
-			const { GET } = await import("../../routes/api/servers/+server");
-
-			const response = await GET({ params: {} } as any);
-
-			// Should work fine (200) even in read-only mode
-			expect(response.status).toBe(200);
-		});
-
-		it("should allow GET /api/readonly in read-only mode", async () => {
-			process.env.MONGOKU_READ_ONLY_MODE = "true";
-
-			const { GET } = await import("../../routes/api/readonly/+server");
-
-			const response = await GET({} as any);
-
-			expect(response.status).toBe(200);
-			const body = await response.json();
-			expect(body.readOnly).toBe(true);
-		});
-
-		it("should return readOnly: false when not in read-only mode", async () => {
-			delete process.env.MONGOKU_READ_ONLY_MODE;
-
-			const { GET } = await import("../../routes/api/readonly/+server");
-
-			const response = await GET({} as any);
-
-			expect(response.status).toBe(200);
-			const body = await response.json();
-			expect(body.readOnly).toBe(false);
-		});
-	});
 });
