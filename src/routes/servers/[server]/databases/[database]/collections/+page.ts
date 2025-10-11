@@ -1,4 +1,4 @@
-import type { CollectionJSON } from "$lib/server/Collection";
+import type { CollectionJSON } from "$lib/server/mongo";
 import type { PageLoad } from "./$types";
 
 export const load: PageLoad = async ({ params, fetch }) => {

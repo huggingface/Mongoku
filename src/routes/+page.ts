@@ -1,5 +1,4 @@
-import type { ServerError } from "$lib/server/MongoManager";
-import type { ServerJSON } from "$lib/server/Server";
+import type { ServerError, ServerJSON } from "$lib/server/mongo";
 import type { PageLoad } from "./$types";
 
 export const load: PageLoad = async ({ fetch }) => {

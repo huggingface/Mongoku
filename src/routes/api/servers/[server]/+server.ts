@@ -1,4 +1,4 @@
-import { getFactory } from "$lib/server/factoryInstance";
+import { getMongo } from "$lib/server/mongo";
 import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 
@@ -7,8 +7,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
 		return error(403, "Read-only mode is enabled");
 	}
 
-	const factory = await getFactory();
-	await factory.hostsManager.remove(params.server);
-	factory.mongoManager.removeServer(params.server);
+	const mongo = await getMongo();
+	await mongo.removeServer(params.server);
 	return json({ ok: true });
 };

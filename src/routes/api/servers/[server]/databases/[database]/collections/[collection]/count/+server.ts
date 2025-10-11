@@ -1,4 +1,4 @@
-import { getFactory } from "$lib/server/factoryInstance";
+import { getMongo } from "$lib/server/mongo";
 import { parseJSON } from "$lib/utils/jsonParser";
 import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
@@ -13,14 +13,12 @@ export const GET: RequestHandler = async ({ params, url }) => {
 		return error(400, `Invalid query: ${query} - ${err}`);
 	}
 
-	const factory = await getFactory();
-	const c = await factory.mongoManager.getCollection(params.server, params.database, params.collection);
+	const mongo = await getMongo();
+	const count = await mongo.count(params.server, params.database, params.collection, queryDoc);
 
-	if (!c) {
+	if (count === null) {
 		return error(404, `Collection not found: ${params.server}.${params.database}.${params.collection}`);
 	}
-
-	const count = await c.count(queryDoc);
 
 	return json({
 		ok: true,

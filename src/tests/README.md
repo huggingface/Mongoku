@@ -94,9 +94,9 @@ it("should throw 403 error", async () => {
 
 ## Mocking
 
-The test setup (`setup.ts`) mocks the MongoDB factory to avoid real database connections:
+The test setup (`setup.ts`) mocks the MongoDB module to avoid real database connections:
 
-- `getFactory()` returns a mock factory with stubbed methods
+- `getMongo()` returns a mock with stubbed methods
 - Customize mocks per test using `vi.mock()` in your test file
 - Clear mocks between tests with `vi.clearAllMocks()`
 

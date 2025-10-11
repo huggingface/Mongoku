@@ -156,20 +156,3 @@
 		/>
 	{/each}
 {/if}
-
-<style lang="postcss">
-	.infos {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-
-		.summary {
-			font-size: 16px;
-		}
-
-		.actions {
-			display: flex;
-			gap: 10px;
-		}
-	}
-</style>

@@ -1,4 +1,4 @@
-import type { DatabaseJSON } from "$lib/server/Database";
+import type { DatabaseJSON } from "$lib/server/mongo";
 import type { PageLoad } from "./$types";
 
 export const load: PageLoad = async ({ params, fetch }) => {

@@ -1,10 +1,10 @@
-import { getFactory } from "$lib/server/factoryInstance";
+import { getMongo } from "$lib/server/mongo";
 import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async () => {
-	const factory = await getFactory();
-	const servers = await factory.mongoManager.getServersJson();
+	const mongo = await getMongo();
+	const servers = await mongo.getServersJson();
 	return json(servers);
 };
 
@@ -14,8 +14,7 @@ export const PUT: RequestHandler = async ({ request }) => {
 	}
 
 	const body = await request.json();
-	const factory = await getFactory();
-	await factory.hostsManager.add(body.url);
-	await factory.mongoManager.load();
+	const mongo = await getMongo();
+	await mongo.addServer(body.url);
 	return json({ ok: true });
 };

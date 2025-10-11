@@ -1,7 +1,7 @@
-import { getFactory } from "$lib/server/factoryInstance";
+import { getMongo } from "$lib/server/mongo";
 import { parseJSON } from "$lib/utils/jsonParser";
 import { error, json } from "@sveltejs/kit";
-import type { Document, Sort } from "mongodb";
+import type { Document } from "mongodb";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ params, url }) => {
@@ -19,9 +19,9 @@ export const GET: RequestHandler = async ({ params, url }) => {
 		return error(400, `Invalid query: ${query} - ${err}`);
 	}
 
-	let sortDoc: Sort;
+	let sortDoc: unknown;
 	try {
-		sortDoc = parseJSON(sort) as Sort;
+		sortDoc = parseJSON(sort);
 	} catch (err) {
 		return error(400, `Invalid sort: ${sort} - ${err}`);
 	}
@@ -33,14 +33,21 @@ export const GET: RequestHandler = async ({ params, url }) => {
 		return error(400, `Invalid project: ${project} - ${err}`);
 	}
 
-	const factory = await getFactory();
-	const c = await factory.mongoManager.getCollection(params.server, params.database, params.collection);
+	const mongo = await getMongo();
+	const results = await mongo.find(
+		params.server,
+		params.database,
+		params.collection,
+		queryDoc,
+		projectDoc,
+		sortDoc,
+		limit,
+		skip,
+	);
 
-	if (!c) {
+	if (!results) {
 		return error(404, `Collection not found: ${params.server}.${params.database}.${params.collection}`);
 	}
-
-	const results = await c.find(queryDoc, projectDoc, sortDoc, limit, skip);
 
 	return json({
 		ok: true,
