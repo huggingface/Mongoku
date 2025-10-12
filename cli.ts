@@ -61,8 +61,8 @@ program.configureOutput({
 async function startAction(options: { pm2?: boolean; forever?: boolean; port?: string; readonly?: boolean }) {
 	console.log(chalk.cyan(asciiArt));
 
-	const port = options.port || process.env.MONGOKU_PORT || "3100";
-	process.env.MONGOKU_PORT = port;
+	const port = options.port || process.env.MONGOKU_SERVER_PORT || "3100";
+	process.env.MONGOKU_SERVER_PORT = port;
 
 	// Set read-only mode if specified
 	if (options.readonly) {

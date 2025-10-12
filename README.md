@@ -23,28 +23,19 @@ This is the easiest way to use Mongoku:
 npm install -g mongoku
 
 # Start the server
-mongoku start
+mongoku
 
 # Start with PM2
-mongoku start --pm2
+mongoku --pm2
 
 # Start with Forever
-mongoku start --forever
+mongoku --forever
 
 # Start on a custom port
-mongoku start --port 8080
+mongoku --port 8080
 
 # Start in read-only mode
-mongoku start --readonly
-```
-
-### Available CLI Commands
-
-```bash
-mongoku start              # Start the Mongoku server
-mongoku start --readonly   # Start in read-only mode
-mongoku start -p 8080      # Start on custom port
-mongoku stop               # Stop the server (PM2 or Forever)
+mongoku --readonly
 ```
 
 ## Tech Stack
@@ -131,15 +122,15 @@ You can configure Mongoku using environment variables:
 MONGOKU_DEFAULT_HOST="mongodb://user:password@localhost:27017;localhost:27017"
 
 # See https://svelte.dev/docs/kit/adapter-node#environment-variables-port-and-host
-MONGOKU_PORT=8000
-MONGOKU_ORIGIN=https://mongoku.example.com
-MONGOKU_HOST=127.0.0.1
-MONGOKU_PROTOCOL_HEADER=x-forwarded-proto
-MONGOKU_HOST_HEADER=x-forwarded-host
-MONGOKU_ADDRESS_HEADER=X-Forwarded-For
-MONGOKU_XFF_DEPTH=1
-MONGOKU_SHUTDOWN_TIMEOUT=30
-MONGOKU_SOCKET_PATH=/tmp/socket
+MONGOKU_SERVER_PORT=8000
+MONGOKU_SERVER_ORIGIN=https://mongoku.example.com
+MONGOKU_SERVER_HOST=127.0.0.1
+MONGOKU_SERVER_PROTOCOL_HEADER=x-forwarded-proto
+MONGOKU_SERVER_HOST_HEADER=x-forwarded-host
+MONGOKU_SERVER_ADDRESS_HEADER=X-Forwarded-For
+MONGOKU_SERVER_XFF_DEPTH=1
+MONGOKU_SERVER_SHUTDOWN_TIMEOUT=30
+MONGOKU_SERVER_SOCKET_PATH=/tmp/socket
 
 # Use a specific file to store hosts (Default = $HOME/.mongoku.db)
 MONGOKU_DATABASE_FILE="/tmp/mongoku.db"

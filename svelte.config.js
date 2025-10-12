@@ -8,7 +8,7 @@ const config = {
 	kit: {
 		adapter: adapter({
 			out: "build",
-			envPrefix: "MONGOKU_",
+			envPrefix: "MONGOKU_SERVER_",
 		}),
 	},
 };

@@ -16,9 +16,9 @@ COPY . .
 # Build the app
 RUN pnpm build
 
-# See also other env vars, like MONGOKU_ORIGIN, MONGOKU_ADDRESS_HEADER, MONGOKU_XFF_DEPTH, MONGOKU_PROTOCOL_HEADER, MONGOKU_HOST, MONGOKU_PORT_HEADER
+# See also other MONGOKU_SERVER_ env vars, in README.md. Like MONGOKU_SERVER_ORIGIN, or reverse-proxy-related vars.
 # See https://svelte.dev/docs/kit/adapter-node#environment-variables-port-and-host
-ENV MONGOKU_PORT=3100
+ENV MONGOKU_SERVER_PORT=3100
 
 # Expose port
 EXPOSE 3100
