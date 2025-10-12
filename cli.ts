@@ -78,6 +78,29 @@ async function startAction(options: { pm2?: boolean; port?: string; readonly?: b
 	}
 }
 
+program
+	.command("stop")
+	.description("Stop the Mongoku server running with PM2")
+	.action(() => {
+		runCommand("pm2", ["stop", "mongoku"], { stdio: "inherit" });
+	});
+
+program
+	.command("start")
+	.description("Start the Mongoku server")
+	.option("--pm2", "Run with PM2")
+	.option("-p, --port <port>", "Port to run on", "3100")
+	.option("--readonly", "Enable read-only mode (prevents modifications)")
+	.allowExcessArguments(false)
+	.action(startAction);
+
+program
+	.command("help")
+	.description("Show help")
+	.action(() => {
+		program.outputHelp();
+	});
+
 // Default action (start the server)
 program
 	.option("--pm2", "Run with PM2")

@@ -24,6 +24,7 @@ npm install -g mongoku
 
 # Start the server
 mongoku
+mongoku start
 
 # Start with PM2
 mongoku --pm2
@@ -33,6 +34,9 @@ mongoku --port 8080
 
 # Start in read-only mode
 mongoku --readonly
+
+# Stop the server with pm2
+mongoku stop
 ```
 
 ## Tech Stack
