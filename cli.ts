@@ -38,52 +38,61 @@ const asciiArt = [
 
 program.name("mongoku").description("MongoDB client for the web").version(version);
 
+// Custom error handler for better error messages
+program.configureOutput({
+	outputError: (str, write) => {
+		// Check for common mistakes
+		if (str.includes("too many arguments")) {
+			const args = process.argv.slice(2);
+			if (args.includes("pm2")) {
+				write(chalk.red("❌ Error: Did you mean '--pm2' instead of 'pm2'?\n"));
+				return;
+			}
+			if (args.includes("forever")) {
+				write(chalk.red("❌ Error: Did you mean '--forever' instead of 'forever'?\n"));
+				return;
+			}
+		}
+		write(chalk.red(str));
+	},
+});
+
+// Start action handler (shared between default and explicit 'start' command)
+async function startAction(options: { pm2?: boolean; forever?: boolean; port?: string; readonly?: boolean }) {
+	console.log(chalk.cyan(asciiArt));
+
+	const port = options.port || process.env.MONGOKU_PORT || "3100";
+	process.env.MONGOKU_PORT = port;
+
+	// Set read-only mode if specified
+	if (options.readonly) {
+		process.env.MONGOKU_READ_ONLY_MODE = "true";
+		console.log(chalk.yellow("🔒 Read-only mode enabled"));
+	}
+
+	const buildPath = join(rootDir, "build");
+
+	if (options.pm2) {
+		console.log(chalk.green(`🚀 Starting Mongoku with PM2 on port ${port}...`));
+		runCommand("pm2", ["start", join(rootDir, "ecosystem.config.js")], { stdio: "inherit" });
+	} else if (options.forever) {
+		console.log(chalk.green(`🚀 Starting Mongoku with Forever on port ${port}...`));
+		runCommand("forever", ["start", join(buildPath, "index.js")], { stdio: "inherit" });
+	} else {
+		console.log(chalk.green(`🚀 Starting Mongoku on port ${port}...`));
+		console.log(chalk.cyan(`📊 Open http://localhost:${port} in your browser`));
+		runCommand("node", [buildPath], { stdio: "inherit" });
+	}
+}
+
+// Default action (start the server)
 program
-	.command("start")
-	.description("Start the Mongoku server")
 	.option("--pm2", "Run with PM2")
 	.option("--forever", "Run with Forever")
 	.option("-p, --port <port>", "Port to run on", "3100")
 	.option("--readonly", "Enable read-only mode (prevents modifications)")
-	.action((options) => {
-		console.log(chalk.cyan(asciiArt));
-
-		const port = options.port || process.env.MONGOKU_PORT || "3100";
-		process.env.MONGOKU_PORT = port;
-
-		// Set read-only mode if specified
-		if (options.readonly) {
-			process.env.MONGOKU_READ_ONLY_MODE = "true";
-			console.log(chalk.yellow("🔒 Read-only mode enabled"));
-		}
-
-		const buildPath = join(rootDir, "build");
-
-		if (options.pm2) {
-			console.log(chalk.green("🚀 Starting Mongoku with PM2..."));
-			runCommand("pm2", ["start", join(rootDir, "pm2/development.json")], { detached: true });
-		} else if (options.forever) {
-			console.log(chalk.green("🚀 Starting Mongoku with Forever..."));
-			runCommand("forever", ["start", join(buildPath, "index.js")], { detached: true });
-		} else {
-			console.log(chalk.green(`🚀 Starting Mongoku on port ${port}...`));
-			console.log(chalk.cyan(`📊 Open http://localhost:${port} in your browser`));
-			runCommand("node", [buildPath], { stdio: "inherit" });
-		}
-	});
-
-program
-	.command("stop")
-	.description("Stop the Mongoku server (PM2 or Forever)")
-	.action(() => {
-		// Try PM2 first
-		const pm2Process = spawn("pm2", ["stop", "mongoku"], { stdio: "inherit" });
-		pm2Process.on("error", () => {
-			// If PM2 fails, try Forever
-			console.log(chalk.yellow("PM2 not found, trying Forever..."));
-			runCommand("forever", ["stop", "mongoku"]);
-		});
-	});
+	.allowExcessArguments(false)
+	.action(startAction);
 
 function runCommand(command: string, args: string[], options: SpawnOptions = {}): Promise<void> {
 	return new Promise((resolve, reject) => {
@@ -124,8 +133,3 @@ function runCommand(command: string, args: string[], options: SpawnOptions = {})
 }
 
 program.parse(process.argv);
-
-// Show help if no command provided
-if (!process.argv.slice(2).length) {
-	program.outputHelp();
-}
