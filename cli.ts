@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-import { Command } from "commander";
 import chalk from "chalk";
 import { spawn, SpawnOptions } from "child_process";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
+import { Command } from "commander";
 import { readFileSync } from "fs";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -48,8 +48,8 @@ program
 	.action((options) => {
 		console.log(chalk.cyan(asciiArt));
 
-		const port = options.port || process.env.MONGOKU_SERVER_PORT || "3100";
-		process.env.MONGOKU_SERVER_PORT = port;
+		const port = options.port || process.env.MONGOKU_PORT || "3100";
+		process.env.MONGOKU_PORT = port;
 
 		// Set read-only mode if specified
 		if (options.readonly) {

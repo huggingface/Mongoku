@@ -1,15 +1,4 @@
 FROM node:24-alpine
-
-
-ENV UID=991 GID=991
-
-ENV MONGOKU_DEFAULT_HOST="mongodb://localhost:27017"
-ENV MONGOKU_SERVER_PORT=3100
-ENV MONGOKU_DATABASE_FILE="/tmp/mongoku.db"
-ENV MONGOKU_COUNT_TIMEOUT=5000
-ARG READ_ONLY=false
-ENV MONGOKU_READ_ONLY_MODE=$READ_ONLY
-
 # Install pnpm
 RUN npm install -g pnpm@10.11.0
 
@@ -26,6 +15,10 @@ COPY . .
 
 # Build the app
 RUN pnpm build
+
+# See also other env vars, like MONGOKU_ORIGIN, MONGOKU_ADDRESS_HEADER, MONGOKU_XFF_DEPTH, MONGOKU_PROTOCOL_HEADER, MONGOKU_HOST, MONGOKU_PORT_HEADER
+# See https://svelte.dev/docs/kit/adapter-node#environment-variables-port-and-host
+ENV MONGOKU_PORT=3100
 
 # Expose port
 EXPOSE 3100
