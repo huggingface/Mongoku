@@ -28,9 +28,6 @@ mongoku
 # Start with PM2
 mongoku --pm2
 
-# Start with Forever
-mongoku --forever
-
 # Start on a custom port
 mongoku --port 8080
 

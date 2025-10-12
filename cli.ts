@@ -48,17 +48,13 @@ program.configureOutput({
 				write(chalk.red("❌ Error: Did you mean '--pm2' instead of 'pm2'?\n"));
 				return;
 			}
-			if (args.includes("forever")) {
-				write(chalk.red("❌ Error: Did you mean '--forever' instead of 'forever'?\n"));
-				return;
-			}
 		}
 		write(chalk.red(str));
 	},
 });
 
 // Start action handler (shared between default and explicit 'start' command)
-async function startAction(options: { pm2?: boolean; forever?: boolean; port?: string; readonly?: boolean }) {
+async function startAction(options: { pm2?: boolean; port?: string; readonly?: boolean }) {
 	console.log(chalk.cyan(asciiArt));
 
 	const port = options.port || process.env.MONGOKU_SERVER_PORT || "3100";
@@ -74,10 +70,7 @@ async function startAction(options: { pm2?: boolean; forever?: boolean; port?: s
 
 	if (options.pm2) {
 		console.log(chalk.green(`🚀 Starting Mongoku with PM2 on port ${port}...`));
-		runCommand("pm2", ["start", join(rootDir, "ecosystem.config.js")], { stdio: "inherit" });
-	} else if (options.forever) {
-		console.log(chalk.green(`🚀 Starting Mongoku with Forever on port ${port}...`));
-		runCommand("forever", ["start", join(buildPath, "index.js")], { stdio: "inherit" });
+		runCommand("pm2", ["--name", "mongoku", "start", join(rootDir, "ecosystem.config.js")], { stdio: "inherit" });
 	} else {
 		console.log(chalk.green(`🚀 Starting Mongoku on port ${port}...`));
 		console.log(chalk.cyan(`📊 Open http://localhost:${port} in your browser`));
@@ -88,7 +81,6 @@ async function startAction(options: { pm2?: boolean; forever?: boolean; port?: s
 // Default action (start the server)
 program
 	.option("--pm2", "Run with PM2")
-	.option("--forever", "Run with Forever")
 	.option("-p, --port <port>", "Port to run on", "3100")
 	.option("--readonly", "Enable read-only mode (prevents modifications)")
 	.allowExcessArguments(false)
