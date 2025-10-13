@@ -78,6 +78,14 @@ docker build -t yournamehere/mongoku .
 
 # Run
 docker run -d --name mongoku -p 3100:3100 yournamehere/mongoku
+
+# Run with custom origin (if behind a reverse proxy)
+docker run -d --name mongoku -p 3100:3100 \
+  --env MONGOKU_SERVER_ORIGIN=https://mongoku.example.com \
+  yournamehere/mongoku
+
+# You can also use other MONGOKU_SERVER_* envs to let the reverse proxy determine
+# the origin: MONGOKU_SERVER_HOST_HEADER, MONGOKU_SERVER_PROTOCOL_HEADER, ...
 ```
 
 ## Configuration
