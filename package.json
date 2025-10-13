@@ -1,6 +1,6 @@
 {
 	"name": "mongoku",
-	"version": "2.0.0",
+	"version": "1.3.0",
 	"license": "MIT",
 	"author": "Anthony Moi <m.anthony.moi@gmail.com>",
 	"type": "module",
