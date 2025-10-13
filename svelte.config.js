@@ -10,6 +10,18 @@ const config = {
 			out: "build",
 			envPrefix: "MONGOKU_SERVER_",
 		}),
+		experimental: {
+			remoteFunctions: true,
+		},
+		alias: {
+			$api: "src/api",
+		},
+	},
+
+	compilerOptions: {
+		experimental: {
+			async: true,
+		},
 	},
 };
 
