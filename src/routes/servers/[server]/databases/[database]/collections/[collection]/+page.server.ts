@@ -102,6 +102,5 @@ export const load: PageServerLoad = async ({ params, url }) => {
 			skip,
 			limit,
 		},
-		readOnly: process.env.MONGOKU_READ_ONLY_MODE === "true",
 	};
 };

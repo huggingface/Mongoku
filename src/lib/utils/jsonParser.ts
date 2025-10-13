@@ -94,6 +94,13 @@ function buildObject(node: Node | Expression): unknown {
 			}
 		}
 
+		case "Identifier": {
+			if (node.name === "undefined") {
+				return undefined;
+			}
+			throw `Unknown identifier: ${node.name}`;
+		}
+
 		default:
 			throw new Error(`Sorry but ${node.type} are not authorized`);
 	}

@@ -1,3 +1,5 @@
+import z from "zod";
+
 interface Notification {
 	id: number;
 	message: string;
@@ -21,17 +23,16 @@ export const notificationStore = {
 		}, 5000);
 	},
 
-	async notifyError(message: string, response?: Response) {
-		const messages = [message];
-		if (response) {
-			try {
-				const data = await response.json();
-				messages.push(`${response.status}: ${data.message}`);
-			} catch {
-				messages.push(`${response.status}: ${await response.text()}`);
-			}
-		}
-		this.notify(messages.join(" - "), "error");
+	async notifyError(message: string | unknown, fallbackMessage?: string) {
+		const finalMessage =
+			typeof message === "string"
+				? message
+				: (z.object({ message: z.string() }).safeParse(message).data?.message ??
+					z.object({ body: z.object({ message: z.string() }), status: z.number() }).safeParse(message).data?.body
+						?.message ??
+					fallbackMessage ??
+					"An unexpected error occurred");
+		this.notify(finalMessage, "error");
 	},
 
 	notifySuccess(message: string) {

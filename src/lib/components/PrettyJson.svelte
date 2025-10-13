@@ -107,8 +107,8 @@
 			const updatedJson = parseJSON(editJson);
 			disableEditor();
 			onedit?.(updatedJson);
-		} catch (err: any) {
-			notificationStore.notifyError(err.message || "Invalid JSON");
+		} catch (err) {
+			notificationStore.notifyError(err, "Invalid JSON");
 		}
 	}
 
