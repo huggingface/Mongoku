@@ -18,8 +18,6 @@ export const addServer = command(
 		url: z.string(),
 	}),
 	async ({ url }) => {
-		checkReadOnly();
-
 		const mongo = await getMongo();
 		await mongo.addServer(url);
 		return { ok: true };
@@ -28,8 +26,6 @@ export const addServer = command(
 
 // Remove a server
 export const removeServer = command(z.string(), async (serverName) => {
-	checkReadOnly();
-
 	const mongo = await getMongo();
 	await mongo.removeServer(serverName);
 	return { ok: true };
