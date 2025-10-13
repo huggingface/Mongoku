@@ -11,7 +11,6 @@
 	import type { MongoDocument, SearchParams } from "$lib/types";
 	import { formatNumber } from "$lib/utils/filters";
 	import { SvelteURLSearchParams } from "svelte/reactivity";
-	import z from "zod";
 	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
@@ -76,9 +75,8 @@
 				modifiedItems = items;
 			}
 		} catch (error) {
-			notificationStore.notifyError(
-				z.object({ message: z.string() }).safeParse(error).data?.message ?? "Failed to update document",
-			);
+			console.log(error);
+			notificationStore.notifyError(error, "Failed to update document");
 		}
 	}
 
@@ -97,9 +95,7 @@
 			notificationStore.notifySuccess("Document removed successfully");
 			modifiedItems = items.filter((item) => item._id?.$value !== documentId);
 		} catch (error) {
-			notificationStore.notifyError(
-				z.object({ message: z.string() }).safeParse(error).data?.message ?? "Failed to remove document",
-			);
+			notificationStore.notifyError(error, "Failed to remove document");
 		}
 	}
 

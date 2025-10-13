@@ -8,7 +8,6 @@
 	import PrettyJson from "$lib/components/PrettyJson.svelte";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import type { MongoDocument } from "$lib/types";
-	import z from "zod";
 	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
@@ -43,9 +42,7 @@
 				item = result.update;
 			}
 		} catch (error) {
-			notificationStore.notifyError(
-				z.object({ message: z.string() }).safeParse(error).data?.message ?? "Failed to update document",
-			);
+			notificationStore.notifyError(error, "Failed to update document");
 		} finally {
 			loading = false;
 		}
@@ -71,9 +68,7 @@
 				),
 			);
 		} catch (error) {
-			notificationStore.notifyError(
-				z.object({ message: z.string() }).safeParse(error).data?.message ?? "Failed to remove document",
-			);
+			notificationStore.notifyError(error, "Failed to remove document");
 		}
 	}
 </script>

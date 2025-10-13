@@ -3,7 +3,6 @@
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import type { MongoDocument } from "$lib/types";
 	import { parseJSON } from "$lib/utils/jsonParser";
-	import z from "zod";
 	import JsonValue from "./JsonValue.svelte";
 	import Panel from "./Panel.svelte";
 
@@ -109,7 +108,7 @@
 			disableEditor();
 			onedit?.(updatedJson);
 		} catch (err) {
-			notificationStore.notifyError(z.object({ message: z.string() }).safeParse(err).data?.message ?? "Invalid JSON");
+			notificationStore.notifyError(err, "Invalid JSON");
 		}
 	}
 
