@@ -1,11 +1,11 @@
 {
-  "tabWidth": 2,
-  "useTabs": false,
-  "singleQuote": false,
-  "trailingComma": "all",
-  "arrowParens": "always",
-  "bracketSpacing": true,
-  "semi": true,
-  "printWidth": 120,
-  "plugins": ["@huggingface/prettier-plugin-vertical-align"]
+	"tabWidth": 2,
+	"useTabs": true,
+	"singleQuote": false,
+	"trailingComma": "all",
+	"arrowParens": "always",
+	"bracketSpacing": true,
+	"semi": true,
+	"printWidth": 120,
+	"plugins": []
 }

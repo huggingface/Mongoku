@@ -1,0 +1,15 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"module": "esnext",
+		"target": "es2022",
+		"moduleResolution": "bundler",
+		"outDir": "./dist",
+		"rootDir": ".",
+		"declaration": false,
+		"esModuleInterop": true,
+		"skipLibCheck": true
+	},
+	"include": ["cli.ts"],
+	"exclude": ["node_modules", "src", "build", ".svelte-kit"]
+}
