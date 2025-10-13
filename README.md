@@ -37,12 +37,6 @@ mongoku --readonly
 mongoku stop
 ```
 
-## Tech Stack
-
-- **Frontend**: SvelteKit (Svelte 5) with TypeScript
-- **Backend**: Node.js with MongoDB driver
-- **Package Manager**: pnpm
-
 ## Local Development
 
 ### Prerequisites
