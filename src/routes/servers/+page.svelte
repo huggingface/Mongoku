@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { invalidateAll } from "$app/navigation";
+	import { getServerDetails, getServers } from "$api/servers.remote";
 	import { resolve } from "$app/paths";
 	import Panel from "$lib/components/Panel.svelte";
 	import TooltipTable from "$lib/components/TooltipTable.svelte";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import { formatBytes, serverName } from "$lib/utils/filters";
-	import type { PageData } from "./$types";
 
-	let { data }: { data: PageData } = $props();
+	const serversQuery = getServers();
+	const data = $derived(await serversQuery);
 
-	type Server = PageData["servers"][number];
+	type Server = (typeof data.servers)[number];
 
 	let adding = $state(false);
 	let newServer = $state("");
@@ -32,8 +32,8 @@
 				newServer = "";
 				adding = false;
 				notificationStore.notifySuccess("Server added successfully");
-				// Reload the page to get updated servers
-				await invalidateAll();
+				// Refresh the servers list
+				await serversQuery.refresh();
 			} else {
 				const error = await response.text();
 				notificationStore.notifyError(error || "Failed to add server");
@@ -66,8 +66,8 @@
 			if (response.ok) {
 				notificationStore.notifySuccess("Server removed successfully");
 				closeRemoveModal();
-				// Reload the page to get updated servers
-				window.location.reload();
+				// Refresh the servers list
+				await serversQuery.refresh();
 			} else {
 				const error = await response.text();
 				notificationStore.notifyError(error || "Failed to remove server");
@@ -119,52 +119,50 @@
 				{#each data.servers as server (server._id)}
 					<tr class="group">
 						<td>
-							{#await server.details}
+							{#await getServerDetails(server._id)}
 								<span>
 									{serverName(server.name)}
 								</span>
-							{:then details}
-								{#if "error" in details && details.error}
-									<span class="error">
-										<span class="badge badge-danger" title={details.error.message}>Error</span>
-										{serverName(server.name)}
-									</span>
-								{:else}
-									<a href={resolve(`/servers/${encodeURIComponent(serverName(server.name))}/databases`)}>
-										{serverName(server.name)}
-									</a>
-								{/if}
+							{:then}
+								<a href={resolve(`/servers/${encodeURIComponent(serverName(server.name))}/databases`)}>
+									{serverName(server.name)}
+								</a>
+							{:catch error}
+								<span class="error">
+									<span class="badge badge-danger" title={error.message}>Error</span>
+									{serverName(server.name)}
+								</span>
 							{/await}
 						</td>
 						<td>
-							{#await server.details}
+							{#await getServerDetails(server._id)}
 								<span class="text-gray-400">...</span>
 							{:then details}
-								{#if "databases" in details && details.databases}
-									<TooltipTable
-										columns={[
-											{ header: "Database", key: "name" },
-											{ header: "Collections", key: "collections" },
-											{ header: "Size", key: "size" },
-										]}
-										rows={details.databases.map((db) => ({
-											name: db.name,
-											collections: db.collections,
-											size: formatBytes(db.size),
-										}))}
-									>
-										{details.databases.length}
-									</TooltipTable>
-								{/if}
+								<TooltipTable
+									columns={[
+										{ header: "Database", key: "name" },
+										{ header: "Collections", key: "collections" },
+										{ header: "Size", key: "size" },
+									]}
+									rows={details.databases.map((db: { name: string; collections: number; size: number }) => ({
+										name: db.name,
+										collections: db.collections,
+										size: formatBytes(db.size),
+									}))}
+								>
+									{details.databases.length}
+								</TooltipTable>
+							{:catch}
+								<span class="text-gray-400">-</span>
 							{/await}
 						</td>
 						<td>
-							{#await server.details}
+							{#await getServerDetails(server._id)}
 								<span class="text-gray-400">...</span>
 							{:then details}
-								{#if "size" in details && details.size !== undefined}
-									{formatBytes(details.size)}
-								{/if}
+								{formatBytes(details.size)}
+							{:catch}
+								<span class="text-gray-400">-</span>
 							{/await}
 						</td>
 						<td style="width: 140px">
