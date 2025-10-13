@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import Panel from "$lib/components/Panel.svelte";
 	import PrettyJson from "$lib/components/PrettyJson.svelte";
@@ -7,6 +6,7 @@
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import type { MongoDocument, SearchParams } from "$lib/types";
 	import { formatNumber } from "$lib/utils/filters";
+	import { SvelteURLSearchParams } from "svelte/reactivity";
 	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
@@ -36,23 +36,6 @@
 
 	let modifiedItems = $state<MongoDocument[] | null>(null);
 	let items = $derived(modifiedItems ? { data: modifiedItems, error: null } : data.results);
-
-	async function update() {
-		// eslint-disable-next-line svelte/prefer-svelte-reactivity
-		const queryParams = new URLSearchParams();
-		queryParams.set("query", params.query || "{}");
-		queryParams.set("sort", params.sort || "");
-		queryParams.set("project", params.project || "");
-		queryParams.set("skip", String(params.skip));
-		queryParams.set("limit", String(params.limit));
-
-		await goto(
-			resolve(
-				`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}?${queryParams.toString()}`,
-			),
-			{ invalidateAll: true },
-		);
-	}
 
 	async function editDocument(_id: { $value?: string } | undefined, json: MongoDocument, items: MongoDocument[]) {
 		const partial = params.project && params.project !== "{}" && Object.keys(JSON.parse(params.project)).length > 0;
@@ -116,15 +99,19 @@
 		}
 	}
 
-	function next() {
-		params.skip = params.skip + params.limit;
-		update();
+	function buildUrl(skip: number) {
+		const queryParams = new SvelteURLSearchParams();
+		queryParams.set("query", params.query || "{}");
+		queryParams.set("sort", params.sort || "");
+		queryParams.set("project", params.project || "");
+		queryParams.set("skip", String(skip));
+		queryParams.set("limit", String(params.limit));
+
+		return `/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}?${queryParams.toString()}`;
 	}
 
-	function previous() {
-		params.skip = Math.max(0, params.skip - params.limit);
-		update();
-	}
+	const nextUrl = $derived(buildUrl(params.skip + params.limit));
+	const previousUrl = $derived(buildUrl(Math.max(0, params.skip - params.limit)));
 </script>
 
 <SearchBox bind:params />
@@ -145,7 +132,8 @@
 		>
 			{#snippet actions()}
 				{#if data.params.skip > 0}
-					<button class="btn btn-default btn-sm -my-2" onclick={previous}>Previous</button>
+					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
+					<a href={resolve(previousUrl as any)} class="btn btn-default btn-sm -my-2">Previous</a>
 				{/if}
 			{/snippet}
 		</Panel>
@@ -160,10 +148,12 @@
 		>
 			{#snippet actions()}
 				{#if hasPrevious}
-					<button class="btn btn-default btn-sm -my-2" onclick={previous}>Previous</button>
+					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
+					<a href={resolve(previousUrl as any)} class="btn btn-default btn-sm -my-2">Previous</a>
 				{/if}
 				{#if hasNext}
-					<button class="btn btn-default btn-sm -my-2" onclick={next}>Next</button>
+					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
+					<a href={resolve(nextUrl as any)} class="btn btn-default btn-sm -my-2">Next</a>
 				{/if}
 			{/snippet}
 		</Panel>
