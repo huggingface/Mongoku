@@ -6,6 +6,7 @@
 	import TooltipTable from "$lib/components/TooltipTable.svelte";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import { formatBytes, serverName } from "$lib/utils/filters";
+	import z from "zod";
 	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
@@ -30,7 +31,9 @@
 			// Reload the page to get updated servers
 			await invalidateAll();
 		} catch (error) {
-			notificationStore.notifyError(error instanceof Error ? error.message : "Failed to add server");
+			notificationStore.notifyError(
+				z.object({ message: z.string() }).safeParse(error).data?.message ?? "Failed to add server",
+			);
 		} finally {
 			loading = false;
 		}
@@ -56,7 +59,9 @@
 			// Reload the page to get updated servers
 			window.location.reload();
 		} catch (error) {
-			notificationStore.notifyError(error instanceof Error ? error.message : "Failed to remove server");
+			notificationStore.notifyError(
+				z.object({ message: z.string() }).safeParse(error).data?.message ?? "Failed to remove server",
+			);
 		}
 	}
 

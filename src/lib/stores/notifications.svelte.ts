@@ -21,17 +21,8 @@ export const notificationStore = {
 		}, 5000);
 	},
 
-	async notifyError(message: string, response?: Response) {
-		const messages = [message];
-		if (response) {
-			try {
-				const data = await response.json();
-				messages.push(`${response.status}: ${data.message}`);
-			} catch {
-				messages.push(`${response.status}: ${await response.text()}`);
-			}
-		}
-		this.notify(messages.join(" - "), "error");
+	async notifyError(message: string) {
+		this.notify(message, "error");
 	},
 
 	notifySuccess(message: string) {
