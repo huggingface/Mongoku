@@ -1,4 +1,8 @@
 <script lang="ts">
+	import {
+		deleteDocument as deleteDocumentCommand,
+		updateDocument as updateDocumentCommand,
+	} from "$api/servers.remote";
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import PrettyJson from "$lib/components/PrettyJson.svelte";
@@ -20,26 +24,22 @@
 			return;
 		}
 
+		if (!oldId) return;
+
 		loading = true;
 		try {
-			const response = await fetch(
-				`/api/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}/documents/${oldId}`,
-				{
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify(json),
-				},
-			);
+			const result = await updateDocumentCommand({
+				server: data.server,
+				database: data.database,
+				collection: data.collection,
+				document: oldId,
+				value: json,
+				partial: false,
+			});
 
-			if (response.ok) {
-				const result = await response.json();
-				if (result.ok) {
-					notificationStore.notifySuccess("Document updated successfully");
-					item = result.update;
-				}
-			} else {
-				const error = await response.text();
-				notificationStore.notifyError(error || "Failed to update document");
+			if (result.ok) {
+				notificationStore.notifySuccess("Document updated successfully");
+				item = result.update;
 			}
 		} catch (error) {
 			notificationStore.notifyError(error instanceof Error ? error.message : "Failed to update document");
@@ -53,23 +53,20 @@
 		if (!documentId) return;
 
 		try {
-			const response = await fetch(
-				`/api/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}/documents/${documentId}`,
-				{ method: "DELETE" },
-			);
+			await deleteDocumentCommand({
+				server: data.server,
+				database: data.database,
+				collection: data.collection,
+				document: documentId,
+			});
 
-			if (response.ok) {
-				notificationStore.notifySuccess("Document removed successfully");
-				// Navigate back to the collection explore page
-				goto(
-					resolve(
-						`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}?query=${encodeURIComponent("{}")}&sort=&project=&skip=0&limit=20`,
-					),
-				);
-			} else {
-				const error = await response.text();
-				notificationStore.notifyError(error || "Failed to remove document");
-			}
+			notificationStore.notifySuccess("Document removed successfully");
+			// Navigate back to the collection explore page
+			goto(
+				resolve(
+					`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}?query=${encodeURIComponent("{}")}&sort=&project=&skip=0&limit=20`,
+				),
+			);
 		} catch (error) {
 			notificationStore.notifyError(error instanceof Error ? error.message : "Failed to remove document");
 		}

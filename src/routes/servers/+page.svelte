@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { addServer as addServerCommand, removeServer as removeServerCommand } from "$api/servers.remote";
 	import { invalidateAll } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import Panel from "$lib/components/Panel.svelte";
@@ -22,22 +23,12 @@
 
 		loading = true;
 		try {
-			const response = await fetch("/api/servers", {
-				method: "PUT",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ url: newServer }),
-			});
-
-			if (response.ok) {
-				newServer = "";
-				adding = false;
-				notificationStore.notifySuccess("Server added successfully");
-				// Reload the page to get updated servers
-				await invalidateAll();
-			} else {
-				const error = await response.text();
-				notificationStore.notifyError(error || "Failed to add server");
-			}
+			await addServerCommand({ url: newServer });
+			newServer = "";
+			adding = false;
+			notificationStore.notifySuccess("Server added successfully");
+			// Reload the page to get updated servers
+			await invalidateAll();
 		} catch (error) {
 			notificationStore.notifyError(error instanceof Error ? error.message : "Failed to add server");
 		} finally {
@@ -59,19 +50,11 @@
 		if (!serverToRemove) return;
 
 		try {
-			const response = await fetch(`/api/servers/${encodeURIComponent(serverToRemove.name)}`, {
-				method: "DELETE",
-			});
-
-			if (response.ok) {
-				notificationStore.notifySuccess("Server removed successfully");
-				closeRemoveModal();
-				// Reload the page to get updated servers
-				window.location.reload();
-			} else {
-				const error = await response.text();
-				notificationStore.notifyError(error || "Failed to remove server");
-			}
+			await removeServerCommand(serverToRemove.name);
+			notificationStore.notifySuccess("Server removed successfully");
+			closeRemoveModal();
+			// Reload the page to get updated servers
+			window.location.reload();
 		} catch (error) {
 			notificationStore.notifyError(error instanceof Error ? error.message : "Failed to remove server");
 		}

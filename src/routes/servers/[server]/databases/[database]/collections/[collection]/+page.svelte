@@ -1,4 +1,8 @@
 <script lang="ts">
+	import {
+		deleteDocument as deleteDocumentCommand,
+		updateDocument as updateDocumentCommand,
+	} from "$api/servers.remote";
 	import { resolve } from "$app/paths";
 	import Panel from "$lib/components/Panel.svelte";
 	import PrettyJson from "$lib/components/PrettyJson.svelte";
@@ -38,7 +42,9 @@
 	let items = $derived(modifiedItems ? { data: modifiedItems, error: null } : data.results);
 
 	async function editDocument(_id: { $value?: string } | undefined, json: MongoDocument, items: MongoDocument[]) {
-		const partial = params.project && params.project !== "{}" && Object.keys(JSON.parse(params.project)).length > 0;
+		const partial = Boolean(
+			params.project && params.project !== "{}" && Object.keys(JSON.parse(params.project)).length > 0,
+		);
 		const newId = json?._id?.$value;
 		const oldId = _id?.$value;
 
@@ -47,30 +53,26 @@
 			return;
 		}
 
-		try {
-			const response = await fetch(
-				`/api/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}/documents/${oldId}${partial ? "?partial=true" : ""}`,
-				{
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify(json),
-				},
-			);
+		if (!oldId) return;
 
-			if (response.ok) {
-				const result = await response.json();
-				if (result.ok) {
-					notificationStore.notifySuccess("Document updated successfully");
-					// Update the document in the list
-					const index = items.findIndex((item) => item._id?.$value === oldId);
-					if (index !== -1) {
-						items[index] = result.update;
-					}
-					modifiedItems = items;
+		try {
+			const result = await updateDocumentCommand({
+				server: data.server,
+				database: data.database,
+				collection: data.collection,
+				document: oldId,
+				value: json,
+				partial,
+			});
+
+			if (result.ok) {
+				notificationStore.notifySuccess("Document updated successfully");
+				// Update the document in the list
+				const index = items.findIndex((item) => item._id?.$value === oldId);
+				if (index !== -1) {
+					items[index] = result.update;
 				}
-			} else {
-				const error = await response.text();
-				notificationStore.notifyError(error || "Failed to update document");
+				modifiedItems = items;
 			}
 		} catch (error) {
 			notificationStore.notifyError(error instanceof Error ? error.message : "Failed to update document");
@@ -82,18 +84,15 @@
 		if (!documentId) return;
 
 		try {
-			const response = await fetch(
-				`/api/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}/documents/${documentId}`,
-				{ method: "DELETE" },
-			);
+			await deleteDocumentCommand({
+				server: data.server,
+				database: data.database,
+				collection: data.collection,
+				document: documentId,
+			});
 
-			if (response.ok) {
-				notificationStore.notifySuccess("Document removed successfully");
-				modifiedItems = items.filter((item) => item._id?.$value !== documentId);
-			} else {
-				const error = await response.text();
-				notificationStore.notifyError(error || "Failed to remove document");
-			}
+			notificationStore.notifySuccess("Document removed successfully");
+			modifiedItems = items.filter((item) => item._id?.$value !== documentId);
 		} catch (error) {
 			notificationStore.notifyError(error instanceof Error ? error.message : "Failed to remove document");
 		}
