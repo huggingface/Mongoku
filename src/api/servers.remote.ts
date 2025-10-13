@@ -8,7 +8,10 @@ import { z } from "zod";
 // Check if read-only mode is enabled
 function checkReadOnly() {
 	if (process.env.MONGOKU_READ_ONLY_MODE === "true") {
-		error(403, "Read-only mode is enabled");
+		throw Object.assign(new Error("Read-only mode is enabled"), {
+			status: 403,
+			body: { message: "Read-only mode is enabled" },
+		});
 	}
 }
 
