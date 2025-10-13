@@ -28,10 +28,8 @@ mongoku start
 
 # Start with PM2
 mongoku --pm2
-
 # Start on a custom port
 mongoku --port 8080
-
 # Start in read-only mode
 mongoku --readonly
 
@@ -58,40 +56,13 @@ mongoku stop
 # Install dependencies
 pnpm install
 
-# Run tests
-pnpm test
-
-# Run tests in watch mode
-pnpm test:watch
-
-# Check formatting
-pnpm format:check
-
-# Format code
-pnpm format
-
-# Lint code
-pnpm lint
-
-# Fix linting issues
-pnpm lint:fix
-
-# Type check
-pnpm check
-
 # Start development server (runs on port 3100)
 pnpm dev
-
-# Build for production
-pnpm build
-
-# Preview production build
-pnpm preview
 ```
 
 ### Docker
 
-#### Using the Docker HUB image
+<!-- #### Using the Docker HUB image
 
 ```bash
 docker run -d --name mongoku -p 3100:3100 huggingface/mongoku
@@ -101,6 +72,7 @@ docker run -d --name mongoku -p 3100:3100 \
   --env MONGOKU_DEFAULT_HOST="mongodb://user:password@myhost.com:8888" \
   huggingface/mongoku
 ```
+-->
 
 #### Build your own image
 
