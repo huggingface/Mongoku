@@ -28,15 +28,15 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup pnpm
+        run: corepack enable
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24.x
           cache: "pnpm"
           registry-url: "https://registry.npmjs.org"
-
-      - name: Setup pnpm
-        run: corepack enable
 
       - name: Configure git
         run: |
