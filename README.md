@@ -86,7 +86,7 @@ You can configure Mongoku using environment variables:
 
 ```bash
 # Use customized default hosts (Default = localhost:27017)
-MONGOKU_DEFAULT_HOST="mongodb://user:password@localhost:27017;localhost:27017"
+MONGOKU_DEFAULT_HOST="mongodb://user:password@localhost:27017"
 
 # See https://svelte.dev/docs/kit/adapter-node#environment-variables-port-and-host
 MONGOKU_SERVER_PORT=8000
