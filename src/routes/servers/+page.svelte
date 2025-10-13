@@ -16,7 +16,7 @@
 	let newServer = $state("");
 	let loading = $state(false);
 	let showRemoveModal = $state(false);
-	let serverToRemove = $state<Server | null>(null);
+	let serverToRemove: Server | null = null;
 
 	async function addServer() {
 		if (!newServer) return;
@@ -54,7 +54,7 @@
 			notificationStore.notifySuccess("Server removed successfully");
 			closeRemoveModal();
 			// Reload the page to get updated servers
-			window.location.reload();
+			await invalidateAll();
 		} catch (error) {
 			notificationStore.notifyError(error, "Failed to remove server");
 		}
