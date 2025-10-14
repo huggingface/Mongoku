@@ -96,6 +96,9 @@ class MongoConnections {
 	private clientIds: Map<string, string> = new Map(); // hostname -> _id
 	private hostsManager: HostsManager;
 	private countTimeout = parseInt(process.env.MONGOKU_COUNT_TIMEOUT!, 10) || 5000;
+	private queryTimeout = process.env.MONGOKU_QUERY_TIMEOUT
+		? parseInt(process.env.MONGOKU_QUERY_TIMEOUT, 10)
+		: undefined;
 
 	constructor() {
 		this.hostsManager = new HostsManager();
@@ -126,7 +129,7 @@ class MongoConnections {
 	getClient(name: string): MongoClient {
 		const client = this.clients.get(name) || this.clients.get(`${name}:27017`);
 		if (!client) {
-			throw new Error("Server does not exist");
+			throw new Error(`Client not found: ${name}`);
 		}
 		return client;
 	}
@@ -149,6 +152,10 @@ class MongoConnections {
 
 	getCountTimeout() {
 		return this.countTimeout;
+	}
+
+	getQueryTimeout() {
+		return this.queryTimeout;
 	}
 
 	async addServer(hostPath: string) {
