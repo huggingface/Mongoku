@@ -51,7 +51,15 @@
 	},
 	"files": [
 		"/dist",
-		"/build"
+		"/build",
+		"/ecosystem.config.js",
+		"/cli.ts",
+		"/src",
+		"/Dockerfile",
+		"/svelte.config.js",
+		"/tsconfig.json",
+		"/tsconfig.cli.json",
+		"/vite.config.ts"
 	],
 	"devDependencies": {
 		"@eslint/compat": "^1.4.0",

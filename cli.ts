@@ -66,15 +66,13 @@ async function startAction(options: { pm2?: boolean; port?: string; readonly?: b
 		console.log(chalk.yellow("🔒 Read-only mode enabled"));
 	}
 
-	const buildPath = join(rootDir, "build");
-
 	if (options.pm2) {
 		console.log(chalk.green(`🚀 Starting Mongoku with PM2 on port ${port}...`));
-		runCommand("pm2", ["--name", "mongoku", "start", join(rootDir, "ecosystem.config.js")], { stdio: "inherit" });
+		runCommand("pm2", ["--name", "mongoku", "start", "ecosystem.config.js"], { stdio: "inherit", cwd: rootDir });
 	} else {
 		console.log(chalk.green(`🚀 Starting Mongoku on port ${port}...`));
 		console.log(chalk.cyan(`📊 Open http://localhost:${port} in your browser`));
-		runCommand("node", [buildPath], { stdio: "inherit" });
+		runCommand("node", ["build"], { stdio: "inherit", cwd: rootDir });
 	}
 }
 
