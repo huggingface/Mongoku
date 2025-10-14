@@ -44,7 +44,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 
 	// Stream both promises - return error info instead of throwing
 	const resultsPromise = collection
-		.find(JsonEncoder.decode(queryDoc))
+		.find(JsonEncoder.decode(queryDoc), { maxTimeMS: mongo.getQueryTimeout() })
 		.project(projectDoc)
 		.sort(JsonEncoder.decode(sortDoc))
 		.limit(limit)
