@@ -34,6 +34,8 @@
 	let editJson = $state("");
 	let removing = $state(false);
 	let editorRef = $state<HTMLTextAreaElement>();
+	let contentContainerRef = $state<HTMLDivElement>();
+	let editorHeight = $state<string>("300px");
 
 	// Extract timestamp from ObjectId
 	function getTimestampFromObjectId(objectId: string): Date | null {
@@ -94,6 +96,13 @@
 
 	function enableEditor() {
 		editJson = serializeForEditing(json);
+
+		// Set editor height to match the full content container (including padding)
+		if (contentContainerRef) {
+			const height = contentContainerRef.offsetHeight;
+			editorHeight = `${Math.max(height, 300)}px`;
+		}
+
 		editorVisible = true;
 	}
 
@@ -157,7 +166,7 @@
 		{/if}
 	{/snippet}
 
-	<div class="p-4 relative border-t border-[var(--border-color)]">
+	<div bind:this={contentContainerRef} class="p-4 relative border-t border-[var(--border-color)]">
 		<div class="font-mono text-sm leading-tight whitespace-pre-wrap break-words relative">
 			<JsonValue value={json} {autoCollapse} collapsed={false} />
 		</div>
@@ -170,7 +179,8 @@
 			<textarea
 				bind:this={editorRef}
 				bind:value={editJson}
-				class="w-full min-h-[300px] font-mono text-sm leading-relaxed p-2.5 bg-[var(--color-1)] text-[var(--text)] border border-[var(--border-color)] rounded resize-y"
+				style="height: {editorHeight};"
+				class="w-full font-mono text-sm leading-relaxed p-2.5 bg-[var(--color-1)] text-[var(--text)] border border-[var(--border-color)] rounded resize-y"
 			></textarea>
 		</div>
 
