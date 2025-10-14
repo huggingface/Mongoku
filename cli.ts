@@ -59,6 +59,9 @@ async function startAction(options: { pm2?: boolean; port?: string; readonly?: b
 
 	const port = options.port || process.env.MONGOKU_SERVER_PORT || "3100";
 	process.env.MONGOKU_SERVER_PORT = port;
+	if (!process.env.MONGOKU_SERVER_ORIGIN) {
+		process.env.MONGOKU_SERVER_ORIGIN = `http://localhost:${port}`;
+	}
 
 	// Set read-only mode if specified
 	if (options.readonly) {

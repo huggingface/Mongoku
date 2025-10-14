@@ -16,9 +16,11 @@ FROM base
 COPY --from=prod-deps /app/node_modules /app/node_modules
 COPY --from=build /app/build /app/build
 
-# See also other MONGOKU_SERVER_ env vars, in README.md. Like MONGOKU_SERVER_ORIGIN, or reverse-proxy-related vars.
+# See also other MONGOKU_SERVER_ env vars, in README.md. Like reverse-proxy-related vars.
 # See https://svelte.dev/docs/kit/adapter-node#environment-variables-port-and-host
 ENV MONGOKU_SERVER_PORT=3100
+# needed for CSRF protection
+ENV MONGOKU_SERVER_ORIGIN=http://localhost:3100 
 
 EXPOSE 3100
 

@@ -99,13 +99,6 @@ MONGOKU_DEFAULT_HOST="mongodb://user:password@localhost:27017"
 # See https://svelte.dev/docs/kit/adapter-node#environment-variables-port-and-host
 MONGOKU_SERVER_PORT=8000
 MONGOKU_SERVER_ORIGIN=https://mongoku.example.com
-MONGOKU_SERVER_HOST=127.0.0.1
-MONGOKU_SERVER_PROTOCOL_HEADER=x-forwarded-proto
-MONGOKU_SERVER_HOST_HEADER=x-forwarded-host
-MONGOKU_SERVER_ADDRESS_HEADER=X-Forwarded-For
-MONGOKU_SERVER_XFF_DEPTH=1
-MONGOKU_SERVER_SHUTDOWN_TIMEOUT=30
-MONGOKU_SERVER_SOCKET_PATH=/tmp/socket
 
 # Use a specific file to store hosts (Default = $HOME/.mongoku.db)
 MONGOKU_DATABASE_FILE="/tmp/mongoku.db"
@@ -115,6 +108,15 @@ MONGOKU_COUNT_TIMEOUT=1000
 
 # Read-only mode (prevent write queries to mongodb)
 MONGOKU_READ_ONLY_MODE=true
+
+# Other reverse-proxy vars
+MONGOKU_SERVER_HOST=127.0.0.1
+MONGOKU_SERVER_PROTOCOL_HEADER=x-forwarded-proto
+MONGOKU_SERVER_HOST_HEADER=x-forwarded-host
+MONGOKU_SERVER_ADDRESS_HEADER=X-Forwarded-For
+MONGOKU_SERVER_XFF_DEPTH=1
+MONGOKU_SERVER_SHUTDOWN_TIMEOUT=30
+MONGOKU_SERVER_SOCKET_PATH=/tmp/socket
 ```
 
 ## License
