@@ -117,7 +117,9 @@
 							/>{/each}
 						<br />{getIndent(depth)}
 					</span>{#if collapsed}
-						<span class="collapsed-summary">... {value.length} item{value.length !== 1 ? "s" : ""}</span>
+						<button class="collapsed-summary" onclick={toggleCollapse}
+							>... {value.length} item{value.length !== 1 ? "s" : ""}</button
+						>
 					{/if}]
 				</span>
 			</span>
@@ -134,8 +136,8 @@
 						>{#each Object.keys(value) as objKey (objKey)}
 							<JsonValue value={value[objKey]} key={objKey} {autoCollapse} collapsed={autoCollapse} {depth} />{/each}
 					</span>{#if collapsed}
-						<span class="collapsed-summary"
-							>... {Object.keys(value).length} key{Object.keys(value).length !== 1 ? "s" : ""}</span
+						<button class="collapsed-summary" onclick={toggleCollapse}
+							>... {Object.keys(value).length} key{Object.keys(value).length !== 1 ? "s" : ""}</button
 						>
 					{:else}
 						{getIndent(depth)}
@@ -200,6 +202,7 @@
 		color: var(--text-secondary, #888);
 		font-style: italic;
 		margin: 0 4px;
+		cursor: pointer;
 	}
 
 	.value {
