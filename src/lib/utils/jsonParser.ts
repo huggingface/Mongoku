@@ -106,7 +106,7 @@ function buildObject(node: Node | Expression): unknown {
 	}
 }
 
-export function parseJSON(text: string): unknown {
+export function parseJSON(text: string, opts?: { allowArray?: boolean }): unknown {
 	const tree = parseScript(`var __JSON__ = ${text};`, {
 		tolerant: true,
 	});
@@ -117,6 +117,11 @@ export function parseJSON(text: string): unknown {
 	}
 
 	const objExpression = varDeclaration.declarations[0].init;
+
+	if (opts?.allowArray && objExpression?.type === "ArrayExpression") {
+		return buildObject(objExpression);
+	}
+
 	if (objExpression?.type !== "ObjectExpression") {
 		throw new Error("Expected ObjectExpression but received: " + objExpression?.type);
 	}

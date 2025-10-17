@@ -1,6 +1,7 @@
+import { validateAggregationPipeline } from "$lib/server/aggregation";
 import JsonEncoder from "$lib/server/JsonEncoder";
 import { getMongo } from "$lib/server/mongo";
-import type { MongoDocument } from "$lib/types";
+import { type MongoDocument } from "$lib/types";
 import { parseJSON } from "$lib/utils/jsonParser";
 import { error } from "@sveltejs/kit";
 import type { Document } from "mongodb";
@@ -16,7 +17,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	// Parse JSON strings early for immediate errors
 	let queryDoc: unknown;
 	try {
-		queryDoc = parseJSON(query);
+		queryDoc = parseJSON(query, { allowArray: true });
 	} catch (err) {
 		return error(400, `Invalid query: ${query} - ${err}`);
 	}
@@ -42,7 +43,64 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		return error(404, `Collection not found: ${params.server}.${params.database}.${params.collection}`);
 	}
 
-	// Stream both promises - return error info instead of throwing
+	if (Array.isArray(queryDoc)) {
+		// Validate aggregation pipeline
+		try {
+			console.log("Validating aggregation pipeline:", queryDoc);
+			validateAggregationPipeline(queryDoc);
+		} catch (err) {
+			return error(400, `Invalid aggregation pipeline: ${err instanceof Error ? err.message : String(err)}`);
+		}
+
+		console.log("Aggregation pipeline validated successfully");
+		// Execute aggregation
+		const pipeline = JsonEncoder.decode(queryDoc);
+
+		const resultsPromise = collection
+			.aggregate([...pipeline, { $limit: limit }, { $skip: skip }], { maxTimeMS: mongo.getQueryTimeout() })
+			.map((obj) => JsonEncoder.encode(obj))
+			.toArray()
+			.then((results) => ({
+				data: results as MongoDocument[],
+				error: null as string | null,
+			}))
+			.catch((err) => {
+				console.error("Error executing aggregation:", err);
+				return {
+					data: [] as MongoDocument[],
+					error: `Failed to execute aggregation: ${err instanceof Error ? err.message : String(err)}`,
+				};
+			});
+
+		// For aggregations, we can't easily get a count, so we return the result count
+		const countPromise = collection
+			.aggregate([...pipeline, { $count: "count" }], { maxTimeMS: mongo.getCountTimeout() })
+			.next()
+			.then((result) => ({
+				data: result?.count ?? 0,
+				error: null,
+			}))
+			.catch((err) => {
+				console.error("Error counting documents:", err);
+				return {
+					data: 0,
+					error: `Failed to count documents: ${err instanceof Error ? err.message : String(err)}`,
+				};
+			});
+
+		return {
+			results: resultsPromise,
+			count: countPromise,
+			params: {
+				query,
+				sort,
+				project,
+				skip,
+				limit,
+			},
+		};
+	}
+
 	const resultsPromise = collection
 		.find(JsonEncoder.decode(queryDoc), { maxTimeMS: mongo.getQueryTimeout() })
 		.project(projectDoc)
