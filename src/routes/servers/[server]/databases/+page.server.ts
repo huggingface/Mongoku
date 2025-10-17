@@ -18,7 +18,17 @@ export const load: PageServerLoad = async ({ params }) => {
 	const databases = await Promise.all(
 		results.databases.map(async (d) => {
 			const db = client.db(d.name);
-			const dbStats = (await db.stats()) as DatabaseStats;
+			const dbStats: Pick<DatabaseStats, "dataSize" | "avgObjSize" | "storageSize" | "indexSize" | "collections"> =
+				await (db.stats() as Promise<DatabaseStats>).catch(() => {
+					console.error(`Error getting stats for database ${d.name} on server ${params.server}`);
+					return {
+						dataSize: 0,
+						avgObjSize: 0,
+						storageSize: 0,
+						indexSize: 0,
+						collections: 0,
+					};
+				});
 
 			const collectionsJson = db
 				.listCollections()

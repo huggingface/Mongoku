@@ -15,7 +15,14 @@ export const load: PageServerLoad = async () => {
 				const collectionsCount = await Promise.all(
 					results.databases.map(async (d) => {
 						const db = client.db(d.name);
-						const dbStats = (await db.stats()) as DatabaseStats;
+						const dbStats: Pick<DatabaseStats, "collections"> = await (db.stats() as Promise<DatabaseStats>).catch(
+							() => {
+								console.error(`Error getting stats for database ${d.name} on server ${name}`);
+								return {
+									collections: 0,
+								};
+							},
+						);
 						return dbStats.collections;
 					}),
 				);
@@ -29,6 +36,7 @@ export const load: PageServerLoad = async () => {
 					size: results.totalSize ?? 0,
 				};
 			} catch (err) {
+				console.error(`Error getting details for server ${name}:`, err);
 				return {
 					error: {
 						code: err instanceof Error && "code" in err ? err.code : undefined,
@@ -37,13 +45,16 @@ export const load: PageServerLoad = async () => {
 					},
 				};
 			}
-		})().catch((err) => ({
-			error: {
-				code: err instanceof Error && "code" in err ? err.code : undefined,
-				name: err instanceof Error ? err.name : "Error",
-				message: err instanceof Error ? err.message : String(err),
-			},
-		})),
+		})().catch((err) => {
+			console.error(`Error getting details for server ${name}:`, err);
+			return {
+				error: {
+					code: err instanceof Error && "code" in err ? err.code : undefined,
+					name: err instanceof Error ? err.name : "Error",
+					message: err instanceof Error ? err.message : String(err),
+				},
+			};
+		}),
 	}));
 
 	servers.sort((a, b) => a.name.localeCompare(b.name));
