@@ -75,7 +75,7 @@
 					<textarea
 						bind:this={queryInput}
 						bind:value={params.query}
-						placeholder={"[]"}
+						placeholder="[]"
 						name="query"
 						rows="5"
 						onkeydown={handleTextareaKeydown}

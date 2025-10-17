@@ -11,7 +11,6 @@
 	interface Props {
 		json: MongoDocument;
 		autoCollapse?: boolean;
-		readOnly?: boolean;
 		onedit?: (json: any) => void;
 		onremove?: () => void;
 		server: string;
