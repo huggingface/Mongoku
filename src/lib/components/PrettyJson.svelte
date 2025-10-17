@@ -19,16 +19,7 @@
 		collection: string;
 	}
 
-	let {
-		json,
-		autoCollapse = false,
-		readOnly = false,
-		onedit,
-		onremove,
-		server,
-		database,
-		collection,
-	}: Props = $props();
+	let { json, autoCollapse = false, onedit, onremove, server, database, collection }: Props = $props();
 
 	let editorVisible = $state(false);
 	let editJson = $state("");
@@ -134,38 +125,42 @@
 	}
 </script>
 
-<Panel class="group">
-	{#snippet title()}
-		{#if json._id}
-			<div class="">
-				<a
-					type="button"
-					class="bg-transparent border-none text-[var(--text)] no-underline cursor-pointer text-xl font-inherit p-0 hover:underline"
-					href={resolve(
-						`/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(collection)}/documents/${json._id?.$value}`,
-					)}
-				>
-					{json._id?.$value}
-				</a>
-				{#if json._id?.$value}
-					{@const timestamp = getTimestampFromObjectId(json._id.$value)}
-					{#if timestamp}
-						<span class="ml-2 text-md text-[var(--text-secondary,#888)]">{timestamp.toLocaleString()}</span>
-					{/if}
+{#snippet title()}
+	{#if json._id}
+		<div class="">
+			<a
+				type="button"
+				class="bg-transparent border-none text-[var(--text)] no-underline cursor-pointer text-xl font-inherit p-0 hover:underline"
+				href={resolve(
+					`/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(collection)}/documents/${json._id?.$value}`,
+				)}
+			>
+				{json._id?.$value}
+			</a>
+			{#if json._id?.$value}
+				{@const timestamp = getTimestampFromObjectId(json._id.$value)}
+				{#if timestamp}
+					<span class="ml-2 text-md text-[var(--text-secondary,#888)]">{timestamp.toLocaleString()}</span>
 				{/if}
-			</div>
-		{/if}
-	{/snippet}
+			{/if}
+		</div>
+	{/if}
+{/snippet}
 
-	{#snippet actions()}
-		{#if !readOnly}
-			<div class="hidden group-hover:block">
+{#snippet actions()}
+	{#if onedit || onremove}
+		<div class="hidden group-hover:block">
+			{#if onedit}
 				<button class="btn btn-outline-light btn-sm ml-2 -my-2" onclick={enableEditor}>Edit</button>
+			{/if}
+			{#if onremove}
 				<button class="btn btn-outline-danger btn-sm ml-2 -my-2" onclick={showRemove}>Remove</button>
-			</div>
-		{/if}
-	{/snippet}
+			{/if}
+		</div>
+	{/if}
+{/snippet}
 
+<Panel class="group" title={json._id ? title : undefined} {actions}>
 	<div bind:this={contentContainerRef} class="p-4 relative border-t border-[var(--border-color)]">
 		<div class="font-mono text-sm leading-tight whitespace-pre-wrap break-words relative">
 			<JsonValue value={json} {autoCollapse} collapsed={false} />

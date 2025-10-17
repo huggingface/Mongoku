@@ -159,13 +159,12 @@
 		</Panel>
 	{/await}
 
-	{#each items as item (item._id?.$value)}
+	{#each items as item, index (item._id?.$value || index)}
 		<PrettyJson
 			json={item}
 			autoCollapse={true}
-			readOnly={data.readOnly}
-			onedit={(json) => editDocument(item._id, json, items)}
-			onremove={() => removeDocument(item._id, items)}
+			onedit={data.isAggregation || data.readOnly ? undefined : (json) => editDocument(item._id, json, items)}
+			onremove={data.isAggregation || data.readOnly ? undefined : () => removeDocument(item._id, items)}
 			server={data.server}
 			database={data.database}
 			collection={data.collection}

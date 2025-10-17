@@ -58,6 +58,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 				skip,
 				limit,
 			},
+			isAggregation: false,
 		};
 	}
 
@@ -95,6 +96,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 					skip,
 					limit,
 				},
+				isAggregation: true,
 			};
 		}
 		// Execute aggregation
@@ -142,6 +144,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 				skip,
 				limit,
 			},
+			isAggregation: true,
 		};
 	}
 
@@ -201,5 +204,6 @@ export const load: PageServerLoad = async ({ params, url }) => {
 			skip,
 			limit,
 		},
+		isAggregation: false,
 	};
 };
