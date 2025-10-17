@@ -5,5 +5,9 @@ export const load = async (event) => {
 			...(await event.parent()).breadcrumbs,
 			{ label: event.params.collection, path: `/${event.params.collection}/documents` },
 		],
+		categories: [
+			{ key: "documents", label: "Documents" },
+			{ key: "indexes", label: "Indexes" },
+		],
 	};
 };
