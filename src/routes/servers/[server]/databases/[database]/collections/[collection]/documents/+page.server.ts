@@ -14,27 +14,55 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	const skip = parseInt(url.searchParams.get("skip") || "0", 10);
 	const limit = parseInt(url.searchParams.get("limit") || "20", 10);
 
-	// Parse JSON strings early for immediate errors
+	// Parse JSON strings - return error state if invalid instead of throwing
 	let queryDoc: unknown;
+	let parseError: string | null = null;
+
 	try {
 		queryDoc = parseJSON(query, { allowArray: true });
 	} catch (err) {
-		return error(400, `Invalid query: ${query} - ${err}`);
+		parseError = `Invalid query: ${err}`;
 	}
 
-	let sortDoc: unknown;
-	try {
-		sortDoc = parseJSON(sort);
-	} catch (err) {
-		return error(400, `Invalid sort: ${sort} - ${err}`);
+	if (!parseError) {
+		try {
+			parseJSON(sort);
+		} catch (err) {
+			parseError = `Invalid sort: ${err}`;
+		}
 	}
 
-	let projectDoc: Document;
-	try {
-		projectDoc = parseJSON(project) as Document;
-	} catch (err) {
-		return error(400, `Invalid project: ${project} - ${err}`);
+	if (!parseError) {
+		try {
+			parseJSON(project);
+		} catch (err) {
+			parseError = `Invalid project: ${err}`;
+		}
 	}
+
+	// If there's a parse error, return the page with error state
+	if (parseError) {
+		return {
+			results: Promise.resolve({
+				data: [],
+				error: parseError,
+			}),
+			count: Promise.resolve({
+				data: 0,
+				error: null,
+			}),
+			params: {
+				query,
+				sort,
+				project,
+				skip,
+				limit,
+			},
+		};
+	}
+
+	const sortDoc = parseJSON(sort);
+	const projectDoc = parseJSON(project) as Document;
 
 	const mongo = await getMongo();
 	const collection = mongo.getCollection(params.server, params.database, params.collection);
@@ -48,11 +76,27 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		try {
 			console.log("Validating aggregation pipeline:", queryDoc);
 			validateAggregationPipeline(queryDoc);
+			console.log("Aggregation pipeline validated successfully");
 		} catch (err) {
-			return error(400, `Invalid aggregation pipeline: ${err instanceof Error ? err.message : String(err)}`);
+			const validationError = `Invalid aggregation pipeline: ${err instanceof Error ? err.message : String(err)}`;
+			return {
+				results: Promise.resolve({
+					data: [],
+					error: validationError,
+				}),
+				count: Promise.resolve({
+					data: 0,
+					error: null,
+				}),
+				params: {
+					query,
+					sort,
+					project,
+					skip,
+					limit,
+				},
+			};
 		}
-
-		console.log("Aggregation pipeline validated successfully");
 		// Execute aggregation
 		const pipeline = JsonEncoder.decode(queryDoc);
 
