@@ -1,7 +1,8 @@
-import type { CollectionJSON } from "$lib/types";
+import type { CollectionJSON, MappingTarget } from "$lib/types";
 import { MongoClient, type Collection } from "mongodb";
 import { URL } from "url";
 import { HostsManager } from "./HostsManager";
+import { MappingsManager } from "./MappingsManager";
 
 export async function getCollectionJson(
 	collection: Collection,
@@ -95,6 +96,7 @@ class MongoConnections {
 	private clients: Map<string, MongoClient> = new Map();
 	private clientIds: Map<string, string> = new Map(); // hostname -> _id
 	private hostsManager: HostsManager;
+	private mappingsManager: MappingsManager;
 	private countTimeout = parseInt(process.env.MONGOKU_COUNT_TIMEOUT!, 10) || 5000;
 	private queryTimeout = process.env.MONGOKU_QUERY_TIMEOUT
 		? parseInt(process.env.MONGOKU_QUERY_TIMEOUT, 10)
@@ -102,6 +104,7 @@ class MongoConnections {
 
 	constructor() {
 		this.hostsManager = new HostsManager();
+		this.mappingsManager = new MappingsManager();
 	}
 
 	async initialize() {
@@ -182,6 +185,40 @@ class MongoConnections {
 		await this.hostsManager.remove(name);
 		this.clients.delete(name);
 		this.clientIds.delete(name);
+	}
+
+	/**
+	 * Get mappings for a specific collection
+	 */
+	async getMappings(
+		serverName: string,
+		databaseName: string,
+		collectionName: string,
+	): Promise<Record<string, MappingTarget | MappingTarget[]> | null> {
+		const client = this.getClient(serverName);
+		const db = client.db(databaseName);
+		return this.mappingsManager.getMappings(serverName, databaseName, collectionName, db);
+	}
+
+	/**
+	 * Get all mappings for a database
+	 */
+	async getAllMappings(
+		serverName: string,
+		databaseName: string,
+	): Promise<Map<string, Record<string, MappingTarget | MappingTarget[]>>> {
+		const client = this.getClient(serverName);
+		const db = client.db(databaseName);
+		return this.mappingsManager.getAllMappings(serverName, databaseName, db);
+	}
+
+	/**
+	 * Refresh mappings from database (reload into cache)
+	 */
+	async refreshMappings(serverName: string, databaseName: string): Promise<void> {
+		const client = this.getClient(serverName);
+		const db = client.db(databaseName);
+		await this.mappingsManager.refreshMappings(serverName, databaseName, db);
 	}
 }
 

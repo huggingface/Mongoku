@@ -42,6 +42,9 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		return error(404, `Collection not found: ${params.server}.${params.database}.${params.collection}`);
 	}
 
+	// Load mappings for this collection
+	const mappings = await mongo.getMappings(params.server, params.database, params.collection);
+
 	// Stream both promises - return error info instead of throwing
 	const resultsPromise = collection
 		.find(JsonEncoder.decode(queryDoc), { maxTimeMS: mongo.getQueryTimeout() })
@@ -95,6 +98,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		// Stream these promises to the client
 		results: resultsPromise,
 		count: countPromise,
+		mappings: mappings || {},
 		params: {
 			query,
 			sort,

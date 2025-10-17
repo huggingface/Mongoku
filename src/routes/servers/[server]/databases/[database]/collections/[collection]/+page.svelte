@@ -131,9 +131,17 @@
 				: "No documents"}
 		>
 			{#snippet actions()}
+				<a
+					href={resolve(
+						`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}/mappings`,
+					)}
+					class="btn btn-outline-light btn-sm -my-2"
+				>
+					Mappings
+				</a>
 				{#if data.params.skip > 0}
 					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-					<a href={resolve(previousUrl as any)} class="btn btn-default btn-sm -my-2">Previous</a>
+					<a href={resolve(previousUrl as any)} class="btn btn-default btn-sm -my-2 ml-2">Previous</a>
 				{/if}
 			{/snippet}
 		</Panel>
@@ -147,13 +155,21 @@
 				: "No documents"}
 		>
 			{#snippet actions()}
+				<a
+					href={resolve(
+						`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}/mappings`,
+					)}
+					class="btn btn-outline-light btn-sm -my-2"
+				>
+					Mappings
+				</a>
 				{#if hasPrevious}
 					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-					<a href={resolve(previousUrl as any)} class="btn btn-default btn-sm -my-2">Previous</a>
+					<a href={resolve(previousUrl as any)} class="btn btn-default btn-sm -my-2 ml-2">Previous</a>
 				{/if}
 				{#if hasNext}
 					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-					<a href={resolve(nextUrl as any)} class="btn btn-default btn-sm -my-2">Next</a>
+					<a href={resolve(nextUrl as any)} class="btn btn-default btn-sm -my-2 ml-2">Next</a>
 				{/if}
 			{/snippet}
 		</Panel>
@@ -169,6 +185,7 @@
 			server={data.server}
 			database={data.database}
 			collection={data.collection}
+			mappings={data.mappings}
 		/>
 	{/each}
 {/await}

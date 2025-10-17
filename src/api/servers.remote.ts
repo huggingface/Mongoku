@@ -96,3 +96,19 @@ export const deleteDocument = command(
 		};
 	},
 );
+
+// Refresh mappings from database
+export const refreshMappings = command(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+	}),
+	async ({ server, database }) => {
+		const mongo = await getMongo();
+		await mongo.refreshMappings(server, database);
+
+		return {
+			ok: true,
+		};
+	},
+);

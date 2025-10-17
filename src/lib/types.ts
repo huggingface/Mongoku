@@ -54,3 +54,19 @@ export interface CollectionJSON {
 		size: number;
 	}>;
 }
+
+/**
+ * A single mapping target - defines which collection and field to lookup
+ */
+export interface MappingTarget {
+	collection: string;
+	on: string;
+}
+
+/**
+ * Collection mappings document structure as stored in mongoku.mappings
+ */
+export interface CollectionMappings {
+	_id: string; // collection name
+	mappings: Record<string, MappingTarget | MappingTarget[]>;
+}

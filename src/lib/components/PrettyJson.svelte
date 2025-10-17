@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
-	import type { MongoDocument } from "$lib/types";
+	import type { MappingTarget, MongoDocument } from "$lib/types";
 	import { parseJSON } from "$lib/utils/jsonParser";
 	import JsonValue from "./JsonValue.svelte";
 	import Panel from "./Panel.svelte";
@@ -17,6 +17,7 @@
 		server: string;
 		database: string;
 		collection: string;
+		mappings?: Record<string, MappingTarget | MappingTarget[]>;
 	}
 
 	let {
@@ -28,6 +29,7 @@
 		server,
 		database,
 		collection,
+		mappings,
 	}: Props = $props();
 
 	let editorVisible = $state(false);
@@ -168,7 +170,7 @@
 
 	<div bind:this={contentContainerRef} class="p-4 relative border-t border-[var(--border-color)]">
 		<div class="font-mono text-sm leading-tight whitespace-pre-wrap break-words relative">
-			<JsonValue value={json} {autoCollapse} collapsed={false} />
+			<JsonValue value={json} {autoCollapse} collapsed={false} {mappings} {server} {database} {collection} />
 		</div>
 
 		<div class="absolute h-full z-[100] w-full top-0 left-0" class:hidden={!editorVisible} class:block={editorVisible}>

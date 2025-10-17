@@ -34,6 +34,9 @@
 							>
 								{collection.name}
 							</a>
+							{#if collection.hasMapping}
+								<span class="ml-2" title="Has mappings">🔗</span>
+							{/if}
 						</td>
 						<td>
 							{#await collection.details}

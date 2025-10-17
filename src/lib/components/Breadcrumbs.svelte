@@ -46,16 +46,28 @@
 							breadcrumbs.push({
 								label: collection,
 							});
-						} else if (segments.length >= 7 && segments[6] === "documents" && segments[7]) {
-							// /servers/{server}/databases/{database}/collections/{collection}/documents/{document}
-							breadcrumbs.push({
-								label: collection,
-								href: `/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(collection)}`,
-							});
+						} else if (segments.length >= 7) {
+							if (segments[6] === "documents" && segments[7]) {
+								// /servers/{server}/databases/{database}/collections/{collection}/documents/{document}
+								breadcrumbs.push({
+									label: collection,
+									href: `/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(collection)}`,
+								});
 
-							breadcrumbs.push({
-								label: decodeURIComponent(params.document || "[Document]"),
-							});
+								breadcrumbs.push({
+									label: decodeURIComponent(params.document || "[Document]"),
+								});
+							} else if (segments[6] === "mappings") {
+								// /servers/{server}/databases/{database}/collections/{collection}/mappings
+								breadcrumbs.push({
+									label: collection,
+									href: `/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(collection)}?query=${encodeURIComponent("{}")}&sort=&project=&skip=0&limit=20`,
+								});
+
+								breadcrumbs.push({
+									label: "Mappings",
+								});
+							}
 						}
 					}
 				}
