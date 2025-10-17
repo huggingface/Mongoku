@@ -17,7 +17,10 @@
 
 	let counter = $state(Math.random());
 
-	let queryInput: HTMLInputElement | undefined;
+	let queryInput = $state<HTMLInputElement | HTMLTextAreaElement | undefined>(undefined);
+
+	// Detect if query is an aggregation (starts with [)
+	let isAggregation = $derived(params.query?.trimStart().startsWith("["));
 
 	$effect(() => {
 		if (queryInput) {
@@ -45,113 +48,142 @@
 		);
 	}
 
-	let form: HTMLFormElement | undefined;
+	function handleTextareaKeydown(event: KeyboardEvent) {
+		if (event.ctrlKey && event.key === "Enter") {
+			event.preventDefault();
+			form?.requestSubmit();
+		}
+	}
+
+	let form = $state<HTMLFormElement | undefined>(undefined);
 </script>
 
-<form class="flex items-stretch w-full" method="GET" action="?" onsubmit={submit} bind:this={form}>
-	<!-- Parameters group -->
-	<div class="flex-grow">
-		<!-- Query input (always shown) -->
-		<div class="flex items-stretch w-full h-10">
-			<div
-				class="min-w-[100px] flex justify-center items-center border border-[var(--color-4)] {!showOptionalFields
-					? 'border-b rounded-bl-md'
-					: 'border-b-0'} bg-[var(--color-1)] rounded-tl-md"
-			>
-				Query:
+<div>
+	<form class="flex items-stretch w-full" method="GET" action="?" onsubmit={submit} bind:this={form}>
+		<!-- Parameters group -->
+		<div class="flex-grow">
+			<!-- Query input (always shown) -->
+			<div class="flex items-stretch w-full {isAggregation ? 'min-h-10' : 'h-10'}">
+				<div
+					class="min-w-[100px] flex justify-center items-center border border-[var(--color-4)] {!showOptionalFields
+						? 'border-b rounded-bl-md'
+						: 'border-b-0'} bg-[var(--color-1)] rounded-tl-md"
+				>
+					{isAggregation ? "Aggregation:" : "Query:"}
+				</div>
+				{#if isAggregation}
+					<textarea
+						bind:this={queryInput}
+						bind:value={params.query}
+						placeholder={"[]"}
+						name="query"
+						rows="5"
+						onkeydown={handleTextareaKeydown}
+						class="flex-grow border-0 bg-[var(--color-3)] pl-2.5 font-mono py-2 resize-y"
+					></textarea>
+				{:else}
+					<input
+						type="text"
+						bind:this={queryInput}
+						bind:value={params.query}
+						placeholder={"{}"}
+						name="query"
+						class="flex-grow border-0 bg-[var(--color-3)] pl-2.5 font-mono"
+					/>
+				{/if}
 			</div>
-			<input
-				type="text"
-				bind:this={queryInput}
-				bind:value={params.query}
-				placeholder={"{}"}
-				name="query"
-				class="flex-grow border-0 bg-[var(--color-3)] pl-2.5 font-mono"
-			/>
+
+			<input type="hidden" value={counter} name="v" />
+			<!-- Sort input -->
+			{#if showOptionalFields}
+				<div class="flex items-stretch w-full h-10">
+					<div
+						class="min-w-[100px] flex justify-center items-center border border-[var(--color-4)] border-b-0 bg-[var(--color-1)]"
+					>
+						Sort:
+					</div>
+					<input
+						type="text"
+						bind:value={params.sort}
+						name="sort"
+						placeholder={"{}"}
+						class="flex-grow border-0 border-t border-[var(--color-4)] bg-[var(--color-3)] pl-2.5 font-mono"
+					/>
+				</div>
+
+				<!-- Skip input -->
+				<div class="flex items-stretch w-full h-10">
+					<div
+						class="min-w-[100px] flex justify-center items-center border border-[var(--color-4)] border-b-0 bg-[var(--color-1)]"
+					>
+						Skip:
+					</div>
+					<input
+						type="number"
+						bind:value={params.skip}
+						name="skip"
+						min="0"
+						class="flex-grow border-0 border-t border-[var(--color-4)] bg-[var(--color-3)] pl-2.5 font-mono"
+					/>
+				</div>
+
+				<!-- Limit input -->
+				<div class="flex items-stretch w-full h-10">
+					<div
+						class="min-w-[100px] flex justify-center items-center border border-[var(--color-4)] border-b-0 bg-[var(--color-1)]"
+					>
+						Limit:
+					</div>
+					<input
+						type="number"
+						bind:value={params.limit}
+						name="limit"
+						min="1"
+						class="flex-grow border-0 border-t border-[var(--color-4)] bg-[var(--color-3)] pl-2.5 font-mono"
+					/>
+				</div>
+
+				<!-- Project input -->
+				<div class="flex items-stretch w-full h-10">
+					<div
+						class="min-w-[100px] flex justify-center items-center border border-[var(--color-4)] border-b bg-[var(--color-1)] rounded-bl-md"
+					>
+						Project:
+					</div>
+					<input
+						type="text"
+						bind:value={params.project}
+						name="project"
+						placeholder={"{}"}
+						class="flex-grow border-0 border-t border-[var(--color-4)] bg-[var(--color-3)] pl-2.5 font-mono"
+					/>
+				</div>
+			{/if}
 		</div>
 
-		<input type="hidden" value={counter} name="v" />
-		<!-- Sort input -->
-		{#if showOptionalFields}
-			<div class="flex items-stretch w-full h-10">
-				<div
-					class="min-w-[100px] flex justify-center items-center border border-[var(--color-4)] border-b-0 bg-[var(--color-1)]"
-				>
-					Sort:
-				</div>
-				<input
-					type="text"
-					bind:value={params.sort}
-					name="sort"
-					placeholder={"{}"}
-					class="flex-grow border-0 border-t border-[var(--color-4)] bg-[var(--color-3)] pl-2.5 font-mono"
-				/>
-			</div>
+		<!-- Toggle optional fields button -->
+		<button
+			class="btn btn-default !w-12 !rounded-none !border-r-0 text-2xl leading-none font-bold !py-1.5"
+			type="button"
+			onclick={() => {
+				showOptionalFields = !showOptionalFields;
+			}}
+		>
+			{showOptionalFields ? "−" : "+"}
+		</button>
 
-			<!-- Skip input -->
-			<div class="flex items-stretch w-full h-10">
-				<div
-					class="min-w-[100px] flex justify-center items-center border border-[var(--color-4)] border-b-0 bg-[var(--color-1)]"
-				>
-					Skip:
-				</div>
-				<input
-					type="number"
-					bind:value={params.skip}
-					name="skip"
-					min="0"
-					class="flex-grow border-0 border-t border-[var(--color-4)] bg-[var(--color-3)] pl-2.5 font-mono"
-				/>
-			</div>
+		<!-- Search button -->
+		<button class="btn btn-success !rounded-l-none !rounded-r-md font-bold !py-1.5" type="submit"> GO! </button>
+	</form>
 
-			<!-- Limit input -->
-			<div class="flex items-stretch w-full h-10">
-				<div
-					class="min-w-[100px] flex justify-center items-center border border-[var(--color-4)] border-b-0 bg-[var(--color-1)]"
-				>
-					Limit:
-				</div>
-				<input
-					type="number"
-					bind:value={params.limit}
-					name="limit"
-					min="1"
-					class="flex-grow border-0 border-t border-[var(--color-4)] bg-[var(--color-3)] pl-2.5 font-mono"
-				/>
-			</div>
-
-			<!-- Project input -->
-			<div class="flex items-stretch w-full h-10">
-				<div
-					class="min-w-[100px] flex justify-center items-center border border-[var(--color-4)] border-b bg-[var(--color-1)] rounded-bl-md"
-				>
-					Project:
-				</div>
-				<input
-					type="text"
-					bind:value={params.project}
-					name="project"
-					placeholder={"{}"}
-					class="flex-grow border-0 border-t border-[var(--color-4)] bg-[var(--color-3)] pl-2.5 font-mono"
-				/>
-			</div>
-		{/if}
-	</div>
-
-	<!-- Toggle optional fields button -->
-	<button
-		class="btn btn-default !w-12 !rounded-none !border-r-0 text-2xl leading-none font-bold !py-1.5"
-		type="button"
-		onclick={() => {
-			showOptionalFields = !showOptionalFields;
-		}}
-	>
-		{showOptionalFields ? "−" : "+"}
-	</button>
-
-	<!-- Search button -->
-	<button class="btn btn-success !rounded-l-none !rounded-r-md font-bold !py-1.5" type="submit"> GO! </button>
-</form>
+	<!-- Help text when collapsed -->
+	{#if !showOptionalFields && !isAggregation && params.query === "{}"}
+		<div class="text-xs text-[var(--text-secondary,#888)] mt-1 ml-1">
+			Tip: Use <code class="bg-[var(--color-3)] px-1 py-0.5 rounded font-mono">[{"{...}"}]</code> to switch to aggregation
+			mode
+		</div>
+	{/if}
+</div>
 
 <style lang="postcss">
 	input {
