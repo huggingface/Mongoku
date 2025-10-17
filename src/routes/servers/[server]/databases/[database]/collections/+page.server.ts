@@ -14,8 +14,6 @@ export const load: PageServerLoad = async ({ params }) => {
 	}));
 
 	return {
-		server: params.server,
-		database: params.database,
 		collections: collectionsWithDetails,
 	};
 };

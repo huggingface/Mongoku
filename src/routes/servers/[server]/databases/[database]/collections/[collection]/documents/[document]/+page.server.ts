@@ -16,10 +16,6 @@ export const load: PageServerLoad = async ({ params }) => {
 	}
 
 	return {
-		server: params.server,
-		database: params.database,
-		collection: params.collection,
-		documentId: params.document,
 		document,
 	};
 };

@@ -10,7 +10,6 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	if (!Array.isArray(results.databases)) {
 		return {
-			server: params.server,
 			databases: [],
 		};
 	}
@@ -51,7 +50,6 @@ export const load: PageServerLoad = async ({ params }) => {
 	);
 
 	return {
-		server: params.server,
 		databases,
 	};
 };

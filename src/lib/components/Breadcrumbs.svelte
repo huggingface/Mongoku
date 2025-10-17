@@ -1,71 +1,20 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
 	import { page } from "$app/state";
-	import { serverName } from "$lib/utils/filters";
 
 	interface BreadcrumbItem {
 		label: string;
 		href?: string;
 	}
 
-	function getBreadcrumbs(pathname: string, params: Record<string, string>): BreadcrumbItem[] {
-		const breadcrumbs: BreadcrumbItem[] = [];
+	const breadcrumbs = $derived.by(() => {
+		const list = (page.data.breadcrumbs ?? []) as Array<{ label: string; path: string }>;
 
-		// Parse the path segments
-		const segments = pathname.split("/").filter(Boolean);
-
-		if (segments.length === 0) {
-			// We're at home, no breadcrumbs needed
-			return [];
-		}
-
-		if (segments[0] === "servers" && segments.length >= 3) {
-			const server = decodeURIComponent(params.server || "");
-			const serverDisplayName = serverName(server);
-
-			if (segments[2] === "databases") {
-				// /servers/{server}/databases
-				breadcrumbs.push({
-					label: serverDisplayName,
-					href: `/servers/${encodeURIComponent(server)}/databases`,
-				});
-
-				if (segments.length >= 5 && segments[3] && segments[4] === "collections") {
-					const database = decodeURIComponent(params.database || "");
-					// /servers/{server}/databases/{database}/collections
-					breadcrumbs.push({
-						label: database,
-						href: `/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections`,
-					});
-
-					if (segments.length >= 6 && segments[5]) {
-						const collection = decodeURIComponent(params.collection || "");
-
-						if (segments.length === 6) {
-							// /servers/{server}/databases/{database}/collections/{collection}
-							breadcrumbs.push({
-								label: collection,
-							});
-						} else if (segments.length >= 7 && segments[6] === "documents" && segments[7]) {
-							// /servers/{server}/databases/{database}/collections/{collection}/documents/{document}
-							breadcrumbs.push({
-								label: collection,
-								href: `/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(collection)}`,
-							});
-
-							breadcrumbs.push({
-								label: decodeURIComponent(params.document || "[Document]"),
-							});
-						}
-					}
-				}
-			}
-		}
-
-		return breadcrumbs;
-	}
-
-	const breadcrumbs = $derived(getBreadcrumbs(page.url.pathname, page.params));
+		return list.reduce<BreadcrumbItem[]>(
+			(prev, curr) => [...prev, { label: curr.label, href: `${prev.at(-1)?.href ?? ""}${curr.path}` }],
+			[],
+		);
+	});
 </script>
 
 {#if breadcrumbs.length > 0}

@@ -89,9 +89,6 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	})();
 
 	return {
-		server: params.server,
-		database: params.database,
-		collection: params.collection,
 		// Stream these promises to the client
 		results: resultsPromise,
 		count: countPromise,
