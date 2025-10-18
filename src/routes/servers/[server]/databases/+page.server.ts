@@ -14,8 +14,10 @@ export const load: PageServerLoad = async ({ params }) => {
 		};
 	}
 
+	const filteredDatabases = mongo.filterDatabases(results.databases);
+
 	const databases = await Promise.all(
-		results.databases.map(async (d) => {
+		filteredDatabases.map(async (d) => {
 			const db = client.db(d.name);
 			const dbStats: Pick<DatabaseStats, "dataSize" | "avgObjSize" | "storageSize" | "indexSize" | "collections"> =
 				await (db.stats() as Promise<DatabaseStats>).catch(() => {

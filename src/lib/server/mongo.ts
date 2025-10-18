@@ -99,9 +99,18 @@ class MongoConnections {
 	private queryTimeout = process.env.MONGOKU_QUERY_TIMEOUT
 		? parseInt(process.env.MONGOKU_QUERY_TIMEOUT, 10)
 		: undefined;
+	private excludedDatabases: Set<string>;
 
 	constructor() {
 		this.hostsManager = new HostsManager();
+		// Parse MONGOKU_EXCLUDE_DATABASES env var (comma-separated list)
+		const excludeEnv = process.env.MONGOKU_EXCLUDE_DATABASES || "";
+		this.excludedDatabases = new Set(
+			excludeEnv
+				.split(",")
+				.map((db) => db.trim())
+				.filter((db) => db.length > 0),
+		);
 	}
 
 	async initialize() {
@@ -156,6 +165,13 @@ class MongoConnections {
 
 	getQueryTimeout() {
 		return this.queryTimeout;
+	}
+
+	filterDatabases<T extends { name: string }>(databases: T[]): T[] {
+		if (this.excludedDatabases.size === 0) {
+			return databases;
+		}
+		return databases.filter((db) => !this.excludedDatabases.has(db.name));
 	}
 
 	async addServer(hostPath: string) {

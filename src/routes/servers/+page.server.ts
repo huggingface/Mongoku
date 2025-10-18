@@ -12,8 +12,9 @@ export const load: PageServerLoad = async () => {
 			try {
 				const adminDb = client.db("test").admin();
 				const results = await adminDb.listDatabases();
+				const filteredDatabases = mongo.filterDatabases(results.databases);
 				const collectionsCount = await Promise.all(
-					results.databases.map(async (d) => {
+					filteredDatabases.map(async (d) => {
 						const db = client.db(d.name);
 						const dbStats: Pick<DatabaseStats, "collections"> = await (db.stats() as Promise<DatabaseStats>).catch(
 							() => {
@@ -28,7 +29,7 @@ export const load: PageServerLoad = async () => {
 				);
 
 				return {
-					databases: results.databases.map((d, index) => ({
+					databases: filteredDatabases.map((d, index) => ({
 						name: d.name,
 						size: d.sizeOnDisk ?? 0,
 						collections: collectionsCount[index],

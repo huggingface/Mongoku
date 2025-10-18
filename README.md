@@ -96,6 +96,9 @@ You can configure Mongoku using environment variables:
 # Use customized default hosts (Default = localhost:27017)
 MONGOKU_DEFAULT_HOST="mongodb://user:password@localhost:27017"
 
+# Exclude specific databases from being displayed (comma-separated list)
+MONGOKU_EXCLUDE_DATABASES="admin,config,local"
+
 # See https://svelte.dev/docs/kit/adapter-node#environment-variables-port-and-host
 MONGOKU_SERVER_PORT=8000
 MONGOKU_SERVER_ORIGIN=https://mongoku.example.com
