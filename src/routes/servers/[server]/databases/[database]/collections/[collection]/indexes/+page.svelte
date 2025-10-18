@@ -1,10 +1,116 @@
 <script lang="ts">
+	import {
+		dropIndex as dropIndexCommand,
+		hideIndex as hideIndexCommand,
+		unhideIndex as unhideIndexCommand,
+	} from "$api/servers.remote";
+	import { page } from "$app/state";
 	import JsonValue from "$lib/components/JsonValue.svelte";
+	import Modal from "$lib/components/Modal.svelte";
 	import Panel from "$lib/components/Panel.svelte";
+	import { notificationStore } from "$lib/stores/notifications.svelte";
+	import { omit } from "$lib/utils/omit.js";
 
 	const { data } = $props();
 
-	const indexesData = $derived(data.indexes);
+	const readOnly = $derived(data.readOnly);
+	let resolvedIndexes = $state<any>(null);
+	let loadingIndexes = $state<Set<string>>(new Set());
+	let showDropModal = $state(false);
+	let indexToDrop = $state<string | null>(null);
+
+	// Resolve the promise once and store the result
+	$effect(() => {
+		data.indexes.then((result) => {
+			if (!resolvedIndexes) {
+				resolvedIndexes = result;
+			}
+		});
+	});
+
+	const indexesData = $derived(resolvedIndexes || data.indexes);
+
+	async function toggleHidden(indexName: string, currentlyHidden: boolean) {
+		const { server, database, collection } = page.params;
+		if (!server || !database || !collection) return;
+
+		loadingIndexes.add(indexName);
+		loadingIndexes = loadingIndexes;
+
+		try {
+			const params = {
+				server,
+				database,
+				collection,
+				index: indexName,
+			};
+
+			if (currentlyHidden) {
+				await unhideIndexCommand(params);
+			} else {
+				await hideIndexCommand(params);
+			}
+
+			// Optimistically update the index in the frontend
+			if (resolvedIndexes && resolvedIndexes.data) {
+				const updatedData = resolvedIndexes.data.map((index: any) =>
+					index.name === indexName ? { ...index, hidden: !currentlyHidden } : index,
+				);
+				resolvedIndexes = { ...resolvedIndexes, data: updatedData };
+			}
+
+			notificationStore.notifySuccess(`Index ${currentlyHidden ? "unhidden" : "hidden"} successfully`);
+		} catch (error) {
+			notificationStore.notifyError(error, `Failed to ${currentlyHidden ? "unhide" : "hide"} index`);
+		} finally {
+			loadingIndexes.delete(indexName);
+			loadingIndexes = loadingIndexes;
+		}
+	}
+
+	function openDropModal(indexName: string) {
+		indexToDrop = indexName;
+		showDropModal = true;
+	}
+
+	function closeDropModal() {
+		showDropModal = false;
+		indexToDrop = null;
+	}
+
+	async function confirmDrop() {
+		if (!indexToDrop) return;
+
+		const { server, database, collection } = page.params;
+		if (!server || !database || !collection) return;
+
+		loadingIndexes.add(indexToDrop);
+		loadingIndexes = loadingIndexes;
+		const indexName = indexToDrop;
+
+		try {
+			await dropIndexCommand({
+				server,
+				database,
+				collection,
+				index: indexName,
+			});
+
+			// Remove the index from the frontend
+			if (resolvedIndexes && resolvedIndexes.data) {
+				const updatedData = resolvedIndexes.data.filter((index: any) => index.name !== indexName);
+				resolvedIndexes = { ...resolvedIndexes, data: updatedData };
+			}
+
+			notificationStore.notifySuccess(`Index "${indexName}" dropped successfully`);
+			closeDropModal();
+		} catch (error) {
+			notificationStore.notifyError(error, `Failed to drop index`);
+		} finally {
+			loadingIndexes.delete(indexName);
+			loadingIndexes = loadingIndexes;
+		}
+	}
 </script>
 
 {#await indexesData}
@@ -27,15 +133,20 @@
 			<table class="table">
 				<thead>
 					<tr>
-						<th>Name</th>
+						<th class="shrink-column">Name</th>
 						<th>Keys</th>
 						<th>Properties</th>
-						<th style="width: 300px">Details</th>
+						<th style="width: 120px">Usage</th>
+						<th style="min-width: 300px">Details</th>
+						{#if !readOnly}
+							<th style="width: 120px">Actions</th>
+						{/if}
 					</tr>
 				</thead>
 				<tbody>
 					{#each result.data as index (index.name)}
-						<tr>
+						{@const isLoading = loadingIndexes.has(index.name)}
+						<tr class="group" class:opacity-50={isLoading}>
 							<td>
 								<span class="font-mono text-sm">{index.name}</span>
 							</td>
@@ -54,6 +165,9 @@
 							</td>
 							<td>
 								<div class="flex flex-wrap gap-2">
+									{#if index.hidden}
+										<span class="badge badge-hidden">hidden</span>
+									{/if}
 									{#if index.unique}
 										<span class="badge badge-unique">unique</span>
 									{/if}
@@ -63,19 +177,50 @@
 									{#if index.partialFilterExpression}
 										<span class="badge badge-partial">partial</span>
 									{/if}
-									{#if !index.unique && !index.sparse && !index.partialFilterExpression}
+									{#if !index.hidden && !index.unique && !index.sparse && !index.partialFilterExpression}
 										<span style="color: var(--text-darker)">-</span>
 									{/if}
 								</div>
 							</td>
 							<td>
+								{#if index.stats}
+									<div class="text-sm mt-1">
+										<div>{index.stats.ops.toLocaleString()}</div>
+									</div>
+								{:else}
+									<span style="color: var(--text-darker)">-</span>
+								{/if}
+							</td>
+							<td>
 								<details class="cursor-pointer">
 									<summary class="details-link">View full</summary>
 									<div class="details-content">
-										<JsonValue value={index} collapsed={false} />
+										<JsonValue value={omit(index, ["stats"])} collapsed={false} />
 									</div>
 								</details>
 							</td>
+							{#if !readOnly}
+								<td>
+									{#if index.name !== "_id_"}
+										<div class="flex gap-2 hidden group-hover:flex -my-2">
+											<button
+												class="btn btn-outline-light btn-sm"
+												onclick={() => toggleHidden(index.name, index.hidden)}
+												disabled={isLoading}
+											>
+												{index.hidden ? "Unhide" : "Hide"}
+											</button>
+											<button
+												class="btn btn-outline-danger btn-sm"
+												onclick={() => openDropModal(index.name)}
+												disabled={isLoading}
+											>
+												Drop
+											</button>
+										</div>
+									{/if}
+								</td>
+							{/if}
 						</tr>
 					{/each}
 				</tbody>
@@ -90,9 +235,29 @@
 	</Panel>
 {/await}
 
+<Modal show={showDropModal} onclose={closeDropModal}>
+	{#snippet children()}
+		<p>
+			Are you sure you want to drop the index <strong>{indexToDrop}</strong>?
+		</p>
+		<p class="text-sm mt-2" style="color: var(--text-darker)">
+			This action cannot be undone. The index will need to be recreated if needed again.
+		</p>
+	{/snippet}
+	{#snippet footer()}
+		<button class="btn btn-default btn-sm" onclick={closeDropModal}>Cancel</button>
+		<button class="btn btn-danger btn-sm" onclick={confirmDrop}>Drop Index</button>
+	{/snippet}
+</Modal>
+
 <style lang="postcss">
 	.table tbody td {
 		vertical-align: top;
+	}
+
+	.shrink-column {
+		width: 1%;
+		white-space: nowrap;
 	}
 
 	.index-key {
@@ -120,6 +285,21 @@
 	.badge-partial {
 		background-color: hsl(220, 70%, 55%);
 		color: var(--text-lighter);
+	}
+
+	.badge-hidden {
+		background-color: hsl(0, 0%, 40%);
+		color: var(--text-lighter);
+	}
+
+	.btn-outline-light {
+		background: transparent;
+		color: var(--text);
+		border-color: var(--color-4);
+	}
+
+	.btn-outline-light:hover {
+		background-color: var(--color-3);
 	}
 
 	.details-link {

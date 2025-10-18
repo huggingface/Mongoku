@@ -96,3 +96,93 @@ export const deleteDocument = command(
 		};
 	},
 );
+
+// Hide an index
+export const hideIndex = command(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		collection: z.string(),
+		index: z.string(),
+	}),
+	async ({ server, database, collection, index }) => {
+		checkReadOnly();
+
+		const mongo = await getMongo();
+		const coll = mongo.getCollection(server, database, collection);
+
+		if (!coll) {
+			error(404, `Collection not found: ${server}.${database}.${collection}`);
+		}
+
+		await coll.db.command({
+			collMod: collection,
+			index: {
+				name: index,
+				hidden: true,
+			},
+		});
+
+		return {
+			ok: true,
+		};
+	},
+);
+
+// Unhide an index
+export const unhideIndex = command(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		collection: z.string(),
+		index: z.string(),
+	}),
+	async ({ server, database, collection, index }) => {
+		checkReadOnly();
+
+		const mongo = await getMongo();
+		const coll = mongo.getCollection(server, database, collection);
+
+		if (!coll) {
+			error(404, `Collection not found: ${server}.${database}.${collection}`);
+		}
+
+		await coll.db.command({
+			collMod: collection,
+			index: {
+				name: index,
+				hidden: false,
+			},
+		});
+
+		return {
+			ok: true,
+		};
+	},
+);
+
+// Drop an index
+export const dropIndex = command(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		collection: z.string(),
+		index: z.string(),
+	}),
+	async ({ server, database, collection, index }) => {
+		checkReadOnly();
+
+		const mongo = await getMongo();
+		const coll = mongo.getCollection(server, database, collection);
+
+		if (!coll) {
+			error(404, `Collection not found: ${server}.${database}.${collection}`);
+		}
+
+		await coll.dropIndex(index);
+
+		return {
+			ok: true,
+		};
+	},
+);
