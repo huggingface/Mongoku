@@ -2,10 +2,11 @@
 	import { resolve } from "$app/paths";
 	import Breadcrumbs from "$lib/components/Breadcrumbs.svelte";
 	import Notifications from "$lib/components/Notifications.svelte";
+	import OriginWarning from "$lib/components/OriginWarning.svelte";
 	import PageSwitcher from "$lib/components/PageSwitcher.svelte";
 	import "../app.css";
 
-	let { children } = $props();
+	let { children, data } = $props();
 </script>
 
 <div style="min-height: 100vh">
@@ -14,6 +15,8 @@
 		<Breadcrumbs />
 		<PageSwitcher class="ml-auto" />
 	</nav>
+
+	<OriginWarning serverOrigin={data.serverOrigin} readOnly={data.readOnly} />
 
 	<div class="px-6 py-6 flex flex-col gap-6">
 		<Notifications />
