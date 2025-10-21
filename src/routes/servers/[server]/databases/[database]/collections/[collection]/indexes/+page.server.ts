@@ -39,10 +39,36 @@ export const load: PageServerLoad = async ({ params, depends }) => {
 				// Continue without stats if unavailable
 			}
 
-			// Merge index definitions with stats
+			// Get index sizes from collection stats
+			let indexSizes: Record<string, number> = {};
+			try {
+				const collStatsResult = (await collection
+					.aggregate([
+						{
+							$collStats: {
+								storageStats: {},
+							},
+						},
+					])
+					.next()) as {
+					storageStats?: {
+						indexSizes?: Record<string, number>;
+					};
+				} | null;
+
+				if (collStatsResult?.storageStats?.indexSizes) {
+					indexSizes = collStatsResult.storageStats.indexSizes;
+				}
+			} catch (err) {
+				console.error("Error fetching index sizes:", err);
+				// Continue without sizes if unavailable
+			}
+
+			// Merge index definitions with stats and sizes
 			const indexesWithStats = indexList.map((index) => ({
 				...index,
 				stats: index.name ? indexStats[index.name] || null : null,
+				size: index.name ? indexSizes[index.name] || 0 : 0,
 			}));
 
 			// Encode to handle MongoDB types like ObjectId, etc.

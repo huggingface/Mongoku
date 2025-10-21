@@ -9,6 +9,7 @@
 	import Modal from "$lib/components/Modal.svelte";
 	import Panel from "$lib/components/Panel.svelte";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
+	import { formatBytes } from "$lib/utils/filters";
 	import { omit } from "$lib/utils/omit.js";
 
 	const { data } = $props();
@@ -136,7 +137,8 @@
 						<th class="shrink-column">Name</th>
 						<th>Keys</th>
 						<th>Properties</th>
-						<th style="width: 120px">Usage</th>
+						<th class="shrink-column">Size</th>
+						<th class="shrink-column">Usage</th>
 						<th style="min-width: 300px">Details</th>
 						{#if !readOnly}
 							<th style="width: 120px">Actions</th>
@@ -181,6 +183,13 @@
 										<span style="color: var(--text-darker)">-</span>
 									{/if}
 								</div>
+							</td>
+							<td>
+								{#if index.size}
+									<span class="text-sm whitespace-nowrap">{formatBytes(index.size)}</span>
+								{:else}
+									<span style="color: var(--text-darker)">-</span>
+								{/if}
 							</td>
 							<td>
 								{#if index.stats}
