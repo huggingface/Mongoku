@@ -219,3 +219,13 @@ export const dropIndex = command(
 		};
 	},
 );
+
+// Retry connection to a server
+export const retryConnection = command(z.string(), async (serverName) => {
+	const mongo = await getMongo();
+
+	// Reconnect the client (closes old connection and creates a new one)
+	await mongo.reconnectClient(serverName);
+
+	return { ok: true };
+});

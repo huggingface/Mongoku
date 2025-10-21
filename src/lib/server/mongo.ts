@@ -196,8 +196,35 @@ class MongoConnections {
 
 	async removeServer(name: string) {
 		await this.hostsManager.remove(name);
+
+		this.clients
+			.get(name)
+			?.close()
+			.catch((err) => console.error(`Error closing client ${name}:`, err));
 		this.clients.delete(name);
 		this.clientIds.delete(name);
+	}
+
+	async reconnectClient(name: string) {
+		// Try to find the connection string with the same logic as getClient
+		const connectionString = this.hostsManager.getHost(name);
+
+		if (!connectionString) {
+			throw new Error(`Connection string not found for client: ${name}`);
+		}
+
+		// Close the old client
+		const oldClient = this.clients.get(name);
+		if (oldClient) {
+			oldClient.close()?.catch((err) => console.error(`Error closing old client ${name}:`, err));
+		}
+
+		// Create a new client
+		const newClient = new MongoClient(connectionString);
+		this.clients.set(name, newClient);
+
+		// Test the connection
+		await newClient.connect();
 	}
 }
 

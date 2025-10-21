@@ -74,6 +74,10 @@ export class HostsManager {
 		return Array.from(this._hosts).map(([hostPath, id]) => ({ path: hostPath, _id: id }));
 	}
 
+	getHost(name: string): string | undefined {
+		return this._hosts.get(name);
+	}
+
 	async add(hostPath: string): Promise<string> {
 		// Use existing ID if host already exists, generate new one if not
 		let id = this._hosts.get(hostPath);

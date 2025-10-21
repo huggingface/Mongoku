@@ -1,11 +1,16 @@
 <script lang="ts">
-	import { addServer as addServerCommand, removeServer as removeServerCommand } from "$api/servers.remote";
+	import {
+		addServer as addServerCommand,
+		removeServer as removeServerCommand,
+		retryConnection,
+	} from "$api/servers.remote";
 	import { invalidateAll } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import Panel from "$lib/components/Panel.svelte";
 	import TooltipTable from "$lib/components/TooltipTable.svelte";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import { formatBytes, serverName } from "$lib/utils/filters";
+	import { SvelteSet } from "svelte/reactivity";
 	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
@@ -17,6 +22,7 @@
 	let loading = $state(false);
 	let showRemoveModal = $state(false);
 	let serverToRemove: Server | null = null;
+	const retryingServers = new SvelteSet<string>();
 
 	async function addServer() {
 		if (!newServer) return;
@@ -63,6 +69,21 @@
 	function handleKeyDown(e: KeyboardEvent) {
 		if (e.key === "Escape") {
 			closeRemoveModal();
+		}
+	}
+
+	async function retryServerConnection(server: Server) {
+		const name = serverName(server.name);
+		retryingServers.add(name);
+
+		try {
+			await retryConnection(name);
+			notificationStore.notifySuccess("Connection restored successfully");
+			await invalidateAll();
+		} catch (error) {
+			notificationStore.notifyError(error, "Failed to retry connection");
+		} finally {
+			retryingServers.delete(name);
 		}
 	}
 </script>
@@ -150,13 +171,26 @@
 								{/if}
 							{/await}
 						</td>
-						<td style="width: 140px">
-							<button
-								class="btn btn-outline-danger btn-sm -my-2 hidden group-hover:inline"
-								onclick={() => openRemoveModal(server)}
-							>
-								Remove from list
-							</button>
+						<td style="width: 200px">
+							<div class="flex gap-2 justify-end">
+								{#await server.details then details}
+									{#if "error" in details && details.error}
+										<button
+											class="btn btn-default btn-sm -my-2 hidden group-hover:inline"
+											onclick={() => retryServerConnection(server)}
+											disabled={retryingServers.has(serverName(server.name))}
+										>
+											{retryingServers.has(serverName(server.name)) ? "Retrying..." : "Retry"}
+										</button>
+									{/if}
+								{/await}
+								<button
+									class="btn btn-outline-danger btn-sm -my-2 hidden group-hover:inline"
+									onclick={() => openRemoveModal(server)}
+								>
+									Remove from list
+								</button>
+							</div>
 						</td>
 					</tr>
 				{/each}
