@@ -220,6 +220,28 @@ export const dropIndex = command(
 	},
 );
 
+// Drop a collection
+export const dropCollection = command(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		collection: z.string(),
+	}),
+	async ({ server, database, collection }) => {
+		checkReadOnly();
+
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+		const db = client.db(database);
+
+		await db.dropCollection(collection);
+
+		return {
+			ok: true,
+		};
+	},
+);
+
 // Retry connection to a server
 export const retryConnection = command(z.string(), async (serverName) => {
 	const mongo = await getMongo();
