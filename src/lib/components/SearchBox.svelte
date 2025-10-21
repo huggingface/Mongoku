@@ -6,9 +6,11 @@
 
 	interface Props {
 		params: SearchParams;
+		editMode?: boolean;
+		readonly: boolean;
 	}
 
-	let { params = $bindable() }: Props = $props();
+	let { params = $bindable(), editMode = $bindable(false), readonly = $bindable(false) }: Props = $props();
 
 	// Show optional fields - start with all hidden
 	let showOptionalFields = $state(
@@ -21,6 +23,13 @@
 
 	// Detect if query is an aggregation (starts with [)
 	let isAggregation = $derived(params.query?.trimStart().startsWith("["));
+
+	// Disable edit mode when switching to aggregation mode
+	$effect(() => {
+		if (isAggregation && editMode) {
+			editMode = false;
+		}
+	});
 
 	$effect(() => {
 		if (queryInput) {
@@ -171,6 +180,34 @@
 		>
 			{showOptionalFields ? "−" : "+"}
 		</button>
+
+		<!-- Edit/Update button -->
+		{#if !readonly}
+			<button
+				class="btn btn-default !w-12 !rounded-none !border-r-0 text-lg leading-none font-bold !py-1.5"
+				type="button"
+				title={isAggregation ? "Update not available in aggregation mode" : "Update multiple documents"}
+				disabled={isAggregation}
+				onclick={() => {
+					editMode = !editMode;
+				}}
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="18"
+					height="18"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+					<path d="m15 5 4 4"></path>
+				</svg>
+			</button>
+		{/if}
 
 		<!-- Search button -->
 		<button class="btn btn-success !rounded-l-none !rounded-r-md font-bold !py-1.5" type="submit"> GO! </button>

@@ -2,6 +2,7 @@
 	import {
 		deleteDocument as deleteDocumentCommand,
 		updateDocument as updateDocumentCommand,
+		updateMany as updateManyCommand,
 	} from "$api/servers.remote";
 	import { resolve } from "$app/paths";
 	import Panel from "$lib/components/Panel.svelte";
@@ -16,6 +17,9 @@
 	let { data }: { data: PageData } = $props();
 
 	let params = $state<SearchParams>({ ...data.params });
+	let editMode = $state(false);
+	let updateQuery = $state("{}");
+	let isUpdating = $state(false);
 
 	// Handle errors from streamed promises
 	$effect(() => {
@@ -112,9 +116,95 @@
 
 	const nextUrl = $derived(buildUrl(params.skip + params.limit));
 	const previousUrl = $derived(buildUrl(Math.max(0, params.skip - params.limit)));
+
+	async function executeUpdateMany() {
+		if (data.readOnly) {
+			notificationStore.notifyError("Cannot update in read-only mode");
+			return;
+		}
+
+		isUpdating = true;
+		try {
+			const result = await updateManyCommand({
+				server: data.server,
+				database: data.database,
+				collection: data.collection,
+				filter: params.query || "{}",
+				update: updateQuery,
+			});
+
+			if (result.ok) {
+				notificationStore.notifySuccess(`Updated ${result.modifiedCount} document(s) (matched ${result.matchedCount})`);
+				// Reset the modified items to force a refresh
+				modifiedItems = null;
+				editMode = false;
+			}
+		} catch (error) {
+			console.error(error);
+			notificationStore.notifyError(error, "Failed to update documents");
+		} finally {
+			isUpdating = false;
+		}
+	}
+
+	function handleUpdateTextareaKeydown(event: KeyboardEvent) {
+		if (event.ctrlKey && event.key === "Enter") {
+			event.preventDefault();
+			executeUpdateMany();
+		}
+	}
 </script>
 
-<SearchBox bind:params />
+<SearchBox bind:params bind:editMode readonly={data.readOnly} />
+
+{#if editMode}
+	<Panel title="Update Multiple Documents">
+		<div class="p-4 space-y-4">
+			<div>
+				<label for="update-filter" class="block text-sm font-medium mb-2">Filter (which documents to update):</label>
+				<input
+					type="text"
+					id="update-filter"
+					value={params.query || "{}"}
+					readonly
+					class="w-full p-2 border border-[var(--color-4)] bg-[var(--color-2)] rounded font-mono text-sm opacity-75 cursor-not-allowed"
+				/>
+				<p class="text-xs text-[var(--text-secondary,#888)] mt-1">
+					This filter is taken from the query above. Modify the query to change which documents will be updated.
+				</p>
+			</div>
+			<div>
+				<label for="update-operation" class="block text-sm font-medium mb-2"
+					>Update Operation (e.g., $set, $inc, $unset):</label
+				>
+				<textarea
+					id="update-operation"
+					bind:value={updateQuery}
+					placeholder="Update operation"
+					rows="4"
+					onkeydown={handleUpdateTextareaKeydown}
+					class="w-full p-2 border border-[var(--color-4)] bg-[var(--color-3)] rounded font-mono text-sm"
+				></textarea>
+			</div>
+			<div class="flex gap-2">
+				<button class="btn btn-success" disabled={isUpdating} onclick={executeUpdateMany}>
+					{isUpdating ? "Updating..." : "Execute Update"}
+				</button>
+				<button class="btn btn-default" onclick={() => (editMode = false)}>Cancel</button>
+			</div>
+			<div class="text-sm text-[var(--text-secondary,#888)]">
+				<p class="mb-1"><strong>Examples:</strong></p>
+				<p class="mb-1">
+					• Set a field: <code class="bg-[var(--color-3)] px-1 rounded">{'{"$set": {"status": "active"}}'}</code>
+				</p>
+				<p class="mb-1">
+					• Increment a value: <code class="bg-[var(--color-3)] px-1 rounded">{'{"$inc": {"count": 1}}'}</code>
+				</p>
+				<p>• Unset a field: <code class="bg-[var(--color-3)] px-1 rounded">{'{"$unset": {"oldField": ""}}'}</code></p>
+			</div>
+		</div>
+	</Panel>
+{/if}
 
 {#await items}
 	<Panel title="Loading documents...">

@@ -1,6 +1,7 @@
 import { command } from "$app/server";
 import JsonEncoder from "$lib/server/JsonEncoder";
 import { getMongo } from "$lib/server/mongo";
+import { parseJSON } from "$lib/utils/jsonParser";
 import { error } from "@sveltejs/kit";
 import { ObjectId } from "mongodb";
 import { z } from "zod";
@@ -93,6 +94,38 @@ export const deleteDocument = command(
 
 		return {
 			ok: true,
+		};
+	},
+);
+
+// Update multiple documents with an arbitrary update query
+export const updateMany = command(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		collection: z.string(),
+		filter: z.string(),
+		update: z.string(),
+	}),
+	async ({ server, database, collection, filter, update }) => {
+		checkReadOnly();
+
+		const mongo = await getMongo();
+		const coll = mongo.getCollection(server, database, collection);
+
+		if (!coll) {
+			error(404, `Collection not found: ${server}.${database}.${collection}`);
+		}
+
+		const filterDoc = JsonEncoder.decode(parseJSON(filter));
+		const updateDoc = JsonEncoder.decode(parseJSON(update));
+
+		const result = await coll.updateMany(filterDoc, updateDoc);
+
+		return {
+			ok: true,
+			matchedCount: result.matchedCount,
+			modifiedCount: result.modifiedCount,
 		};
 	},
 );
