@@ -2,6 +2,7 @@ import { validateAggregationPipeline } from "$lib/server/aggregation";
 import JsonEncoder from "$lib/server/JsonEncoder";
 import { getMongo } from "$lib/server/mongo";
 import { type MongoDocument } from "$lib/types";
+import { isEmptyObject } from "$lib/utils/isEmptyObject";
 import { parseJSON } from "$lib/utils/jsonParser";
 import { error } from "@sveltejs/kit";
 import type { Document } from "mongodb";
@@ -75,9 +76,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	if (Array.isArray(queryDoc)) {
 		// Validate aggregation pipeline
 		try {
-			console.log("Validating aggregation pipeline:", queryDoc);
 			validateAggregationPipeline(queryDoc);
-			console.log("Aggregation pipeline validated successfully");
 		} catch (err) {
 			const validationError = `Invalid aggregation pipeline: ${err instanceof Error ? err.message : String(err)}`;
 			return {
@@ -103,7 +102,18 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		const pipeline = JsonEncoder.decode(queryDoc);
 
 		const resultsPromise = collection
-			.aggregate([...pipeline, { $limit: limit }, { $skip: skip }], { maxTimeMS: mongo.getQueryTimeout() })
+			.aggregate(
+				[
+					...pipeline,
+					...(isEmptyObject(projectDoc) ? [] : [{ $project: projectDoc }]),
+					...(isEmptyObject(sortDoc as object) ? [] : [{ $sort: sortDoc }]),
+					{ $limit: limit },
+					{ $skip: skip },
+				],
+				{
+					maxTimeMS: mongo.getQueryTimeout(),
+				},
+			)
 			.map((obj) => JsonEncoder.encode(obj))
 			.toArray()
 			.then((results) => ({
