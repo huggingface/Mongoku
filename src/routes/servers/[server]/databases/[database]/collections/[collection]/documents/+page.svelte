@@ -227,7 +227,7 @@
 		</Panel>
 	{:then countData}
 		{@const count = countData.data}
-		{@const hasNext = data.params.skip + items.length < count}
+		{@const hasNext = countData.error ? items.length >= data.params.limit : data.params.skip + items.length < count}
 		{@const hasPrevious = data.params.skip > 0}
 		{@const isTimeout = countData.error?.includes("operation exceeded time limit")}
 		<Panel
