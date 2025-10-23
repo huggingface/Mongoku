@@ -17,7 +17,7 @@
 
 	let { data }: { data: PageData } = $props();
 
-	let params = $state<SearchParams>({ ...data.params });
+	let params = $derived<SearchParams>({ ...data.params });
 	let editMode = $state(false);
 	let updateQuery = $state("{}");
 	let isUpdating = $state(false);
@@ -218,6 +218,10 @@
 				{#if data.params.skip > 0}
 					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
 					<a href={resolve(previousUrl as any)} class="btn btn-default btn-sm -my-2">Previous</a>
+				{/if}
+				{#if items.length >= data.params.limit}
+					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
+					<a href={resolve(nextUrl as any)} class="btn btn-default btn-sm -my-2">Next</a>
 				{/if}
 			{/snippet}
 		</Panel>
