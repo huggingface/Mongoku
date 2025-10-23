@@ -37,7 +37,8 @@
 
 	$effect(() => {
 		data.count.then((result) => {
-			if (result.error) {
+			// Don't show notification for timeout errors - they're displayed in the UI
+			if (result.error && !result.error.includes("operation exceeded time limit")) {
 				notificationStore.notifyError(result.error);
 			}
 		});
@@ -112,7 +113,7 @@
 		queryParams.set("skip", String(skip));
 		queryParams.set("limit", String(params.limit));
 
-		return `/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}?${queryParams.toString()}`;
+		return `/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}/documents?${queryParams.toString()}`;
 	}
 
 	const nextUrl = $derived(buildUrl(params.skip + params.limit));
@@ -224,9 +225,12 @@
 		{@const count = countData.data}
 		{@const hasNext = data.params.skip + items.length < count}
 		{@const hasPrevious = data.params.skip > 0}
+		{@const isTimeout = countData.error?.includes("operation exceeded time limit")}
 		<Panel
-			title={count > 0
-				? `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} of ${formatNumber(count)} Documents`
+			title={items.length > 0
+				? count > 0
+					? `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} of ${formatNumber(count)} Documents`
+					: `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} Documents (count ${isTimeout ? "timeout" : "unavailable"})`
 				: "No documents"}
 		>
 			{#snippet actions()}

@@ -106,8 +106,8 @@ MONGOKU_SERVER_ORIGIN=https://mongoku.example.com
 # Use a specific file to store hosts (Default = $HOME/.mongoku.db)
 MONGOKU_DATABASE_FILE="/tmp/mongoku.db"
 
-# Timeout before falling back to estimated documents count in ms (Default = 5000)
-MONGOKU_COUNT_TIMEOUT=1000
+# Timeout for count in ms (Default = 30000)
+MONGOKU_COUNT_TIMEOUT=5000
 
 # Timeout for find queries in ms (Default = undefined, no timeout)
 MONGOKU_QUERY_TIMEOUT=30000
