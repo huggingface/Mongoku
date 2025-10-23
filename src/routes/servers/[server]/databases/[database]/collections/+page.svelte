@@ -164,12 +164,10 @@
 </Panel>
 
 <Modal show={showDropModal} onclose={closeDropModal} title="Drop Collection">
-	{#snippet children()}
-		<p>
-			Are you sure you want to drop the collection <strong>{collectionToDrop?.name}</strong>? This action cannot be
-			undone.
-		</p>
-	{/snippet}
+	<p>
+		Are you sure you want to drop the collection <strong>{collectionToDrop?.name}</strong>? This action cannot be
+		undone.
+	</p>
 	{#snippet footer()}
 		<button class="btn btn-default btn-sm" onclick={closeDropModal}>Cancel</button>
 		<button class="btn btn-outline-danger btn-sm" onclick={confirmDrop}>Drop Collection</button>

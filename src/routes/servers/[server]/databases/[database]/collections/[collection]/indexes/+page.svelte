@@ -11,11 +11,12 @@
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import { formatBytes } from "$lib/utils/filters";
 	import { omit } from "$lib/utils/omit.js";
+	import type { PageData } from "./$types.js";
 
 	const { data } = $props();
 
 	const readOnly = $derived(data.readOnly);
-	let resolvedIndexes = $state<any>(null);
+	let resolvedIndexes = $state<Awaited<PageData["indexes"]> | null>(null);
 	let loadingIndexes = $state<Set<string>>(new Set());
 	let showDropModal = $state(false);
 	let indexToDrop = $state<string | null>(null);
@@ -54,7 +55,7 @@
 
 			// Optimistically update the index in the frontend
 			if (resolvedIndexes && resolvedIndexes.data) {
-				const updatedData = resolvedIndexes.data.map((index: any) =>
+				const updatedData = resolvedIndexes.data.map((index) =>
 					index.name === indexName ? { ...index, hidden: !currentlyHidden } : index,
 				);
 				resolvedIndexes = { ...resolvedIndexes, data: updatedData };
@@ -99,7 +100,7 @@
 
 			// Remove the index from the frontend
 			if (resolvedIndexes && resolvedIndexes.data) {
-				const updatedData = resolvedIndexes.data.filter((index: any) => index.name !== indexName);
+				const updatedData = resolvedIndexes.data.filter((index) => index.name !== indexName);
 				resolvedIndexes = { ...resolvedIndexes, data: updatedData };
 			}
 
@@ -155,7 +156,7 @@
 							<td>
 								{#if index.key}
 									<div class="flex flex-wrap gap-2">
-										{#each Object.entries(index.key) as [field, direction]}
+										{#each Object.entries(index.key) as [field, direction], i (i)}
 											<span class="index-key">
 												{field}: {direction === 1 ? "↑" : direction === -1 ? "↓" : direction}
 											</span>
@@ -245,14 +246,12 @@
 {/await}
 
 <Modal show={showDropModal} onclose={closeDropModal}>
-	{#snippet children()}
-		<p>
-			Are you sure you want to drop the index <strong>{indexToDrop}</strong>?
-		</p>
-		<p class="text-sm mt-2" style="color: var(--text-darker)">
-			This action cannot be undone. The index will need to be recreated if needed again.
-		</p>
-	{/snippet}
+	<p>
+		Are you sure you want to drop the index <strong>{indexToDrop}</strong>?
+	</p>
+	<p class="text-sm mt-2" style="color: var(--text-darker)">
+		This action cannot be undone. The index will need to be recreated if needed again.
+	</p>
 	{#snippet footer()}
 		<button class="btn btn-default btn-sm" onclick={closeDropModal}>Cancel</button>
 		<button class="btn btn-danger btn-sm" onclick={confirmDrop}>Drop Index</button>

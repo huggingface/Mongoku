@@ -78,7 +78,6 @@
 {:else if item}
 	<PrettyJson
 		json={item}
-		readOnly={data.readOnly}
 		onedit={editDocument}
 		onremove={removeDocument}
 		server={data.server}
