@@ -17,10 +17,14 @@
 
 	let { data }: { data: PageData } = $props();
 
-	let params = $derived<SearchParams>({ ...data.params });
+	let params = $state<SearchParams>({ ...data.params });
 	let editMode = $state(false);
 	let updateQuery = $state("{}");
 	let isUpdating = $state(false);
+
+	$effect(() => {
+		params = { ...data.params };
+	});
 
 	// Handle errors from streamed promises
 	$effect(() => {
