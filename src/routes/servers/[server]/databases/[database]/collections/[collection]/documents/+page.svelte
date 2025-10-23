@@ -5,6 +5,7 @@
 		updateMany as updateManyCommand,
 	} from "$api/servers.remote";
 	import { resolve } from "$app/paths";
+	import { jsonTextarea } from "$lib/actions/jsonTextarea";
 	import Panel from "$lib/components/Panel.svelte";
 	import PrettyJson from "$lib/components/PrettyJson.svelte";
 	import SearchBox from "$lib/components/SearchBox.svelte";
@@ -146,13 +147,6 @@
 			isUpdating = false;
 		}
 	}
-
-	function handleUpdateTextareaKeydown(event: KeyboardEvent) {
-		if (event.ctrlKey && event.key === "Enter") {
-			event.preventDefault();
-			executeUpdateMany();
-		}
-	}
 </script>
 
 <SearchBox bind:params bind:editMode readonly={data.readOnly} />
@@ -178,11 +172,10 @@
 					>Update Operation (e.g., $set, $inc, $unset):</label
 				>
 				<textarea
-					id="update-operation"
 					bind:value={updateQuery}
 					placeholder="Update operation"
 					rows="4"
-					onkeydown={handleUpdateTextareaKeydown}
+					use:jsonTextarea={{ onsubmit: executeUpdateMany }}
 					class="w-full p-2 border border-[var(--color-4)] bg-[var(--color-3)] rounded font-mono text-sm"
 				></textarea>
 			</div>

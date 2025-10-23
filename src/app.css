@@ -49,6 +49,7 @@
 		font-family: "Rajdhani", sans-serif;
 		color: var(--text);
 		min-height: 100vh;
+		tab-size: 2;
 	}
 
 	a:hover {

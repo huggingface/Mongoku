@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
+	import { jsonTextarea } from "$lib/actions/jsonTextarea";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import type { MongoDocument } from "$lib/types";
 	import { parseJSON } from "$lib/utils/jsonParser";
@@ -23,7 +24,6 @@
 	let editorVisible = $state(false);
 	let editJson = $state("");
 	let removing = $state(false);
-	let editorRef = $state<HTMLTextAreaElement>();
 	let contentContainerRef = $state<HTMLDivElement>();
 	let editorHeight = $state<string>("300px");
 
@@ -40,8 +40,8 @@
 
 	// Custom serializer that converts ObjectId objects back to new ObjectId() format
 	function serializeForEditing(obj: any, depth = 0): string {
-		const indent = "  ".repeat(depth);
-		const nextIndent = "  ".repeat(depth + 1);
+		const indent = "\t".repeat(depth);
+		const nextIndent = "\t".repeat(depth + 1);
 
 		if (obj === null) return "null";
 		if (obj === undefined) return "undefined";
@@ -171,9 +171,9 @@
 				<button class="btn btn-default ml-2" onclick={disableEditor}>Cancel</button>
 			</div>
 			<textarea
-				bind:this={editorRef}
 				bind:value={editJson}
 				style="height: {editorHeight};"
+				use:jsonTextarea={{ onsubmit: save, onescape: disableEditor }}
 				class="w-full font-mono text-sm leading-relaxed p-2.5 bg-[var(--color-1)] text-[var(--text)] border border-[var(--border-color)] rounded resize-y"
 			></textarea>
 		</div>

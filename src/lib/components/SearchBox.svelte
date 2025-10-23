@@ -2,6 +2,7 @@
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { page } from "$app/state";
+	import { jsonTextarea } from "$lib/actions/jsonTextarea";
 	import type { SearchParams } from "$lib/types";
 
 	interface Props {
@@ -57,13 +58,6 @@
 		);
 	}
 
-	function handleTextareaKeydown(event: KeyboardEvent) {
-		if (event.ctrlKey && event.key === "Enter") {
-			event.preventDefault();
-			form?.requestSubmit();
-		}
-	}
-
 	let form = $state<HTMLFormElement | undefined>(undefined);
 </script>
 
@@ -87,7 +81,7 @@
 						placeholder="[]"
 						name="query"
 						rows="5"
-						onkeydown={handleTextareaKeydown}
+						use:jsonTextarea={{ onsubmit: () => form?.requestSubmit() }}
 						class="flex-grow border-0 bg-[var(--color-3)] pl-2.5 font-mono py-2 resize-y"
 					></textarea>
 				{:else}
@@ -223,7 +217,8 @@
 </div>
 
 <style lang="postcss">
-	input {
+	input,
+	textarea {
 		border-radius: 0;
 	}
 </style>
