@@ -1,9 +1,9 @@
-import { command } from "$app/server";
+import { command, query } from "$app/server";
 import JsonEncoder from "$lib/server/JsonEncoder";
 import { getMongo } from "$lib/server/mongo";
 import { parseJSON } from "$lib/utils/jsonParser";
 import { error } from "@sveltejs/kit";
-import { ObjectId } from "mongodb";
+import { ObjectId, type Document } from "mongodb";
 import { z } from "zod";
 
 // Check if read-only mode is enabled
@@ -251,3 +251,112 @@ export const retryConnection = command(z.string(), async (serverName) => {
 
 	return { ok: true };
 });
+
+// Load documents from a collection
+export const loadDocuments = query(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		collection: z.string(),
+		query: z.string().default("{}"),
+		sort: z.string().default("{}"),
+		project: z.string().default("{}"),
+		skip: z.number().int().default(0),
+		limit: z.number().int().default(20),
+	}),
+	async ({ server, database, collection, query: queryStr, sort, project, skip, limit }) => {
+		// Parse JSON strings - return error if invalid
+		let queryDoc: unknown;
+
+		try {
+			queryDoc = parseJSON(queryStr, { allowArray: true });
+		} catch (err) {
+			error(400, `Invalid query: ${err}`);
+		}
+
+		try {
+			parseJSON(sort);
+		} catch (err) {
+			error(400, `Invalid sort: ${err}`);
+		}
+
+		try {
+			parseJSON(project);
+		} catch (err) {
+			error(400, `Invalid project: ${err}`);
+		}
+
+		const sortDoc = parseJSON(sort);
+		const projectDoc = parseJSON(project) as Document;
+
+		const mongo = await getMongo();
+		const coll = mongo.getCollection(server, database, collection);
+
+		if (!coll) {
+			error(404, `Collection not found: ${server}.${database}.${collection}`);
+		}
+
+		if (Array.isArray(queryDoc)) {
+			// Validate aggregation pipeline
+			const { validateAggregationPipeline } = await import("$lib/server/aggregation");
+			const { isEmptyObject } = await import("$lib/utils/isEmptyObject");
+
+			try {
+				validateAggregationPipeline(queryDoc);
+			} catch (err) {
+				error(400, `Invalid aggregation pipeline: ${err instanceof Error ? err.message : String(err)}`);
+			}
+
+			// Execute aggregation
+			const pipeline = JsonEncoder.decode(queryDoc);
+
+			try {
+				const results = await coll
+					.aggregate(
+						[
+							...pipeline,
+							...(isEmptyObject(projectDoc) ? [] : [{ $project: projectDoc }]),
+							...(isEmptyObject(sortDoc as object) ? [] : [{ $sort: sortDoc }]),
+							{ $limit: limit },
+							{ $skip: skip },
+						],
+						{
+							maxTimeMS: mongo.getQueryTimeout(),
+						},
+					)
+					.map((obj) => JsonEncoder.encode(obj))
+					.toArray();
+
+				return {
+					data: results,
+					error: null,
+					isAggregation: true,
+				};
+			} catch (err) {
+				console.error("Error executing aggregation:", err);
+				error(500, `Failed to execute aggregation: ${err instanceof Error ? err.message : String(err)}`);
+			}
+		}
+
+		// Execute regular find query
+		try {
+			const results = await coll
+				.find(JsonEncoder.decode(queryDoc), { maxTimeMS: mongo.getQueryTimeout() })
+				.project(projectDoc)
+				.sort(JsonEncoder.decode(sortDoc))
+				.limit(limit)
+				.skip(skip)
+				.map((obj) => JsonEncoder.encode(obj))
+				.toArray();
+
+			return {
+				data: results,
+				error: null,
+				isAggregation: false,
+			};
+		} catch (err) {
+			console.error("Error fetching query results:", err);
+			error(500, `Failed to fetch query results: ${err instanceof Error ? err.message : String(err)}`);
+		}
+	},
+);

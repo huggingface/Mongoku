@@ -1,9 +1,11 @@
 <script lang="ts">
 	import {
 		deleteDocument as deleteDocumentCommand,
+		loadDocuments,
 		updateDocument as updateDocumentCommand,
 		updateMany as updateManyCommand,
 	} from "$api/servers.remote";
+	import { pushState } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { jsonTextarea } from "$lib/actions/jsonTextarea";
 	import Panel from "$lib/components/Panel.svelte";
@@ -18,21 +20,35 @@
 	let { data }: { data: PageData } = $props();
 
 	let params = $state<SearchParams>({ ...data.params });
+	let dataPromise = $derived(data.results);
 	let editMode = $state(false);
 	let updateQuery = $state("{}");
 	let isUpdating = $state(false);
+
+	let finalCount = $state<number | null>(null);
+	let countCount = 0;
 
 	$effect(() => {
 		params = { ...data.params };
 	});
 
+	$effect(() => {
+		const currentCount = ++countCount;
+		data.count.then((result) => {
+			if (currentCount !== countCount) {
+				return;
+			}
+			finalCount = result.error ? null : result.data;
+		});
+	});
+
 	// Handle errors from streamed promises
 	$effect(() => {
 		// @ts-expect-error I just want to trigger the dependency
-		if (data.results) {
+		if (dataPromise) {
 			modifiedItems = null;
 		}
-		data.results.then((result) => {
+		dataPromise.then((result) => {
 			if (result.error) {
 				notificationStore.notifyError(result.error);
 			}
@@ -49,7 +65,7 @@
 	});
 
 	let modifiedItems = $state<MongoDocument[] | null>(null);
-	let items = $derived(modifiedItems ? { data: modifiedItems, error: null } : data.results);
+	let items = $derived(modifiedItems ? { data: modifiedItems, error: null } : dataPromise);
 
 	async function editDocument(_id: { $value?: string } | undefined, json: MongoDocument, items: MongoDocument[]) {
 		const partial = Boolean(
@@ -122,6 +138,40 @@
 
 	const nextUrl = $derived(buildUrl(params.skip + params.limit));
 	const previousUrl = $derived(buildUrl(Math.max(0, params.skip - params.limit)));
+
+	function navigateNext(e: MouseEvent) {
+		e.preventDefault();
+		data.params.skip += data.params.limit;
+		params.skip = data.params.skip;
+		pushState(nextUrl, {});
+		dataPromise = loadDocuments({
+			server: data.server,
+			database: data.database,
+			collection: data.collection,
+			query: params.query,
+			sort: params.sort,
+			project: params.project,
+			skip: params.skip,
+			limit: params.limit,
+		});
+	}
+
+	function navigatePrevious(e: MouseEvent) {
+		e.preventDefault();
+		data.params.skip = Math.max(0, data.params.skip - data.params.limit);
+		params.skip = data.params.skip;
+		pushState(previousUrl, {});
+		dataPromise = loadDocuments({
+			server: data.server,
+			database: data.database,
+			collection: data.collection,
+			query: params.query,
+			sort: params.sort,
+			project: params.project,
+			skip: params.skip,
+			limit: params.limit,
+		});
+	}
 
 	async function executeUpdateMany() {
 		if (data.readOnly) {
@@ -205,9 +255,24 @@
 {/if}
 
 {#await items}
-	<Panel title="Loading documents...">
+	<Panel
+		title={finalCount !== null
+			? `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + data.params.limit)} of ${formatNumber(finalCount)} documents...`
+			: "Loading documents..."}
+	>
 		{#snippet actions()}
-			<span class="text-sm text-gray-500">Loading...</span>
+			{#if finalCount !== null}
+				{#if data.params.skip > 0}
+					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
+					<a href={resolve(previousUrl as any)} onclick={navigatePrevious} class="btn btn-default btn-sm -my-2">
+						Previous
+					</a>
+				{/if}
+				{#if data.params.skip + data.params.limit < finalCount}
+					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
+					<a href={resolve(nextUrl as any)} onclick={navigateNext} class="btn btn-default btn-sm -my-2">Next</a>
+				{/if}
+			{/if}
 		{/snippet}
 	</Panel>
 {:then resultsData}
@@ -221,11 +286,13 @@
 			{#snippet actions()}
 				{#if data.params.skip > 0}
 					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-					<a href={resolve(previousUrl as any)} class="btn btn-default btn-sm -my-2">Previous</a>
+					<a href={resolve(previousUrl as any)} onclick={navigatePrevious} class="btn btn-default btn-sm -my-2">
+						Previous
+					</a>
 				{/if}
 				{#if items.length >= data.params.limit}
 					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-					<a href={resolve(nextUrl as any)} class="btn btn-default btn-sm -my-2">Next</a>
+					<a href={resolve(nextUrl as any)} onclick={navigateNext} class="btn btn-default btn-sm -my-2">Next</a>
 				{/if}
 			{/snippet}
 		</Panel>
@@ -244,11 +311,13 @@
 			{#snippet actions()}
 				{#if hasPrevious}
 					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-					<a href={resolve(previousUrl as any)} class="btn btn-default btn-sm -my-2">Previous</a>
+					<a href={resolve(previousUrl as any)} onclick={navigatePrevious} class="btn btn-default btn-sm -my-2">
+						Previous
+					</a>
 				{/if}
 				{#if hasNext}
 					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-					<a href={resolve(nextUrl as any)} class="btn btn-default btn-sm -my-2">Next</a>
+					<a href={resolve(nextUrl as any)} onclick={navigateNext} class="btn btn-default btn-sm -my-2">Next</a>
 				{/if}
 			{/snippet}
 		</Panel>
