@@ -98,6 +98,9 @@ function buildObject(node: Node | Expression): unknown {
 			if (node.name === "undefined") {
 				return undefined;
 			}
+			if (node.name === "Infinity") {
+				return Infinity;
+			}
 			throw `Unknown identifier: ${node.name}`;
 		}
 
