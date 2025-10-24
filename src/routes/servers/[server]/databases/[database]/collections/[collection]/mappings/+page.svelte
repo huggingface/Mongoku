@@ -160,8 +160,10 @@ Please analyze the codebase and database, then generate the appropriate mappings
 
 <Panel title="Mappings for {data.collection}">
 	{#snippet actions()}
-		<button class="btn btn-outline-light btn-sm -my-2" onclick={() => (showAiPrompt = true)}> 🤖 AI Helper </button>
-		<button class="btn btn-success btn-sm -my-2" onclick={saveMappings}>Save</button>
+		{#if !data.readOnly}
+			<button class="btn btn-outline-light btn-sm -my-2" onclick={() => (showAiPrompt = true)}> 🤖 AI Helper </button>
+			<button class="btn btn-success btn-sm -my-2" onclick={saveMappings}>Save</button>
+		{/if}
 	{/snippet}
 
 	<div class="p-4">
@@ -215,12 +217,15 @@ Please analyze the codebase and database, then generate the appropriate mappings
 										bind:value={entry.fieldPath}
 										placeholder="e.g., authorId or comments.authorId"
 										class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded text-sm mt-1"
+										disabled={data.readOnly}
 									/>
 								</label>
 							</div>
-							<button class="btn btn-outline-danger btn-sm mt-6" onclick={() => removeMapping(entryIndex)}>
-								Remove Mapping
-							</button>
+							{#if !data.readOnly}
+								<button class="btn btn-outline-danger btn-sm mt-6" onclick={() => removeMapping(entryIndex)}>
+									Remove Mapping
+								</button>
+							{/if}
 						</div>
 
 						<div class="space-y-2">
@@ -232,6 +237,7 @@ Please analyze the codebase and database, then generate the appropriate mappings
 											<select
 												bind:value={target.collection}
 												class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded text-sm mt-1"
+												disabled={data.readOnly}
 											>
 												<option value="">Select collection...</option>
 												{#each data.availableCollections as col (col)}
@@ -248,23 +254,28 @@ Please analyze the codebase and database, then generate the appropriate mappings
 												bind:value={target.on}
 												placeholder="_id"
 												class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded text-sm mt-1"
+												disabled={data.readOnly}
 											/>
 										</label>
 									</div>
-									<button
-										class="btn btn-outline-danger btn-sm mt-5"
-										onclick={() => removeTarget(entry, targetIndex)}
-										disabled={entry.targets.length === 1}
-									>
-										×
-									</button>
+									{#if !data.readOnly}
+										<button
+											class="btn btn-outline-danger btn-sm mt-5"
+											onclick={() => removeTarget(entry, targetIndex)}
+											disabled={entry.targets.length === 1}
+										>
+											×
+										</button>
+									{/if}
 								</div>
 							{/each}
 						</div>
 
-						<button class="btn btn-outline-light btn-sm mt-2 ml-4" onclick={() => addTarget(entry)}>
-							+ Add Alternative Target
-						</button>
+						{#if !data.readOnly}
+							<button class="btn btn-outline-light btn-sm mt-2 ml-4" onclick={() => addTarget(entry)}>
+								+ Add Alternative Target
+							</button>
+						{/if}
 					</div>
 				{/each}
 			</div>
@@ -272,51 +283,53 @@ Please analyze the codebase and database, then generate the appropriate mappings
 			<div class="text-center py-8" style="color: var(--text-secondary);">No mappings defined yet.</div>
 		{/if}
 
-		<div class="mt-4">
-			{#if !isAdding}
-				<button class="btn btn-success" onclick={() => (isAdding = true)}>+ Add New Mapping</button>
-			{:else}
-				<div class="border border-[var(--border-color)] rounded p-4 bg-[var(--light-background)]">
-					<h3 class="text-lg font-medium mb-3">New Mapping</h3>
-					<div class="space-y-3">
-						<label class="block text-sm font-medium mb-1">
-							Field Path
-							<input
-								type="text"
-								bind:value={newFieldPath}
-								placeholder="e.g., authorId or comments.authorId"
-								class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded mt-1"
-							/>
-						</label>
-						<label class="block text-sm font-medium mb-1">
-							Target Collection
-							<select
-								bind:value={newTargetCollection}
-								class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded mt-1"
-							>
-								<option value="">Select collection...</option>
-								{#each data.availableCollections as col (col)}
-									<option value={col}>{col}</option>
-								{/each}
-							</select>
-						</label>
-						<label class="block text-sm font-medium mb-1">
-							Target Field
-							<input
-								type="text"
-								bind:value={newTargetField}
-								placeholder="_id"
-								class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded mt-1"
-							/>
-						</label>
-						<div class="flex gap-2">
-							<button class="btn btn-success" onclick={addNewMapping}>Add</button>
-							<button class="btn btn-default" onclick={cancelAdd}>Cancel</button>
+		{#if !data.readOnly}
+			<div class="mt-4">
+				{#if !isAdding}
+					<button class="btn btn-success" onclick={() => (isAdding = true)}>+ Add New Mapping</button>
+				{:else}
+					<div class="border border-[var(--border-color)] rounded p-4 bg-[var(--light-background)]">
+						<h3 class="text-lg font-medium mb-3">New Mapping</h3>
+						<div class="space-y-3">
+							<label class="block text-sm font-medium mb-1">
+								Field Path
+								<input
+									type="text"
+									bind:value={newFieldPath}
+									placeholder="e.g., authorId or comments.authorId"
+									class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded mt-1"
+								/>
+							</label>
+							<label class="block text-sm font-medium mb-1">
+								Target Collection
+								<select
+									bind:value={newTargetCollection}
+									class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded mt-1"
+								>
+									<option value="">Select collection...</option>
+									{#each data.availableCollections as col (col)}
+										<option value={col}>{col}</option>
+									{/each}
+								</select>
+							</label>
+							<label class="block text-sm font-medium mb-1">
+								Target Field
+								<input
+									type="text"
+									bind:value={newTargetField}
+									placeholder="_id"
+									class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded mt-1"
+								/>
+							</label>
+							<div class="flex gap-2">
+								<button class="btn btn-success" onclick={addNewMapping}>Add</button>
+								<button class="btn btn-default" onclick={cancelAdd}>Cancel</button>
+							</div>
 						</div>
 					</div>
-				</div>
-			{/if}
-		</div>
+				{/if}
+			</div>
+		{/if}
 	</div>
 </Panel>
 

@@ -29,12 +29,6 @@
 	async function confirmDrop() {
 		if (!collectionToDrop) return;
 
-		if (data.readOnly) {
-			notificationStore.notifyError("Cannot drop collection in read-only mode");
-			closeDropModal();
-			return;
-		}
-
 		try {
 			await dropCollectionCommand({
 				server: data.server,

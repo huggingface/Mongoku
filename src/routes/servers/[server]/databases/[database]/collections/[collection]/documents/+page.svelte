@@ -178,11 +178,6 @@
 	}
 
 	async function executeUpdateMany() {
-		if (data.readOnly) {
-			notificationStore.notifyError("Cannot update in read-only mode");
-			return;
-		}
-
 		isUpdating = true;
 		try {
 			const result = await updateManyCommand({
