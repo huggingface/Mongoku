@@ -126,17 +126,18 @@
 
 {#snippet title()}
 	{#if json._id}
+		{@const idValue = json._id.$value ?? json._id}
 		<div class="">
 			<a
 				type="button"
-				class="bg-transparent border-none text-[var(--text)] no-underline cursor-pointer text-xl font-inherit p-0 hover:underline"
+				class="bg-transparent border-none text-[var(--text)] no-underline cursor-pointer text-xl font-inherit p-0 hover:underline normal-case"
 				href={resolve(
-					`/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(collection)}/documents/${json._id?.$value}`,
+					`/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(collection)}/documents/${idValue}`,
 				)}
 			>
-				{json._id?.$value}
+				{idValue}
 			</a>
-			{#if json._id?.$value}
+			{#if json._id.$value}
 				{@const timestamp = getTimestampFromObjectId(json._id.$value)}
 				{#if timestamp}
 					<span class="ml-2 text-md text-[var(--text-secondary,#888)]">{timestamp.toLocaleString()}</span>

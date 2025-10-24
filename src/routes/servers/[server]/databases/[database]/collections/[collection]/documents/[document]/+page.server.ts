@@ -9,8 +9,11 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	let document = null;
 	if (collection) {
+		// todo: maybe add ObjectId(...) in the url
 		const obj = await collection.findOne({
-			_id: new ObjectId(params.document),
+			_id: /^[0-9a-fA-F]{24}$/.test(params.document)
+				? new ObjectId(params.document)
+				: (params.document as unknown as ObjectId),
 		});
 		document = JsonEncoder.encode(obj);
 	}
