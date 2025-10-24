@@ -1,4 +1,4 @@
-import type { CollectionJSON } from "$lib/types";
+import type { CollectionJSON, CollectionMappings, Mappings } from "$lib/types";
 import { MongoClient, type Collection } from "mongodb";
 import { URL } from "url";
 import { HostsManager } from "./HostsManager";
@@ -87,12 +87,30 @@ export async function getCollectionJson(
 	};
 }
 
+class MongoClientWithMappings extends MongoClient {
+	mappings: Record<string, Record<string, Mappings>> = {};
+
+	async getMappings(dbName: string, collectionName: string, opts?: { forceRefresh?: boolean }): Promise<Mappings> {
+		if (opts?.forceRefresh || !this.mappings[dbName]?.[collectionName]) {
+			const mappings = await this.db(dbName)
+				.collection<CollectionMappings>("mongoku.mappings")
+				.findOne({ _id: collectionName });
+			this.mappings[dbName] ??= {};
+			this.mappings[dbName][collectionName] = mappings?.mappings ?? {};
+		}
+		return this.mappings[dbName][collectionName];
+	}
+	clearMappingsCache(dbName: string, collectionName: string) {
+		delete this.mappings[dbName][collectionName];
+	}
+}
+
 class MongoConnections {
 	/**
 	 * Todo: better system where we can have mutiple servers with same hostname, and labels for each server that
 	 * would be displayed in the UI instead of the hostname.
 	 */
-	private clients: Map<string, MongoClient> = new Map();
+	private clients: Map<string, MongoClientWithMappings> = new Map();
 	private clientIds: Map<string, string> = new Map(); // hostname -> _id
 	private hostsManager: HostsManager;
 	private countTimeout = parseInt(process.env.MONGOKU_COUNT_TIMEOUT!, 10) || 30_000;
@@ -125,7 +143,7 @@ class MongoConnections {
 				const hostname = url.host || host.path;
 
 				if (!this.clients.has(hostname)) {
-					const client = new MongoClient(urlStr);
+					const client = new MongoClientWithMappings(urlStr);
 					this.clients.set(hostname, client);
 					this.clientIds.set(hostname, host._id);
 				}
@@ -135,7 +153,7 @@ class MongoConnections {
 		}
 	}
 
-	getClient(name: string): MongoClient {
+	getClient(name: string): MongoClientWithMappings {
 		const client = this.clients.get(name) || this.clients.get(`${name}:27017`);
 		if (!client) {
 			throw new Error(`Client not found: ${name}`);
@@ -151,12 +169,6 @@ class MongoConnections {
 				_id: this.clientIds.get(name) || "",
 				client: client as MongoClient,
 			}));
-	}
-
-	getCollection(serverName: string, databaseName: string, collectionName: string) {
-		const client = this.getClient(serverName);
-		const db = client.db(databaseName);
-		return db.collection(collectionName);
 	}
 
 	getCountTimeout() {
@@ -184,7 +196,7 @@ class MongoConnections {
 			const hostname = url.host || hostPath;
 
 			if (!this.clients.has(hostname)) {
-				const client = new MongoClient(urlStr);
+				const client = new MongoClientWithMappings(urlStr);
 				this.clients.set(hostname, client);
 				this.clientIds.set(hostname, id);
 			}
@@ -220,7 +232,7 @@ class MongoConnections {
 		}
 
 		// Create a new client
-		const newClient = new MongoClient(connectionString);
+		const newClient = new MongoClientWithMappings(connectionString);
 		this.clients.set(name, newClient);
 
 		// Test the connection

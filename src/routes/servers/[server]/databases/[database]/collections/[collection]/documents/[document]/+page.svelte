@@ -83,6 +83,7 @@
 		server={data.server}
 		database={data.database}
 		collection={data.collection}
+		mappings={data.mappings}
 	/>
 {:else}
 	<div class="text-center">Document not found</div>

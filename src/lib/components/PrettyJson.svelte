@@ -1,8 +1,9 @@
 <script lang="ts">
+	import { fetchMappedDocument as fetchMappedDocumentRemote } from "$api/servers.remote";
 	import { resolve } from "$app/paths";
 	import { jsonTextarea } from "$lib/actions/jsonTextarea";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
-	import type { MongoDocument } from "$lib/types";
+	import type { Mappings, MongoDocument } from "$lib/types";
 	import { parseJSON } from "$lib/utils/jsonParser";
 	import JsonValue from "./JsonValue.svelte";
 	import Panel from "./Panel.svelte";
@@ -17,9 +18,62 @@
 		server: string;
 		database: string;
 		collection: string;
+		mappings?: Mappings;
 	}
 
-	let { json, autoCollapse = false, onedit, onremove, server, database, collection }: Props = $props();
+	let { json, autoCollapse = false, onedit, onremove, server, database, collection, mappings }: Props = $props();
+
+	// Helper to get ID value from any type
+	function getIdValue(val: any): string | null {
+		if (val === null || val === undefined) return null;
+		if (typeof val === "string" || typeof val === "number") return String(val);
+		if (val.$type === "ObjectId" && val.$value) return val.$value;
+		return null;
+	}
+
+	// Check if a key path has a mapping
+	function isKeyMapped(path: string): boolean {
+		return !!mappings?.[path] && (Array.isArray(mappings[path]) ? mappings[path].length > 0 : true);
+	}
+
+	// Fetch mapped document and return it with its navigation URL
+	async function fetchMappedDocument(
+		path: string,
+		value: any,
+	): Promise<{ document: MongoDocument | null; url: string | null; collection: string | null }> {
+		if (!mappings || !mappings[path] || (Array.isArray(mappings[path]) && mappings[path].length === 0)) {
+			return { document: null, url: null, collection: null };
+		}
+
+		const idValue = getIdValue(value);
+
+		if (!idValue) {
+			return { document: null, url: null, collection: null };
+		}
+
+		// Fetch the document - remote function will try all mappings and return first match
+		try {
+			const result = await fetchMappedDocumentRemote({
+				server,
+				database,
+				mappings: Array.isArray(mappings[path]) ? mappings[path] : [mappings[path]],
+				value,
+			});
+
+			if (result.error || !result.data || !result.collection) {
+				return { document: null, url: null, collection: null };
+			}
+
+			// Generate URL for navigation
+			const url = resolve(
+				`/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(result.collection)}/documents/${encodeURIComponent(idValue)}`,
+			);
+
+			return { document: result.data, url, collection: result.collection };
+		} catch {
+			return { document: null, url: null, collection: null };
+		}
+	}
 
 	let editorVisible = $state(false);
 	let editJson = $state("");
@@ -172,7 +226,7 @@
 <Panel class="group" title={json._id ? title : undefined} {actions}>
 	<div bind:this={contentContainerRef} class="p-4 relative border-t border-[var(--border-color)]">
 		<div class="font-mono text-sm leading-tight whitespace-pre-wrap break-words relative">
-			<JsonValue value={json} {autoCollapse} collapsed={false} />
+			<JsonValue value={json} {autoCollapse} collapsed={false} {isKeyMapped} {fetchMappedDocument} />
 		</div>
 
 		<div class="absolute h-full z-[100] w-full top-0 left-0" class:hidden={!editorVisible} class:block={editorVisible}>

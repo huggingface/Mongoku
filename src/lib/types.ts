@@ -96,3 +96,21 @@ export const ALLOWED_AGGREGATION_STAGES = new Set([
 	"$unwind",
 	"$vectorSearch",
 ]);
+
+/**
+ * A single mapping target - defines which collection and field to lookup
+ */
+export interface MappingTarget {
+	collection: string;
+	on: string;
+}
+
+export type Mappings = Record<string, MappingTarget[] | MappingTarget>;
+
+/**
+ * Collection mappings document structure as stored in mongoku.mappings
+ */
+export interface CollectionMappings {
+	_id: string; // collection name
+	mappings: Mappings;
+}

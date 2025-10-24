@@ -4,7 +4,6 @@ import { getMongo } from "$lib/server/mongo";
 import { type MongoDocument } from "$lib/types";
 import { isEmptyObject } from "$lib/utils/isEmptyObject";
 import { parseJSON } from "$lib/utils/jsonParser";
-import { error } from "@sveltejs/kit";
 import type { Document } from "mongodb";
 import type { PageServerLoad } from "./$types";
 
@@ -67,11 +66,8 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	const projectDoc = parseJSON(project) as Document;
 
 	const mongo = await getMongo();
-	const collection = mongo.getCollection(params.server, params.database, params.collection);
-
-	if (!collection) {
-		return error(404, `Collection not found: ${params.server}.${params.database}.${params.collection}`);
-	}
+	const client = mongo.getClient(params.server);
+	const collection = client.db(params.database).collection(params.collection);
 
 	if (Array.isArray(queryDoc)) {
 		// Validate aggregation pipeline
@@ -207,6 +203,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		// Stream these promises to the client
 		results: resultsPromise,
 		count: countPromise,
+		mappings: await client.getMappings(params.database, params.collection),
 		params: {
 			query,
 			sort,

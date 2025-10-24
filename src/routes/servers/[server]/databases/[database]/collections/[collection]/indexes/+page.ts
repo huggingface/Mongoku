@@ -4,6 +4,7 @@ export const load = async (data) => {
 		categories: [
 			{ key: "documents", label: "Documents" },
 			{ key: "indexes", label: "Indexes" },
+			{ key: "mappings", label: "Mappings" },
 		],
 	};
 };

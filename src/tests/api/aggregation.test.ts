@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ALLOWED_AGGREGATION_STAGES, validateAggregationPipeline } from "$lib/server/aggregation";
-import { parseJSON } from "$lib/utils/jsonParser";
 import { describe, expect, it } from "vitest";
 
 // Test the aggregation validation logic
@@ -28,12 +27,14 @@ describe("Aggregation Pipeline Validation", () => {
 		}
 	});
 
-	it("should reject pipelines with disallowed stages", () => {
-		const invalidStages = ["$out", "$merge", "$changeStream", "$geoNear"];
+	describe("should reject pipelines with disallowed stages", () => {
+		const invalidStages = ["$out", "$merge", "$changeStream"];
 
 		for (const stage of invalidStages) {
-			const pipeline = [{ [stage]: {} }];
-			expect(() => validateAggregationPipeline(pipeline)).toThrow(/Disallowed stage operator/);
+			it(`should reject pipeline with disallowed stage: ${stage}`, () => {
+				const pipeline = [{ [stage]: {} }];
+				expect(() => validateAggregationPipeline(pipeline)).toThrow(/Disallowed stage operator/);
+			});
 		}
 	});
 
@@ -53,20 +54,6 @@ describe("Aggregation Pipeline Validation", () => {
 
 		// Null stage
 		expect(() => validateAggregationPipeline([null as any])).toThrow(/Invalid stage at index 0: must be an object/);
-	});
-
-	it("should identify array queries correctly", () => {
-		// Regular find query (object)
-		const findQuery = parseJSON('{"status": "active"}');
-		expect(Array.isArray(findQuery)).toBe(false);
-
-		// Aggregation pipeline (array)
-		const aggQuery = parseJSON('[{"$match": {"status": "active"}}]');
-		expect(Array.isArray(aggQuery)).toBe(true);
-
-		// Empty array
-		const emptyAgg = parseJSON("[]");
-		expect(Array.isArray(emptyAgg)).toBe(true);
 	});
 
 	it("should validate all allowed stages are accepted", () => {

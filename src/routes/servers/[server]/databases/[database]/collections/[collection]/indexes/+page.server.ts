@@ -1,6 +1,5 @@
 import JsonEncoder from "$lib/server/JsonEncoder";
 import { getMongo } from "$lib/server/mongo";
-import { error } from "@sveltejs/kit";
 import type { IndexDescription } from "mongodb";
 import type { PageServerLoad } from "./$types";
 
@@ -8,11 +7,8 @@ export const load: PageServerLoad = async ({ params, depends }) => {
 	depends("app:indexes");
 
 	const mongo = await getMongo();
-	const collection = mongo.getCollection(params.server, params.database, params.collection);
-
-	if (!collection) {
-		return error(404, `Collection not found: ${params.server}.${params.database}.${params.collection}`);
-	}
+	const client = mongo.getClient(params.server);
+	const collection = client.db(params.database).collection(params.collection);
 
 	const indexesPromise = (async () => {
 		try {

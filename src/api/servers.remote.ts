@@ -1,6 +1,8 @@
 import { command, query } from "$app/server";
+import { validateAggregationPipeline } from "$lib/server/aggregation";
 import JsonEncoder from "$lib/server/JsonEncoder";
 import { getMongo } from "$lib/server/mongo";
+import { isEmptyObject } from "$lib/utils/isEmptyObject";
 import { parseJSON } from "$lib/utils/jsonParser";
 import { error } from "@sveltejs/kit";
 import { ObjectId, type Document } from "mongodb";
@@ -46,22 +48,33 @@ export const updateDocument = command(
 		checkReadOnly();
 
 		const mongo = await getMongo();
-		const coll = mongo.getCollection(server, database, collection);
-
-		if (!coll) {
-			error(404, `Collection not found: ${server}.${database}.${collection}`);
-		}
+		const client = mongo.getClient(server);
+		const coll = client.db(database).collection(collection);
 
 		const newValue = JsonEncoder.decode(value);
 
 		// TODO: For now it makes it impossible to remove fields from object with a projection
-		const update = partial ? { $set: newValue } : JsonEncoder.decode(newValue);
-		await coll.replaceOne(
-			{
-				_id: new ObjectId(document),
-			},
-			update,
-		);
+		// Todo: handle multiple ID types
+		const _id = /^[0-9a-fA-F]{24}$/.test(document) ? new ObjectId(document) : document;
+		if (partial) {
+			await coll.updateOne(
+				{
+					_id: _id as unknown as ObjectId,
+				},
+				{ $set: newValue },
+			);
+		} else {
+			await coll.replaceOne(
+				{
+					_id: _id as unknown as ObjectId,
+				},
+				JsonEncoder.decode(newValue),
+			);
+		}
+
+		if (collection === "mongoku.mappings") {
+			client.clearMappingsCache(database, document);
+		}
 
 		return {
 			ok: true,
@@ -82,15 +95,18 @@ export const deleteDocument = command(
 		checkReadOnly();
 
 		const mongo = await getMongo();
-		const coll = mongo.getCollection(server, database, collection);
+		const client = mongo.getClient(server);
 
-		if (!coll) {
-			error(404, `Collection not found: ${server}.${database}.${collection}`);
+		await client
+			.db(database)
+			.collection(collection)
+			.deleteOne({
+				_id: new ObjectId(document),
+			});
+
+		if (collection === "mongoku.mappings") {
+			client.clearMappingsCache(database, document);
 		}
-
-		await coll.deleteOne({
-			_id: new ObjectId(document),
-		});
 
 		return {
 			ok: true,
@@ -111,11 +127,8 @@ export const updateMany = command(
 		checkReadOnly();
 
 		const mongo = await getMongo();
-		const coll = mongo.getCollection(server, database, collection);
-
-		if (!coll) {
-			error(404, `Collection not found: ${server}.${database}.${collection}`);
-		}
+		const client = mongo.getClient(server);
+		const coll = client.db(database).collection(collection);
 
 		const filterDoc = JsonEncoder.decode(parseJSON(filter));
 		const updateDoc = JsonEncoder.decode(parseJSON(update));
@@ -142,13 +155,9 @@ export const hideIndex = command(
 		checkReadOnly();
 
 		const mongo = await getMongo();
-		const coll = mongo.getCollection(server, database, collection);
+		const client = mongo.getClient(server);
 
-		if (!coll) {
-			error(404, `Collection not found: ${server}.${database}.${collection}`);
-		}
-
-		await coll.db.command({
+		await client.db(database).command({
 			collMod: collection,
 			index: {
 				name: index,
@@ -174,13 +183,9 @@ export const unhideIndex = command(
 		checkReadOnly();
 
 		const mongo = await getMongo();
-		const coll = mongo.getCollection(server, database, collection);
+		const client = mongo.getClient(server);
 
-		if (!coll) {
-			error(404, `Collection not found: ${server}.${database}.${collection}`);
-		}
-
-		await coll.db.command({
+		await client.db(database).command({
 			collMod: collection,
 			index: {
 				name: index,
@@ -206,13 +211,12 @@ export const dropIndex = command(
 		checkReadOnly();
 
 		const mongo = await getMongo();
-		const coll = mongo.getCollection(server, database, collection);
+		const client = mongo.getClient(server);
 
-		if (!coll) {
-			error(404, `Collection not found: ${server}.${database}.${collection}`);
-		}
-
-		await coll.dropIndex(index);
+		await client.db(database).command({
+			dropIndexes: collection,
+			index: index,
+		});
 
 		return {
 			ok: true,
@@ -290,17 +294,10 @@ export const loadDocuments = query(
 		const projectDoc = parseJSON(project) as Document;
 
 		const mongo = await getMongo();
-		const coll = mongo.getCollection(server, database, collection);
-
-		if (!coll) {
-			error(404, `Collection not found: ${server}.${database}.${collection}`);
-		}
+		const client = mongo.getClient(server);
+		const coll = client.db(database).collection(collection);
 
 		if (Array.isArray(queryDoc)) {
-			// Validate aggregation pipeline
-			const { validateAggregationPipeline } = await import("$lib/server/aggregation");
-			const { isEmptyObject } = await import("$lib/utils/isEmptyObject");
-
 			try {
 				validateAggregationPipeline(queryDoc);
 			} catch (err) {
@@ -358,5 +355,55 @@ export const loadDocuments = query(
 			console.error("Error fetching query results:", err);
 			error(500, `Failed to fetch query results: ${err instanceof Error ? err.message : String(err)}`);
 		}
+	},
+);
+
+// Fetch a document by field value (for mappings)
+// Tries multiple mapping targets and returns the first one that finds a document
+export const fetchMappedDocument = query(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		mappings: z.array(
+			z.object({
+				collection: z.string(),
+				on: z.string(),
+			}),
+		),
+		value: z.unknown(),
+	}),
+	async ({ server, database, mappings, value }) => {
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+		const decodedValue = JsonEncoder.decode(value);
+
+		// Try each mapping in order and return the first match
+		for (const mapping of mappings) {
+			try {
+				const coll = client.db(database).collection(mapping.collection);
+				const query = { [mapping.on]: decodedValue };
+
+				const document = await coll.findOne(query, { maxTimeMS: mongo.getQueryTimeout() });
+
+				if (document) {
+					return {
+						data: JsonEncoder.encode(document),
+						collection: mapping.collection,
+						error: null,
+					};
+				}
+			} catch (err) {
+				console.error(`Error fetching mapped document from ${mapping.collection}.${mapping.on}:`, err);
+				// Continue to next mapping on error
+				continue;
+			}
+		}
+
+		// No mapping found a document
+		return {
+			data: null,
+			collection: null,
+			error: "Document not found in any mapped collection",
+		};
 	},
 );
