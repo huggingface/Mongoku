@@ -43,8 +43,9 @@ export const updateDocument = command(
 		document: z.string(),
 		value: z.unknown(),
 		partial: z.boolean().optional().default(false),
+		upsert: z.boolean().optional().default(false),
 	}),
-	async ({ server, database, collection, document, value, partial }) => {
+	async ({ server, database, collection, document, value, partial, upsert }) => {
 		checkReadOnly();
 
 		const mongo = await getMongo();
@@ -62,6 +63,7 @@ export const updateDocument = command(
 					_id: _id as unknown as ObjectId,
 				},
 				{ $set: newValue },
+				{ upsert: upsert },
 			);
 		} else {
 			await coll.replaceOne(
@@ -69,6 +71,7 @@ export const updateDocument = command(
 					_id: _id as unknown as ObjectId,
 				},
 				JsonEncoder.decode(newValue),
+				{ upsert: upsert },
 			);
 		}
 

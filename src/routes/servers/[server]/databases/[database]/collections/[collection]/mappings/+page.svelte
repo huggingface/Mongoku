@@ -148,6 +148,7 @@ Please analyze the codebase and database, then generate the appropriate mappings
 				document: data.collection,
 				value: { mappings: mappingsObj, _id: data.collection },
 				partial: false,
+				upsert: true,
 			});
 			notificationStore.notifySuccess("Mappings saved successfully");
 		} catch (error) {

@@ -314,7 +314,7 @@
 					<!-- prettier-ignore -->
 					<div>
 						{#if fetchedCollection}<div
-								class="px-2 py-1 border-b border-[var(--border-color)] bg-[var(--color-4)] font-bold"
+								class="px-2 py-1 pt-2 border-b border-[var(--border-color)] bg-[var(--color-4)] font-bold"
 							>
 								{fetchedCollection}
 							</div>{/if}<div class="font-mono text-sm p-2">

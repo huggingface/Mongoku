@@ -18,8 +18,8 @@
 	let showInsertEditor = $state(false);
 
 	async function editDocument(json: MongoDocument) {
-		const newId = json?._id?.$value;
-		const oldId = item?._id?.$value;
+		const newId = json?._id?.$value ?? json?._id;
+		const oldId = item?._id?.$value ?? item?._id;
 
 		if (newId !== oldId) {
 			notificationStore.notifyError("ObjectId changed. This is not supported, update canceled.");
@@ -51,7 +51,7 @@
 	}
 
 	async function removeDocument() {
-		const documentId = item?._id?.$value;
+		const documentId = item?._id?.$value ?? item?._id;
 		if (!documentId) return;
 
 		try {
