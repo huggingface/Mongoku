@@ -80,6 +80,7 @@
 		"globals": "^16.4.0",
 		"prettier": "^3.6.2",
 		"prettier-plugin-svelte": "^3.4.0",
+		"simple-git-hooks": "^2.13.1",
 		"svelte": "^5.39.5",
 		"svelte-check": "^4.3.2",
 		"tailwindcss": "^4.1.14",
@@ -87,6 +88,15 @@
 		"typescript-eslint": "^8.44.1",
 		"vite": "^7.1.11",
 		"vitest": "^3.2.4"
+	},
+	"simple-git-hooks": {
+		"pre-commit": "npx lint-staged"
+	},
+	"lint-staged": {
+		"*.{js,ts,svelte}": [
+			"eslint --fix",
+			"prettier --write"
+		]
 	},
 	"packageManager": "pnpm@10.11.0"
 }

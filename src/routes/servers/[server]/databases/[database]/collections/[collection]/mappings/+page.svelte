@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { updateDocument } from "$api/servers.remote";
+	import { resolve } from "$app/paths";
 	import Panel from "$lib/components/Panel.svelte";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import type { MappingTarget } from "$lib/types";
@@ -173,7 +174,9 @@ Please analyze the codebase and database, then generate the appropriate mappings
 				will be stored in the <code class="px-1 bg-[var(--light-background)] rounded">mongoku.mappings</code> collection
 				as a document with
 				<a
-					href="/servers/{data.server}/databases/{data.database}/collections/mongoku.mappings/documents/{data.collection}"
+					href={resolve(
+						`/servers/${data.server}/databases/${data.database}/collections/mongoku.mappings/documents/${data.collection}`,
+					)}
 					class="text-blue-500">_id: "{data.collection}"</a
 				>.
 			</p>

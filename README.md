@@ -54,6 +54,12 @@ pnpm install
 pnpm dev
 ```
 
+### Formatting
+
+You can use `pnpm lint` and `pnpm format` to format the code.
+
+You can use `npx simple-git-hooks` to set up git hooks
+
 ### Docker
 
 <!-- #### Using the Docker HUB image
