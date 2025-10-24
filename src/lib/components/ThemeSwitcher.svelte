@@ -1,13 +1,13 @@
 <script lang="ts">
 	type Theme = "system" | "light" | "dark";
 
-	let currentTheme = $state<Theme>("system");
+	let currentTheme = $state<Theme>("dark");
 
 	// Load theme from localStorage on mount
 	$effect(() => {
 		if (typeof window !== "undefined") {
 			const stored = localStorage.getItem("theme") as Theme | null;
-			currentTheme = stored || "system";
+			currentTheme = stored || "dark";
 		}
 	});
 
