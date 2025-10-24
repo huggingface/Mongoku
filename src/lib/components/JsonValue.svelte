@@ -12,14 +12,9 @@
 		/** is it collapsed at top level */
 		collapsed?: boolean;
 		depth?: number;
-		localTopLevel?: boolean;
 	}
 
-	let { value, key, autoCollapse = false, collapsed = false, localTopLevel = true, depth = 0 }: Props = $props();
-
-	function toggleCollapse() {
-		collapsed = !collapsed;
-	}
+	let { value, key, autoCollapse = false, collapsed = false, depth = 0 }: Props = $props();
 
 	function getIndent(level: number): string {
 		return INDENT.repeat(level);
@@ -89,7 +84,6 @@
 					{autoCollapse}
 					collapsed={innerCollapsed}
 					depth={depth + 1}
-					localTopLevel={false}
 				/>
 			</span>
 		{:else}
@@ -111,13 +105,7 @@
 					}}
 				>
 					▼
-				</span><var>{key}</var>: <JsonValue
-					{value}
-					{autoCollapse}
-					collapsed={innerCollapsed}
-					depth={depth + 1}
-					localTopLevel={false}
-				/>
+				</span><var>{key}</var>: <JsonValue {value} {autoCollapse} collapsed={innerCollapsed} depth={depth + 1} />
 			</span>
 		{/if}
 	{:else}
@@ -127,7 +115,6 @@
 				{autoCollapse}
 				collapsed={innerCollapsed}
 				depth={depth + 1}
-				localTopLevel={false}
 			/>
 		</span>
 	{/if}

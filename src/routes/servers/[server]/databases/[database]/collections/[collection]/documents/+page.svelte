@@ -19,6 +19,7 @@
 
 	let { data }: { data: PageData } = $props();
 
+	/* eslint-disable-next-line svelte/prefer-writable-derived */
 	let params = $state<SearchParams>({ ...data.params });
 	let dataPromise = $derived(data.results);
 	let editMode = $state(false);
@@ -144,6 +145,7 @@
 		e.preventDefault();
 		data.params.skip += data.params.limit;
 		params.skip = data.params.skip;
+		/* eslint-disable-next-line svelte/no-navigation-without-resolve */
 		pushState(nextUrl, {});
 		dataPromise = loadDocuments({
 			server: data.server,
@@ -161,6 +163,7 @@
 		e.preventDefault();
 		data.params.skip = Math.max(0, data.params.skip - data.params.limit);
 		params.skip = data.params.skip;
+		/* eslint-disable-next-line svelte/no-navigation-without-resolve */
 		pushState(previousUrl, {});
 		dataPromise = loadDocuments({
 			server: data.server,
