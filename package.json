@@ -28,6 +28,7 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
+		"format:single": "prettier --write",
 		"format:check": "prettier --check .",
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix"
@@ -94,8 +95,7 @@
 	},
 	"lint-staged": {
 		"*.{js,ts,svelte}": [
-			"eslint --fix",
-			"prettier --write"
+			"eslint --fix"
 		]
 	},
 	"packageManager": "pnpm@10.11.0"

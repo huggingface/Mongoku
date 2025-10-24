@@ -161,8 +161,8 @@ Please analyze the codebase and database, then generate the appropriate mappings
 
 <Panel title="Mappings for {data.collection}">
 	{#snippet actions()}
+		<button class="btn btn-outline-light btn-sm -my-2" onclick={() => (showAiPrompt = true)}> 🤖 AI Helper </button>
 		{#if !data.readOnly}
-			<button class="btn btn-outline-light btn-sm -my-2" onclick={() => (showAiPrompt = true)}> 🤖 AI Helper </button>
 			<button class="btn btn-success btn-sm -my-2" onclick={saveMappings}>Save</button>
 		{/if}
 	{/snippet}
