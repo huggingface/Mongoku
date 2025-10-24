@@ -55,13 +55,23 @@ export const updateDocument = command(
 		const newValue = JsonEncoder.decode(value);
 
 		// TODO: For now it makes it impossible to remove fields from object with a projection
-		const update = partial ? { $set: newValue } : JsonEncoder.decode(newValue);
-		await coll.replaceOne(
-			{
-				_id: new ObjectId(document),
-			},
-			update,
-		);
+		// Todo: handle multiple ID types
+		const _id = /^[0-9a-fA-F]{24}$/.test(document) ? new ObjectId(document) : document;
+		if (partial) {
+			await coll.updateOne(
+				{
+					_id: _id as unknown as ObjectId,
+				},
+				{ $set: newValue },
+			);
+		} else {
+			await coll.replaceOne(
+				{
+					_id: _id as unknown as ObjectId,
+				},
+				JsonEncoder.decode(newValue),
+			);
+		}
 
 		return {
 			ok: true,
