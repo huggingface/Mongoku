@@ -122,6 +122,16 @@
 	function confirmRemove() {
 		onremove?.();
 	}
+
+	async function copyToClipboard() {
+		try {
+			const jsonString = serializeForEditing(json);
+			await navigator.clipboard.writeText(jsonString);
+			notificationStore.notifySuccess("Document copied to clipboard");
+		} catch (err) {
+			notificationStore.notifyError(err, "Failed to copy to clipboard");
+		}
+	}
 </script>
 
 {#snippet title()}
@@ -148,16 +158,15 @@
 {/snippet}
 
 {#snippet actions()}
-	{#if onedit || onremove}
-		<div class="hidden group-hover:block">
-			{#if onedit}
-				<button class="btn btn-outline-light btn-sm ml-2 -my-2" onclick={enableEditor}>Edit</button>
-			{/if}
-			{#if onremove}
-				<button class="btn btn-outline-danger btn-sm ml-2 -my-2" onclick={showRemove}>Remove</button>
-			{/if}
-		</div>
-	{/if}
+	<div class="hidden group-hover:block">
+		<button class="btn btn-outline-light btn-sm ml-2 -my-2" onclick={copyToClipboard}>Copy</button>
+		{#if onedit}
+			<button class="btn btn-outline-light btn-sm ml-2 -my-2" onclick={enableEditor}>Edit</button>
+		{/if}
+		{#if onremove}
+			<button class="btn btn-outline-danger btn-sm ml-2 -my-2" onclick={showRemove}>Remove</button>
+		{/if}
+	</div>
 {/snippet}
 
 <Panel class="group" title={json._id ? title : undefined} {actions}>
