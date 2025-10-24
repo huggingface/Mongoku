@@ -1,5 +1,4 @@
 import { getMongo } from "$lib/server/mongo";
-import type { CollectionMappings } from "$lib/types";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -7,13 +6,13 @@ export const load: PageServerLoad = async ({ params }) => {
 	const client = mongo.getClient(params.server);
 	const db = client.db(params.database);
 
-	const mappings = await db.collection<CollectionMappings>("mongoku.mappings").findOne({ _id: params.collection });
+	const mappings = await client.getMappings(params.database, params.collection, { forceRefresh: true });
 
 	// Get list of all collections in the database for the dropdown
 	const allCollections = (await db.listCollections().toArray()).map((c) => c.name).sort();
 
 	return {
-		mappings: mappings?.mappings ?? {},
+		mappings,
 		availableCollections: allCollections,
 	};
 };

@@ -1,6 +1,8 @@
 import { command, query } from "$app/server";
+import { validateAggregationPipeline } from "$lib/server/aggregation";
 import JsonEncoder from "$lib/server/JsonEncoder";
 import { getMongo } from "$lib/server/mongo";
+import { isEmptyObject } from "$lib/utils/isEmptyObject";
 import { parseJSON } from "$lib/utils/jsonParser";
 import { error } from "@sveltejs/kit";
 import { ObjectId, type Document } from "mongodb";
@@ -46,11 +48,8 @@ export const updateDocument = command(
 		checkReadOnly();
 
 		const mongo = await getMongo();
-		const coll = mongo.getCollection(server, database, collection);
-
-		if (!coll) {
-			error(404, `Collection not found: ${server}.${database}.${collection}`);
-		}
+		const client = mongo.getClient(server);
+		const coll = client.db(database).collection(collection);
 
 		const newValue = JsonEncoder.decode(value);
 
@@ -73,6 +72,10 @@ export const updateDocument = command(
 			);
 		}
 
+		if (collection === "mongoku.mappings") {
+			client.clearMappingsCache(database, document);
+		}
+
 		return {
 			ok: true,
 			update: JsonEncoder.encode(newValue),
@@ -92,15 +95,18 @@ export const deleteDocument = command(
 		checkReadOnly();
 
 		const mongo = await getMongo();
-		const coll = mongo.getCollection(server, database, collection);
+		const client = mongo.getClient(server);
 
-		if (!coll) {
-			error(404, `Collection not found: ${server}.${database}.${collection}`);
+		await client
+			.db(database)
+			.collection(collection)
+			.deleteOne({
+				_id: new ObjectId(document),
+			});
+
+		if (collection === "mongoku.mappings") {
+			client.clearMappingsCache(database, document);
 		}
-
-		await coll.deleteOne({
-			_id: new ObjectId(document),
-		});
 
 		return {
 			ok: true,
@@ -121,11 +127,8 @@ export const updateMany = command(
 		checkReadOnly();
 
 		const mongo = await getMongo();
-		const coll = mongo.getCollection(server, database, collection);
-
-		if (!coll) {
-			error(404, `Collection not found: ${server}.${database}.${collection}`);
-		}
+		const client = mongo.getClient(server);
+		const coll = client.db(database).collection(collection);
 
 		const filterDoc = JsonEncoder.decode(parseJSON(filter));
 		const updateDoc = JsonEncoder.decode(parseJSON(update));
@@ -152,13 +155,9 @@ export const hideIndex = command(
 		checkReadOnly();
 
 		const mongo = await getMongo();
-		const coll = mongo.getCollection(server, database, collection);
+		const client = mongo.getClient(server);
 
-		if (!coll) {
-			error(404, `Collection not found: ${server}.${database}.${collection}`);
-		}
-
-		await coll.db.command({
+		await client.db(database).command({
 			collMod: collection,
 			index: {
 				name: index,
@@ -184,13 +183,9 @@ export const unhideIndex = command(
 		checkReadOnly();
 
 		const mongo = await getMongo();
-		const coll = mongo.getCollection(server, database, collection);
+		const client = mongo.getClient(server);
 
-		if (!coll) {
-			error(404, `Collection not found: ${server}.${database}.${collection}`);
-		}
-
-		await coll.db.command({
+		await client.db(database).command({
 			collMod: collection,
 			index: {
 				name: index,
@@ -216,13 +211,12 @@ export const dropIndex = command(
 		checkReadOnly();
 
 		const mongo = await getMongo();
-		const coll = mongo.getCollection(server, database, collection);
+		const client = mongo.getClient(server);
 
-		if (!coll) {
-			error(404, `Collection not found: ${server}.${database}.${collection}`);
-		}
-
-		await coll.dropIndex(index);
+		await client.db(database).command({
+			dropIndexes: collection,
+			index: index,
+		});
 
 		return {
 			ok: true,
@@ -300,17 +294,10 @@ export const loadDocuments = query(
 		const projectDoc = parseJSON(project) as Document;
 
 		const mongo = await getMongo();
-		const coll = mongo.getCollection(server, database, collection);
-
-		if (!coll) {
-			error(404, `Collection not found: ${server}.${database}.${collection}`);
-		}
+		const client = mongo.getClient(server);
+		const coll = client.db(database).collection(collection);
 
 		if (Array.isArray(queryDoc)) {
-			// Validate aggregation pipeline
-			const { validateAggregationPipeline } = await import("$lib/server/aggregation");
-			const { isEmptyObject } = await import("$lib/utils/isEmptyObject");
-
 			try {
 				validateAggregationPipeline(queryDoc);
 			} catch (err) {

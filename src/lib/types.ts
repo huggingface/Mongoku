@@ -105,10 +105,12 @@ export interface MappingTarget {
 	on: string;
 }
 
+export type Mappings = Record<string, MappingTarget[]>;
+
 /**
  * Collection mappings document structure as stored in mongoku.mappings
  */
 export interface CollectionMappings {
 	_id: string; // collection name
-	mappings: Record<string, MappingTarget | MappingTarget[]>;
+	mappings: Mappings;
 }
