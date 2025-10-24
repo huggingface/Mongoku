@@ -6,10 +6,11 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* Dark mode (default) */
+:root[data-theme="dark"] {
 	--color-1: hsl(216, 26%, 15%);
 	--color-1-5: hsl(218, 25%, 18%);
-	--color-2: hsl(220, 23%, 21%);
+	--light-background: hsl(220, 23%, 21%);
 	--color-3: hsl(217, 20%, 25%);
 	--color-4: hsl(220, 20%, 30%);
 
@@ -20,6 +21,7 @@
 	--text-inverse: hsl(0, 0%, 12%);
 	--text-darker: hsl(0, 0%, 57%);
 	--text-lighter: hsl(0, 0%, 100%);
+	--text-secondary: hsl(0, 0%, 60%);
 	--link: hsl(211, 100%, 89%);
 
 	--error: hsl(0, 78%, 28%);
@@ -29,6 +31,87 @@
 	--button-success: #008000;
 	--button-success-l: #4e994e;
 	--button-light: hsl(0, 0%, 88%);
+	--button-light-hover: hsl(0, 0%, 100%);
+
+	--code-namespace: #9cdcfe;
+	--code-boolean: #569cd6;
+	--code-null: #569cd6;
+	--code-numbers: #b5cea8;
+	--code-string: #ce9178;
+	--code-links: #4e94ce;
+	--code-summary: #6a9955;
+	--code-regexp: #ce696b;
+	--code-function: #dcdcaa;
+
+	--border: 1px solid var(--color-3);
+}
+
+/* Light mode */
+:root[data-theme="light"] {
+	--color-1: hsl(0, 0%, 98%);
+	--color-1-5: hsl(0, 0%, 96%);
+	--light-background: hsl(0, 0%, 94%);
+	--color-3: hsl(0, 0%, 88%);
+	--color-4: hsl(0, 0%, 80%);
+
+	--background-color: var(--color-1);
+	--border-color: var(--color-3);
+
+	--text: hsl(0, 0%, 12%);
+	--text-inverse: hsl(0, 0%, 88%);
+	--text-darker: hsl(0, 0%, 43%);
+	--text-lighter: hsl(0, 0%, 0%);
+	--text-secondary: hsl(0, 0%, 40%);
+	--link: hsl(211, 100%, 35%);
+
+	--error: hsl(0, 78%, 50%);
+
+	--button-danger: #d13438;
+	--button-danger-l: #e57373;
+	--button-success: #2e7d32;
+	--button-success-l: #66bb6a;
+	--button-light: hsl(0, 0%, 25%);
+	--button-light-hover: hsl(0, 0%, 15%);
+
+	--code-namespace: #0070c1;
+	--code-boolean: #0000ff;
+	--code-null: #0000ff;
+	--code-numbers: #098658;
+	--code-string: #a31515;
+	--code-links: #0451a5;
+	--code-summary: #008000;
+	--code-regexp: #d16969;
+	--code-function: #795e26;
+
+	--border: 1px solid var(--color-3);
+}
+
+/* Fallback for initial load before script runs */
+:root:not([data-theme]) {
+	--color-1: hsl(216, 26%, 15%);
+	--color-1-5: hsl(218, 25%, 18%);
+	--light-background: hsl(220, 23%, 21%);
+	--color-3: hsl(217, 20%, 25%);
+	--color-4: hsl(220, 20%, 30%);
+
+	--background-color: var(--color-1);
+	--border-color: var(--color-3);
+
+	--text: hsl(0, 0%, 88%);
+	--text-inverse: hsl(0, 0%, 12%);
+	--text-darker: hsl(0, 0%, 57%);
+	--text-lighter: hsl(0, 0%, 100%);
+	--text-secondary: hsl(0, 0%, 60%);
+	--link: hsl(211, 100%, 89%);
+
+	--error: hsl(0, 78%, 28%);
+
+	--button-danger: #a31515;
+	--button-danger-l: #a54c4c;
+	--button-success: #008000;
+	--button-success-l: #4e994e;
+	--button-light: hsl(0, 0%, 88%);
+	--button-light-hover: hsl(0, 0%, 100%);
 
 	--code-namespace: #9cdcfe;
 	--code-boolean: #569cd6;
@@ -145,6 +228,17 @@
 		color: var(--text-lighter);
 	}
 
+	.btn-outline-light {
+		background: transparent;
+		color: var(--button-light);
+		border-color: var(--button-light);
+	}
+
+	.btn-outline-light:hover {
+		background-color: var(--color-4);
+		color: var(--button-light-hover);
+	}
+
 	.btn:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
@@ -202,7 +296,7 @@
 	}
 
 	.modal {
-		background-color: var(--color-2);
+		background-color: var(--light-background);
 		border: 1px solid var(--color-3);
 		border-radius: 4px;
 		max-width: 500px;

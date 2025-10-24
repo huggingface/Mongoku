@@ -142,7 +142,7 @@
 						</td>
 						<td>
 							{#await server.details}
-								<span class="text-gray-400">...</span>
+								<span style="color: var(--text-secondary);">...</span>
 							{:then details}
 								{#if "databases" in details && details.databases}
 									<TooltipTable
@@ -164,7 +164,7 @@
 						</td>
 						<td>
 							{#await server.details}
-								<span class="text-gray-400">...</span>
+								<span style="color: var(--text-secondary);">...</span>
 							{:then details}
 								{#if "size" in details && details.size !== undefined}
 									{formatBytes(details.size)}

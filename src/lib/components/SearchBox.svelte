@@ -209,7 +209,7 @@
 
 	<!-- Help text when collapsed -->
 	{#if !showOptionalFields && !isAggregation && params.query === "{}"}
-		<div class="text-xs text-[var(--text-secondary,#888)] mt-1 ml-1">
+		<div class="text-xs mt-1 ml-1" style="color: var(--text-secondary);">
 			Tip: Use <code class="bg-[var(--color-3)] px-1 py-0.5 rounded font-mono">[{"{...}"}]</code> to switch to aggregation
 			mode
 		</div>

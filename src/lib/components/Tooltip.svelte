@@ -68,7 +68,7 @@
 <div class="relative inline-block" bind:this={containerElement}>
 	{@render trigger()}{#if show}
 		<div
-			class="absolute bg-[var(--color-2)] border border-[var(--color-3)] rounded z-[1000] shadow-lg {tooltipClass}"
+			class="absolute bg-[var(--light-background)] border border-[var(--color-3)] rounded z-[1000] shadow-lg {tooltipClass}"
 			bind:this={tooltipElement}
 			style:left={tooltipPosition.left}
 			style:right={tooltipPosition.right}

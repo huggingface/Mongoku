@@ -3,6 +3,21 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<script>
+			// Immediately set theme to prevent flash
+			(function () {
+				const theme = localStorage.getItem("theme") || "system";
+				let actualTheme;
+
+				if (theme === "system") {
+					actualTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+				} else {
+					actualTheme = theme;
+				}
+
+				document.documentElement.setAttribute("data-theme", actualTheme);
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

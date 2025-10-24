@@ -31,7 +31,7 @@
 
 <style lang="postcss">
 	.panel {
-		background-color: var(--color-2);
+		background-color: var(--light-background);
 		border: var(--border);
 	}
 </style>

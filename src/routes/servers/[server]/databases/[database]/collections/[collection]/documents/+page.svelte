@@ -220,7 +220,7 @@
 					id="update-filter"
 					value={params.query || "{}"}
 					readonly
-					class="w-full p-2 border border-[var(--color-4)] bg-[var(--color-2)] rounded font-mono text-sm opacity-75 cursor-not-allowed"
+					class="w-full p-2 border border-[var(--color-4)] bg-[var(--light-background)] rounded font-mono text-sm opacity-75 cursor-not-allowed"
 				/>
 				<p class="text-xs text-[var(--text-secondary,#888)] mt-1">
 					This filter is taken from the query above. Modify the query to change which documents will be updated.

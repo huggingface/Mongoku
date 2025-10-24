@@ -4,6 +4,7 @@
 	import Notifications from "$lib/components/Notifications.svelte";
 	import OriginWarning from "$lib/components/OriginWarning.svelte";
 	import PageSwitcher from "$lib/components/PageSwitcher.svelte";
+	import ThemeSwitcher from "$lib/components/ThemeSwitcher.svelte";
 	import "../app.css";
 
 	let { children, data } = $props();
@@ -13,7 +14,10 @@
 	<nav class="navbar px-6 py-4 flex items-center">
 		<a href={resolve("/")} class="text-2xl font-medium">Mongoku</a>
 		<Breadcrumbs />
-		<PageSwitcher class="ml-auto" />
+		<div class="ml-auto flex items-center gap-2">
+			<PageSwitcher class="" />
+			<ThemeSwitcher />
+		</div>
 	</nav>
 
 	<OriginWarning serverOrigin={data.serverOrigin} readOnly={data.readOnly} />
@@ -26,7 +30,7 @@
 
 <style lang="postcss">
 	.navbar {
-		background-color: var(--color-2);
+		background-color: var(--light-background);
 		border-bottom: var(--border);
 	}
 </style>

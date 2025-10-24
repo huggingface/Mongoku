@@ -79,7 +79,7 @@
 						</td>
 						<td>
 							{#await collection.details}
-								<span class="text-gray-400">...</span>
+								<span style="color: var(--text-secondary);">...</span>
 							{:then details}
 								{#if details}
 									{formatNumber(details.count)}
@@ -90,7 +90,7 @@
 						</td>
 						<td>
 							{#await collection.details}
-								<span class="text-gray-400">...</span>
+								<span style="color: var(--text-secondary);">...</span>
 							{:then details}
 								{#if details}
 									<TooltipTable
@@ -112,7 +112,7 @@
 						</td>
 						<td>
 							{#await collection.details}
-								<span class="text-gray-400">...</span>
+								<span style="color: var(--text-secondary);">...</span>
 							{:then details}
 								{#if details}
 									<TooltipTable

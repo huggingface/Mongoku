@@ -87,34 +87,35 @@
 
 <Panel title="Mappings for {data.collection}">
 	{#snippet actions()}
-		<button class="btn btn-primary btn-sm ml-2 -my-2" onclick={saveMappings}>Save</button>
+		<button class="btn btn-success btn-sm ml-2 -my-2" onclick={saveMappings}>Save</button>
 	{/snippet}
 
 	<div class="p-4">
-		<div class="text-gray-400 mb-4">
+		<div class="mb-4">
 			<p class="mb-3">
 				Define relationships between collections to enable hover tooltips and navigation on foreign key fields.
 			</p>
-			<details class="mb-2">
+			<details class="mb-2" style="color: var(--text-secondary);">
 				<summary class="cursor-pointer font-medium mb-2">Example</summary>
 				<div class="mt-2">
 					<div class="mb-1">
-						Document in collection <code class="px-1 bg-[var(--color-2)] rounded">posts</code>:
+						Document in collection <code class="px-1 bg-[var(--light-background)] rounded">posts</code>:
 					</div>
-					<code class="block px-2 py-1 bg-[var(--color-2)] rounded text-xs mb-2">
+					<code class="block px-2 py-1 bg-[var(--light-background)] rounded text-xs mb-2">
 						&#123; _id: "post1", title: "Hello", authorId: "user123", comments: [&#123;authorId: "user456", text:
 						"Nice!"&#125;] &#125;
 					</code>
 					<div class="text space-y-1">
 						<div>
-							→ Mapping 1: Field path <code class="px-1 bg-[var(--color-2)] rounded">authorId</code>, target collection
-							<code class="px-1 bg-[var(--color-2)] rounded">users</code>, target field
-							<code class="px-1 bg-[var(--color-2)] rounded">_id</code>
+							→ Mapping 1: Field path <code class="px-1 bg-[var(--light-background)] rounded">authorId</code>, target
+							collection
+							<code class="px-1 bg-[var(--light-background)] rounded">users</code>, target field
+							<code class="px-1 bg-[var(--light-background)] rounded">_id</code>
 						</div>
 						<div>
-							→ Mapping 2: Field path <code class="px-1 bg-[var(--color-2)] rounded">comments.authorId</code>, target
-							collection <code class="px-1 bg-[var(--color-2)] rounded">users</code>, target field
-							<code class="px-1 bg-[var(--color-2)] rounded">_id</code>
+							→ Mapping 2: Field path <code class="px-1 bg-[var(--light-background)] rounded">comments.authorId</code>,
+							target collection <code class="px-1 bg-[var(--light-background)] rounded">users</code>, target field
+							<code class="px-1 bg-[var(--light-background)] rounded">_id</code>
 						</div>
 					</div>
 				</div>
@@ -146,7 +147,7 @@
 							{#each entry.targets as target, targetIndex (targetIndex)}
 								<div class="flex items-start gap-2 pl-4 border-l-2 border-[var(--color-3)]">
 									<div class="flex-1">
-										<label class="block text-xs text-gray-400 mb-1">
+										<label class="block text-xs mb-1">
 											Target Collection
 											<select
 												bind:value={target.collection}
@@ -160,7 +161,7 @@
 										</label>
 									</div>
 									<div class="flex-1">
-										<label class="block text-xs text-gray-400 mb-1">
+										<label class="block text-xs mb-1">
 											Target Field
 											<input
 												type="text"
@@ -188,14 +189,14 @@
 				{/each}
 			</div>
 		{:else}
-			<div class="text-center text-gray-400 py-8">No mappings defined yet.</div>
+			<div class="text-center py-8" style="color: var(--text-secondary);">No mappings defined yet.</div>
 		{/if}
 
 		<div class="mt-4">
 			{#if !isAdding}
-				<button class="btn btn-primary" onclick={() => (isAdding = true)}>+ Add New Mapping</button>
+				<button class="btn btn-success" onclick={() => (isAdding = true)}>+ Add New Mapping</button>
 			{:else}
-				<div class="border border-[var(--border-color)] rounded p-4 bg-[var(--color-2)]">
+				<div class="border border-[var(--border-color)] rounded p-4 bg-[var(--light-background)]">
 					<h3 class="text-lg font-medium mb-3">New Mapping</h3>
 					<div class="space-y-3">
 						<label class="block text-sm font-medium mb-1">
