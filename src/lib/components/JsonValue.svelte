@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from "$app/paths";
 	import type { MongoDocument } from "$lib/types";
 	import JsonValue from "./JsonValue.svelte";
 	import Tooltip from "./Tooltip.svelte";
@@ -19,7 +20,7 @@
 		/** Function to fetch a mapped document and get its URL */
 		fetchMappedDocument?: (
 			path: string,
-			value: any,
+			value: unknown,
 		) => Promise<{ document: MongoDocument | null; url: string | null; collection: string | null }>;
 		/** full path to current key (e.g., "user.address.city") */
 		keyPath?: string;
@@ -297,7 +298,8 @@
 					tabindex="0"
 				>
 					{#if fetchedUrl}
-						<a href={fetchedUrl}>{@render valueSnippet?.()}</a>
+						<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
+						<a href={resolve(fetchedUrl as any)}>{@render valueSnippet?.()}</a>
 					{:else}
 						{@render valueSnippet?.()}
 					{/if}

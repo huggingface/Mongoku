@@ -153,7 +153,7 @@
 												class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded text-sm mt-1"
 											>
 												<option value="">Select collection...</option>
-												{#each data.availableCollections as col}
+												{#each data.availableCollections as col (col)}
 													<option value={col}>{col}</option>
 												{/each}
 											</select>
@@ -214,7 +214,7 @@
 								class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded mt-1"
 							>
 								<option value="">Select collection...</option>
-								{#each data.availableCollections as col}
+								{#each data.availableCollections as col (col)}
 									<option value={col}>{col}</option>
 								{/each}
 							</select>
