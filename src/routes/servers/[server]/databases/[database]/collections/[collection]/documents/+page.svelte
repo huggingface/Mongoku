@@ -34,6 +34,7 @@
 
 	$effect(() => {
 		const currentCount = ++countCount;
+		finalCount = null;
 		data.count.then((result) => {
 			if (currentCount !== countCount) {
 				return;
