@@ -91,9 +91,35 @@
 	{/snippet}
 
 	<div class="p-4">
-		<p class="text-sm text-gray-400 mb-4">
-			Define relationships between collections to enable hover tooltips and navigation on ObjectId fields.
-		</p>
+		<div class="text-gray-400 mb-4">
+			<p class="mb-3">
+				Define relationships between collections to enable hover tooltips and navigation on foreign key fields.
+			</p>
+			<details class="mb-2">
+				<summary class="cursor-pointer font-medium mb-2">Example</summary>
+				<div class="mt-2">
+					<div class="mb-1">
+						Document in collection <code class="px-1 bg-[var(--color-2)] rounded">posts</code>:
+					</div>
+					<code class="block px-2 py-1 bg-[var(--color-2)] rounded text-xs mb-2">
+						&#123; _id: "post1", title: "Hello", authorId: "user123", comments: [&#123;authorId: "user456", text:
+						"Nice!"&#125;] &#125;
+					</code>
+					<div class="text space-y-1">
+						<div>
+							→ Mapping 1: Field path <code class="px-1 bg-[var(--color-2)] rounded">authorId</code>, target collection
+							<code class="px-1 bg-[var(--color-2)] rounded">users</code>, target field
+							<code class="px-1 bg-[var(--color-2)] rounded">_id</code>
+						</div>
+						<div>
+							→ Mapping 2: Field path <code class="px-1 bg-[var(--color-2)] rounded">comments.authorId</code>, target
+							collection <code class="px-1 bg-[var(--color-2)] rounded">users</code>, target field
+							<code class="px-1 bg-[var(--color-2)] rounded">_id</code>
+						</div>
+					</div>
+				</div>
+			</details>
+		</div>
 
 		{#if mappingsArray.length > 0}
 			<div class="space-y-4">

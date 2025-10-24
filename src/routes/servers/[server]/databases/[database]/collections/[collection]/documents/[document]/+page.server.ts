@@ -26,5 +26,6 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	return {
 		document,
+		mappings: await client.getMappings(params.database, params.collection),
 	};
 };

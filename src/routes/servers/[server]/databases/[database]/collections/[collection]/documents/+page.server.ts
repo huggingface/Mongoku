@@ -203,6 +203,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		// Stream these promises to the client
 		results: resultsPromise,
 		count: countPromise,
+		mappings: await client.getMappings(params.database, params.collection),
 		params: {
 			query,
 			sort,

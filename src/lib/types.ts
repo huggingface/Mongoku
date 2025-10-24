@@ -105,7 +105,7 @@ export interface MappingTarget {
 	on: string;
 }
 
-export type Mappings = Record<string, MappingTarget[]>;
+export type Mappings = Record<string, MappingTarget[] | MappingTarget>;
 
 /**
  * Collection mappings document structure as stored in mongoku.mappings

@@ -357,3 +357,53 @@ export const loadDocuments = query(
 		}
 	},
 );
+
+// Fetch a document by field value (for mappings)
+// Tries multiple mapping targets and returns the first one that finds a document
+export const fetchMappedDocument = query(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		mappings: z.array(
+			z.object({
+				collection: z.string(),
+				on: z.string(),
+			}),
+		),
+		value: z.unknown(),
+	}),
+	async ({ server, database, mappings, value }) => {
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+		const decodedValue = JsonEncoder.decode(value);
+
+		// Try each mapping in order and return the first match
+		for (const mapping of mappings) {
+			try {
+				const coll = client.db(database).collection(mapping.collection);
+				const query = { [mapping.on]: decodedValue };
+
+				const document = await coll.findOne(query, { maxTimeMS: mongo.getQueryTimeout() });
+
+				if (document) {
+					return {
+						data: JsonEncoder.encode(document),
+						collection: mapping.collection,
+						error: null,
+					};
+				}
+			} catch (err) {
+				console.error(`Error fetching mapped document from ${mapping.collection}.${mapping.on}:`, err);
+				// Continue to next mapping on error
+				continue;
+			}
+		}
+
+		// No mapping found a document
+		return {
+			data: null,
+			collection: null,
+			error: "Document not found in any mapped collection",
+		};
+	},
+);

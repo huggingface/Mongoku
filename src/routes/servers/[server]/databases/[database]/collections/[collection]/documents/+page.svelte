@@ -336,6 +336,7 @@
 			server={data.server}
 			database={data.database}
 			collection={data.collection}
+			mappings={data.mappings}
 		/>
 	{/each}
 {/await}
