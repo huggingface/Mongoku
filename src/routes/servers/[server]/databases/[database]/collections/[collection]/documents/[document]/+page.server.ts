@@ -3,7 +3,7 @@ import { getMongo } from "$lib/server/mongo";
 import { ObjectId } from "mongodb";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, parent }) => {
 	const mongo = await getMongo();
 	const client = mongo.getClient(params.server);
 	const collection = client.db(params.database).collection(params.collection);
@@ -17,8 +17,12 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	document = obj ? JsonEncoder.encode(obj) : null;
 
+	const parentData = await parent();
+
 	return {
 		document,
+		documentId: params.document,
 		mappings: await client.getMappings(params.database, params.collection),
+		readOnly: parentData.readOnly,
 	};
 };

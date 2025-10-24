@@ -83,6 +83,41 @@ export const updateDocument = command(
 	},
 );
 
+// Insert a document
+export const insertDocument = command(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		collection: z.string(),
+		document: z.string(),
+		value: z.unknown(),
+	}),
+	async ({ server, database, collection, document, value }) => {
+		checkReadOnly();
+
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+		const coll = client.db(database).collection(collection);
+
+		const newValue = JsonEncoder.decode(value);
+
+		// Ensure _id matches the document parameter
+		const _id = /^[0-9a-fA-F]{24}$/.test(document) ? new ObjectId(document) : document;
+		newValue._id = _id;
+
+		await coll.insertOne(newValue);
+
+		if (collection === "mongoku.mappings") {
+			client.clearMappingsCache(database, document);
+		}
+
+		return {
+			ok: true,
+			insert: JsonEncoder.encode(newValue),
+		};
+	},
+);
+
 // Delete a document
 export const deleteDocument = command(
 	z.object({

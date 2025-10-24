@@ -19,9 +19,20 @@
 		database: string;
 		collection: string;
 		mappings?: Mappings;
+		startInEditMode?: boolean;
 	}
 
-	let { json, autoCollapse = false, onedit, onremove, server, database, collection, mappings }: Props = $props();
+	let {
+		json,
+		autoCollapse = false,
+		onedit,
+		onremove,
+		server,
+		database,
+		collection,
+		mappings,
+		startInEditMode = false,
+	}: Props = $props();
 
 	// Helper to get ID value from any type
 	function getIdValue(val: any): string | null {
@@ -149,6 +160,13 @@
 
 		editorVisible = true;
 	}
+
+	// Automatically enable editor if startInEditMode is true
+	$effect(() => {
+		if (startInEditMode && !editorVisible && contentContainerRef) {
+			enableEditor();
+		}
+	});
 
 	function disableEditor() {
 		editorVisible = false;
