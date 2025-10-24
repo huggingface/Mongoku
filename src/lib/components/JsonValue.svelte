@@ -62,18 +62,75 @@
 	let isEmpty = $derived(
 		(valueType === "array" && value.length === 0) || (valueType === "object" && Object.keys(value).length === 0),
 	);
+	let innerCollapsed = $state(autoCollapse);
+
+	function toggleInnerCollapse() {
+		innerCollapsed = !innerCollapsed;
+	}
 </script>
 
 {#if key !== undefined}
-	<span class="prop" class:collapsible={isCollapsible && !isEmpty} class:collapsed>
-		{getIndent(depth + 1)}<var>{key}</var>: <JsonValue
-			{value}
-			{autoCollapse}
-			collapsed={autoCollapse}
-			depth={depth + 1}
-			localTopLevel={false}
-		/>
-	</span>
+	{#if isCollapsible && !isEmpty}
+		{#if innerCollapsed}
+			<span
+				class="prop collapsible collapsed"
+				onclick={toggleInnerCollapse}
+				role="button"
+				tabindex="0"
+				onkeydown={(e) => {
+					if (e.key === "Enter" || e.key === " ") {
+						e.preventDefault();
+						toggleInnerCollapse();
+					}
+				}}
+			>
+				{getIndent(depth + 1)}<span class="collapse-arrow"> ▶ </span><var>{key}</var>: <JsonValue
+					{value}
+					{autoCollapse}
+					collapsed={innerCollapsed}
+					depth={depth + 1}
+					localTopLevel={false}
+				/>
+			</span>
+		{:else}
+			<span class="prop collapsible">
+				{getIndent(depth + 1)}<span
+					class="collapse-arrow arrow-only"
+					onclick={(e) => {
+						e.stopPropagation();
+						toggleInnerCollapse();
+					}}
+					role="button"
+					tabindex="0"
+					onkeydown={(e) => {
+						if (e.key === "Enter" || e.key === " ") {
+							e.preventDefault();
+							e.stopPropagation();
+							toggleInnerCollapse();
+						}
+					}}
+				>
+					▼
+				</span><var>{key}</var>: <JsonValue
+					{value}
+					{autoCollapse}
+					collapsed={innerCollapsed}
+					depth={depth + 1}
+					localTopLevel={false}
+				/>
+			</span>
+		{/if}
+	{:else}
+		<span class="prop">
+			{getIndent(depth + 1)}<var>{key}</var>: <JsonValue
+				{value}
+				{autoCollapse}
+				collapsed={innerCollapsed}
+				depth={depth + 1}
+				localTopLevel={false}
+			/>
+		</span>
+	{/if}
 {:else}
 	<!-- Root value rendering -->
 	{#if valueType === "string"}
@@ -103,46 +160,36 @@
 		{#if isEmpty}
 			<span class="value array">[]</span>
 		{:else}
-			<span class="collapsible-wrapper" class:collapsed class:expanded={!collapsed}>
-				<button class="collapse-toggle" onclick={toggleCollapse}>
-					{collapsed ? "▶" : "▼"}
-				</button><span class="value array">
-					[<span class="collapsible-content" class:hidden={collapsed}>
-						{#each value as item, i (i)}
-							<br />{getIndent(depth + 1)}<JsonValue
-								value={item}
-								{autoCollapse}
-								collapsed={false}
-								depth={depth + 1}
-							/>{/each}
-						<br />{getIndent(depth)}
-					</span>{#if collapsed}
-						<button class="collapsed-summary" onclick={toggleCollapse}
-							>... {value.length} item{value.length !== 1 ? "s" : ""}</button
-						>
-					{/if}]
-				</span>
+			<span class="value array">
+				[<span class="collapsible-content" class:hidden={collapsed}>
+					{#each value as item, i (i)}
+						<br />{getIndent(depth + 1)}<JsonValue
+							value={item}
+							{autoCollapse}
+							collapsed={false}
+							depth={depth + 1}
+						/>{/each}
+					<br />{getIndent(depth)}
+				</span>{#if collapsed}
+					<span class="collapsed-summary">... {value.length} item{value.length !== 1 ? "s" : ""}</span>
+				{/if}]
 			</span>
 		{/if}
 	{:else if valueType === "object"}
 		{#if isEmpty}
 			<span class="value object">{"{}"}</span>
 		{:else}
-			<span class="collapsible-wrapper" class:collapsed class:expanded={!collapsed}>
-				{#if depth !== 0}<button class="collapse-toggle" class:local-top-level={localTopLevel} onclick={toggleCollapse}>
-						{collapsed ? "▶" : "▼"}
-					</button>{/if}<span class="value object">
-					{"{"}<span class="collapsible-content" class:hidden={collapsed}
-						>{#each Object.keys(value) as objKey (objKey)}
-							<JsonValue value={value[objKey]} key={objKey} {autoCollapse} collapsed={autoCollapse} {depth} />{/each}
-					</span>{#if collapsed}
-						<button class="collapsed-summary" onclick={toggleCollapse}
-							>... {Object.keys(value).length} key{Object.keys(value).length !== 1 ? "s" : ""}</button
-						>
-					{:else}
-						{getIndent(depth)}
-					{/if}}
-				</span>
+			<span class="value object">
+				{"{"}<span class="collapsible-content" class:hidden={collapsed}
+					>{#each Object.keys(value) as objKey (objKey)}
+						<JsonValue value={value[objKey]} key={objKey} {autoCollapse} collapsed={autoCollapse} {depth} />{/each}
+				</span>{#if collapsed}
+					<span class="collapsed-summary"
+						>... {Object.keys(value).length} key{Object.keys(value).length !== 1 ? "s" : ""}</span
+					>
+				{:else}
+					{getIndent(depth)}
+				{/if}}
 			</span>
 		{/if}
 	{:else}
@@ -154,39 +201,34 @@
 	.prop {
 		position: relative;
 		display: block;
+
+		&.collapsible {
+			&.collapsed {
+				cursor: pointer;
+				user-select: none;
+
+				&:hover .collapse-arrow {
+					color: var(--text, #fff);
+				}
+			}
+		}
 	}
 
-	.collapsible-wrapper {
-		display: inline;
-		position: relative;
+	.collapse-arrow {
+		display: inline-block;
+		width: 16px;
+		color: var(--text-secondary, #888);
+		font-size: 12px;
+		margin-right: 4px;
+		margin-left: -20px;
+		transition: color 0.2s;
 
-		.collapse-toggle {
-			display: inline-block;
-			width: 16px;
+		&.arrow-only {
 			cursor: pointer;
-			user-select: none;
-			color: var(--text-secondary, #888);
-			font-size: 12px;
-			margin-right: 4px;
-			transition: color 0.2s;
-			background: none;
-			border: none;
-			padding: 0;
-			font-family: inherit;
-
-			&.local-top-level {
-				position: absolute;
-				left: -18px;
-				margin-top: 4px;
-			}
 
 			&:hover {
 				color: var(--text, #fff);
 			}
-		}
-
-		&.collapsed .collapsible-content {
-			display: none;
 		}
 	}
 
@@ -202,7 +244,6 @@
 		color: var(--text-secondary, #888);
 		font-style: italic;
 		margin: 0 4px;
-		cursor: pointer;
 	}
 
 	.value {
