@@ -1,6 +1,5 @@
 import JsonEncoder from "$lib/server/JsonEncoder";
 import { getMongo } from "$lib/server/mongo";
-import { error } from "@sveltejs/kit";
 import { ObjectId } from "mongodb";
 import type { PageServerLoad } from "./$types";
 
@@ -16,13 +15,7 @@ export const load: PageServerLoad = async ({ params }) => {
 			: (params.document as unknown as ObjectId),
 	});
 
-	if (!obj) {
-		return error(
-			404,
-			`Document not found: ${params.server}.${params.database}.${params.collection}.${params.document}`,
-		);
-	}
-	document = JsonEncoder.encode(obj);
+	document = obj ? JsonEncoder.encode(obj) : null;
 
 	return {
 		document,

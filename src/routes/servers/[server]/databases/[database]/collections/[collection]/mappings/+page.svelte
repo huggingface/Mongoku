@@ -21,6 +21,78 @@
 	let newTargetCollection = $state("");
 	let newTargetField = $state("_id");
 	let isAdding = $state(false);
+	let showAiPrompt = $state(false);
+
+	// Generate AI prompt for IDE
+	const aiPrompt = $derived(`I need help generating MongoDB collection mappings for my database.
+
+**Context:**
+- Database: ${data.database}
+- Collection: ${data.collection}
+- Available collections: ${data.availableCollections.join(", ")}
+
+**Task:**
+Please analyze my codebase to identify relationships between the "${data.collection}" collection and other collections. Look for:
+1. Fields that reference documents in other collections (foreign keys)
+2. Nested fields within arrays or objects that reference other documents
+3. Common patterns like userId, authorId, etc.
+
+If you have access to the MongoDB MCP server, use it to:
+1. Query sample documents from the "${data.collection}" collection
+2. Analyze the schema and field types
+3. Identify potential foreign key relationships
+
+**Output Format:**
+Create a file named \`${data.collection}.mappings.json\` with the following structure:
+
+\`\`\`json
+{
+  "_id": "${data.collection}",
+  "mappings": {
+    "fieldPath": { "collection": "targetCollection", "on": "targetField" },
+    "nested.fieldPath": { "collection": "targetCollection", "on": "targetField" }
+  }
+}
+\`\`\`
+
+**Example:**
+If the collection has documents like:
+\`\`\`json
+{
+  "_id": "post1",
+  "authorId": "user123",
+  "comments": [
+    { "authorId": "user456", "text": "Great post!" }
+  ]
+}
+\`\`\`
+
+The mappings would be:
+\`\`\`json
+{
+  "_id": "${data.collection}",
+  "mappings": {
+    "authorId": { "collection": "users", "on": "_id" },
+    "comments.authorId": { "collection": "users", "on": "_id" }
+  }
+}
+\`\`\`
+
+**Notes:**
+- Use dot notation for nested fields (e.g., "comments.authorId")
+- Multiple mappings for the same field can be expressed as an array
+- Target field is usually "_id" but can be any unique field
+
+Please analyze the codebase and database, then generate the appropriate mappings file.`);
+
+	async function copyAiPrompt() {
+		try {
+			await navigator.clipboard.writeText(aiPrompt);
+			notificationStore.notifySuccess("AI prompt copied to clipboard");
+		} catch (err) {
+			notificationStore.notifyError(err, "Failed to copy to clipboard");
+		}
+	}
 	function addTarget(entry: MappingEntry) {
 		entry.targets.push({ collection: "", on: "_id" });
 	}
@@ -87,13 +159,20 @@
 
 <Panel title="Mappings for {data.collection}">
 	{#snippet actions()}
-		<button class="btn btn-success btn-sm ml-2 -my-2" onclick={saveMappings}>Save</button>
+		<button class="btn btn-outline-light btn-sm -my-2" onclick={() => (showAiPrompt = true)}> 🤖 AI Helper </button>
+		<button class="btn btn-success btn-sm -my-2" onclick={saveMappings}>Save</button>
 	{/snippet}
 
 	<div class="p-4">
 		<div class="mb-4">
 			<p class="mb-3">
-				Define relationships between collections to enable hover tooltips and navigation on foreign key fields.
+				Define relationships between collections to enable hover tooltips and navigation on foreign key fields. This
+				will be stored in the <code class="px-1 bg-[var(--light-background)] rounded">mongoku.mappings</code> collection
+				as a document with
+				<a
+					href="/servers/{data.server}/databases/{data.database}/collections/mongoku.mappings/documents/{data.collection}"
+					class="text-blue-500">_id: "{data.collection}"</a
+				>.
 			</p>
 			<details class="mb-2" style="color: var(--text-secondary);">
 				<summary class="cursor-pointer font-medium mb-2">Example</summary>
@@ -239,3 +318,43 @@
 		</div>
 	</div>
 </Panel>
+
+<!-- AI Prompt Modal -->
+{#if showAiPrompt}
+	<div
+		class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+		onclick={() => (showAiPrompt = false)}
+		onkeydown={(e) => {
+			if (e.key === "Escape") showAiPrompt = false;
+		}}
+		role="button"
+		tabindex="0"
+	>
+		<div
+			class="bg-[var(--color-1)] border border-[var(--border-color)] rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={(e) => e.stopPropagation()}
+			role="dialog"
+			tabindex="-1"
+		>
+			<div class="p-4 border-b border-[var(--border-color)] flex justify-between items-center">
+				<h2 class="text-xl font-semibold">AI Mapping Generator Prompt</h2>
+				<button class="btn btn-outline-light btn-sm" onclick={() => (showAiPrompt = false)}>Close</button>
+			</div>
+
+			<div class="p-4 overflow-auto flex-1">
+				<p class="mb-3 text-sm" style="color: var(--text-secondary);">
+					Copy this prompt and paste it into your IDE's AI assistant (Cursor, GitHub Copilot, etc.) to automatically
+					generate mappings for this collection.
+				</p>
+				<pre
+					class="bg-[var(--color-2)] border border-[var(--border-color)] rounded p-4 text-sm whitespace-pre-wrap overflow-auto">{aiPrompt}</pre>
+			</div>
+
+			<div class="p-4 border-t border-[var(--border-color)] flex justify-end gap-2">
+				<button class="btn btn-default" onclick={() => (showAiPrompt = false)}>Close</button>
+				<button class="btn btn-primary" onclick={copyAiPrompt}>Copy to Clipboard</button>
+			</div>
+		</div>
+	</div>
+{/if}
