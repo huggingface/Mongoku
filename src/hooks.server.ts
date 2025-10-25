@@ -9,7 +9,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 	if (authBasic) {
 		const [username, password] = authBasic.split(":");
 		const basicAuth = event.request.headers.get("Authorization");
-		if (basicAuth !== `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`) {
+		if (
+			!basicAuth?.toLowerCase().startsWith("basic ") ||
+			basicAuth.slice("basic ".length) !== Buffer.from(`${username}:${password}`).toString("base64")
+		) {
 			return new Response("Unauthorized", {
 				status: 401,
 				headers: {
