@@ -107,8 +107,8 @@
 {:else if item}
 	<PrettyJson
 		json={item}
-		onedit={editDocument}
-		onremove={removeDocument}
+		onedit={data.readOnly ? undefined : editDocument}
+		onremove={data.readOnly ? undefined : removeDocument}
 		server={data.server}
 		database={data.database}
 		collection={data.collection}
