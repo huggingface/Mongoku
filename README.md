@@ -121,6 +121,9 @@ MONGOKU_QUERY_TIMEOUT=30000
 # Read-only mode (prevent write queries to mongodb)
 MONGOKU_READ_ONLY_MODE=true
 
+# Enable basic auth
+MONGOKU_AUTH_BASIC=user:password
+
 # Other reverse-proxy vars
 MONGOKU_SERVER_HOST=127.0.0.1
 MONGOKU_SERVER_PROTOCOL_HEADER=x-forwarded-proto

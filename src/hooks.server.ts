@@ -5,6 +5,19 @@ import { MongoError } from "mongodb";
 Error.stackTraceLimit = 100;
 
 export const handle: Handle = async ({ event, resolve }) => {
+	const authBasic = process.env.MONGOKU_AUTH_BASIC;
+	if (authBasic) {
+		const [username, password] = authBasic.split(":");
+		const basicAuth = event.request.headers.get("Authorization");
+		if (basicAuth !== `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`) {
+			return new Response("Unauthorized", {
+				status: 401,
+				headers: {
+					"WWW-Authenticate": "Basic",
+				},
+			});
+		}
+	}
 	return resolve(event);
 };
 
