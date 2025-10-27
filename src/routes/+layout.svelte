@@ -10,6 +10,10 @@
 	let { children, data } = $props();
 </script>
 
+<svelte:head>
+	<title>Mongoku</title>
+</svelte:head>
+
 <div style="min-height: 100vh">
 	<nav class="navbar px-6 py-4 flex items-center">
 		<a href={resolve("/")} class="text-2xl font-medium">Mongoku</a>
