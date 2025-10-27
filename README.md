@@ -62,7 +62,7 @@ You can use `npx simple-git-hooks` to set up git hooks
 
 ### Docker
 
-<!-- #### Using the Docker HUB image
+#### Using the Docker HUB image
 
 ```bash
 docker run -d --name mongoku -p 3100:3100 huggingface/mongoku
@@ -72,7 +72,6 @@ docker run -d --name mongoku -p 3100:3100 \
   --env MONGOKU_DEFAULT_HOST="mongodb://user:password@myhost.com:8888" \
   huggingface/mongoku
 ```
--->
 
 #### Build your own image
 
