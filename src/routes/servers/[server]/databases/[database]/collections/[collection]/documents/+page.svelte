@@ -275,7 +275,8 @@
 		{/snippet}
 	</Panel>
 {:then resultsData}
-	{@const items = resultsData.data}
+	<!-- Sometimes resultsData is undefined when navigating to indexes page -->
+	{@const items = resultsData?.data ?? []}
 	{#await data.count}
 		<Panel
 			title={items.length > 0
@@ -296,30 +297,33 @@
 			{/snippet}
 		</Panel>
 	{:then countData}
-		{@const count = countData.data}
-		{@const hasNext = countData.error ? items.length >= data.params.limit : data.params.skip + items.length < count}
-		{@const hasPrevious = data.params.skip > 0}
-		{@const isTimeout = countData.error?.includes("operation exceeded time limit")}
-		<Panel
-			title={items.length > 0
-				? count > 0
-					? `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} of ${formatNumber(count)} Documents`
-					: `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} Documents (count ${isTimeout ? "timeout" : "unavailable"})`
-				: "No documents"}
-		>
-			{#snippet actions()}
-				{#if hasPrevious}
-					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-					<a href={resolve(previousUrl as any)} onclick={navigatePrevious} class="btn btn-default btn-sm -my-2">
-						Previous
-					</a>
-				{/if}
-				{#if hasNext}
-					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-					<a href={resolve(nextUrl as any)} onclick={navigateNext} class="btn btn-default btn-sm -my-2">Next</a>
-				{/if}
-			{/snippet}
-		</Panel>
+		<!-- Sometimes data.params can be undefined when switching to indexes page-->
+		{#if data.params}
+			{@const count = countData.data}
+			{@const hasNext = countData.error ? items.length >= data.params.limit : data.params.skip + items.length < count}
+			{@const hasPrevious = data.params.skip > 0}
+			{@const isTimeout = countData.error?.includes("operation exceeded time limit")}
+			<Panel
+				title={items.length > 0
+					? count > 0
+						? `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} of ${formatNumber(count)} Documents`
+						: `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} Documents (count ${isTimeout ? "timeout" : "unavailable"})`
+					: "No documents"}
+			>
+				{#snippet actions()}
+					{#if hasPrevious}
+						<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
+						<a href={resolve(previousUrl as any)} onclick={navigatePrevious} class="btn btn-default btn-sm -my-2">
+							Previous
+						</a>
+					{/if}
+					{#if hasNext}
+						<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
+						<a href={resolve(nextUrl as any)} onclick={navigateNext} class="btn btn-default btn-sm -my-2">Next</a>
+					{/if}
+				{/snippet}
+			</Panel>
+		{/if}
 	{/await}
 
 	{#each items as item, index (item._id?.$value || index)}
