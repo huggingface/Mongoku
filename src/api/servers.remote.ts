@@ -4,6 +4,7 @@ import JsonEncoder from "$lib/server/JsonEncoder";
 import { getMongo } from "$lib/server/mongo";
 import { isEmptyObject } from "$lib/utils/isEmptyObject";
 import { parseJSON } from "$lib/utils/jsonParser";
+import { logger } from "$lib/utils/logger";
 import { error } from "@sveltejs/kit";
 import { ObjectId, type Document } from "mongodb";
 import { z } from "zod";
@@ -21,6 +22,7 @@ export const addServer = command(
 		url: z.string(),
 	}),
 	async ({ url }) => {
+		logger.log("addServer called with payload:", { url });
 		const mongo = await getMongo();
 		await mongo.addServer(url);
 		return { ok: true };
@@ -29,6 +31,7 @@ export const addServer = command(
 
 // Remove a server
 export const removeServer = command(z.string(), async (serverName) => {
+	logger.log("removeServer called with payload:", { serverName });
 	const mongo = await getMongo();
 	await mongo.removeServer(serverName);
 	return { ok: true };
@@ -46,6 +49,7 @@ export const updateDocument = command(
 		upsert: z.boolean().optional().default(false),
 	}),
 	async ({ server, database, collection, document, value, partial, upsert }) => {
+		logger.log("updateDocument called with payload:", { server, database, collection, document, partial, upsert });
 		checkReadOnly();
 
 		const mongo = await getMongo();
@@ -96,6 +100,7 @@ export const insertDocument = command(
 		value: z.unknown(),
 	}),
 	async ({ server, database, collection, document, value }) => {
+		logger.log("insertDocument called with payload:", { server, database, collection, document });
 		checkReadOnly();
 
 		const mongo = await getMongo();
@@ -130,6 +135,7 @@ export const deleteDocument = command(
 		document: z.string(),
 	}),
 	async ({ server, database, collection, document }) => {
+		logger.log("deleteDocument called with payload:", { server, database, collection, document });
 		checkReadOnly();
 
 		const mongo = await getMongo();
@@ -162,6 +168,7 @@ export const updateMany = command(
 		update: z.string(),
 	}),
 	async ({ server, database, collection, filter, update }) => {
+		logger.log("updateMany called with payload:", { server, database, collection, filter, update });
 		checkReadOnly();
 
 		const mongo = await getMongo();
@@ -190,6 +197,7 @@ export const hideIndex = command(
 		index: z.string(),
 	}),
 	async ({ server, database, collection, index }) => {
+		logger.log("hideIndex called with payload:", { server, database, collection, index });
 		checkReadOnly();
 
 		const mongo = await getMongo();
@@ -218,6 +226,7 @@ export const unhideIndex = command(
 		index: z.string(),
 	}),
 	async ({ server, database, collection, index }) => {
+		logger.log("unhideIndex called with payload:", { server, database, collection, index });
 		checkReadOnly();
 
 		const mongo = await getMongo();
@@ -246,6 +255,7 @@ export const dropIndex = command(
 		index: z.string(),
 	}),
 	async ({ server, database, collection, index }) => {
+		logger.log("dropIndex called with payload:", { server, database, collection, index });
 		checkReadOnly();
 
 		const mongo = await getMongo();
@@ -270,6 +280,7 @@ export const dropCollection = command(
 		collection: z.string(),
 	}),
 	async ({ server, database, collection }) => {
+		logger.log("dropCollection called with payload:", { server, database, collection });
 		checkReadOnly();
 
 		const mongo = await getMongo();
@@ -286,6 +297,7 @@ export const dropCollection = command(
 
 // Retry connection to a server
 export const retryConnection = command(z.string(), async (serverName) => {
+	logger.log("retryConnection called with payload:", { serverName });
 	const mongo = await getMongo();
 
 	// Reconnect the client (closes old connection and creates a new one)
@@ -368,7 +380,7 @@ export const loadDocuments = query(
 					isAggregation: true,
 				};
 			} catch (err) {
-				console.error("Error executing aggregation:", err);
+				logger.error("Error executing aggregation:", err);
 				error(500, `Failed to execute aggregation: ${err instanceof Error ? err.message : String(err)}`);
 			}
 		}
@@ -390,7 +402,7 @@ export const loadDocuments = query(
 				isAggregation: false,
 			};
 		} catch (err) {
-			console.error("Error fetching query results:", err);
+			logger.error("Error fetching query results:", err);
 			error(500, `Failed to fetch query results: ${err instanceof Error ? err.message : String(err)}`);
 		}
 	},
@@ -431,7 +443,7 @@ export const fetchMappedDocument = query(
 					};
 				}
 			} catch (err) {
-				console.error(`Error fetching mapped document from ${mapping.collection}.${mapping.on}:`, err);
+				logger.error(`Error fetching mapped document from ${mapping.collection}.${mapping.on}:`, err);
 				// Continue to next mapping on error
 				continue;
 			}

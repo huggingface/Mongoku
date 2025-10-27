@@ -4,6 +4,7 @@ import { getMongo } from "$lib/server/mongo";
 import { type MongoDocument } from "$lib/types";
 import { isEmptyObject } from "$lib/utils/isEmptyObject";
 import { parseJSON } from "$lib/utils/jsonParser";
+import { logger } from "$lib/utils/logger";
 import type { Document } from "mongodb";
 import type { PageServerLoad } from "./$types";
 
@@ -117,7 +118,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 				error: null as string | null,
 			}))
 			.catch((err) => {
-				console.error("Error executing aggregation:", err);
+				logger.error("Error executing aggregation:", err);
 				return {
 					data: [] as MongoDocument[],
 					error: `Failed to execute aggregation: ${err instanceof Error ? err.message : String(err)}`,
@@ -133,7 +134,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 				error: null,
 			}))
 			.catch((err) => {
-				console.error("Error counting documents:", err);
+				logger.error("Error counting documents:", err);
 				return {
 					data: 0,
 					error: `Failed to count documents: ${err instanceof Error ? err.message : String(err)}`,
@@ -167,7 +168,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 			error: null as string | null,
 		}))
 		.catch((err) => {
-			console.error("Error fetching query results:", err);
+			logger.error("Error fetching query results:", err);
 			return {
 				data: [] as MongoDocument[],
 				error: `Failed to fetch query results: ${err instanceof Error ? err.message : String(err)}`,
@@ -191,7 +192,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 				};
 			}
 		} catch (err) {
-			console.error("Error counting documents:", err);
+			logger.error("Error counting documents:", err);
 			return {
 				data: 0,
 				error: `Failed to count documents: ${err instanceof Error ? err.message : String(err)}`,

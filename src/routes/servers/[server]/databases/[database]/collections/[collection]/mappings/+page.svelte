@@ -4,6 +4,7 @@
 	import Panel from "$lib/components/Panel.svelte";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import type { MappingTarget } from "$lib/types";
+	import { logger } from "$lib/utils/logger";
 	import type { PageData } from "./$types";
 	let { data }: { data: PageData } = $props();
 	// Convert mappings to an editable array format
@@ -153,7 +154,7 @@ Please analyze the codebase and database, then generate the appropriate mappings
 			});
 			notificationStore.notifySuccess("Mappings saved successfully");
 		} catch (error) {
-			console.error("Error saving mappings:", error);
+			logger.error("Error saving mappings:", error);
 			notificationStore.notifyError(error, "Failed to save mappings");
 		}
 	}

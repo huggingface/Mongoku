@@ -1,4 +1,5 @@
 import type { CollectionJSON, CollectionMappings, Mappings } from "$lib/types";
+import { logger } from "$lib/utils/logger";
 import { MongoClient, type Collection } from "mongodb";
 import { URL } from "url";
 import { HostsManager } from "./HostsManager";
@@ -148,7 +149,7 @@ class MongoConnections {
 					this.clientIds.set(hostname, host._id);
 				}
 			} catch (err) {
-				console.error(`Failed to parse URL for host ${host.path}:`, err);
+				logger.error(`Failed to parse URL for host ${host.path}:`, err);
 			}
 		}
 	}
@@ -201,7 +202,7 @@ class MongoConnections {
 				this.clientIds.set(hostname, id);
 			}
 		} catch (err) {
-			console.error(`Failed to parse URL for host ${hostPath}:`, err);
+			logger.error(`Failed to parse URL for host ${hostPath}:`, err);
 			throw err;
 		}
 	}
@@ -212,7 +213,7 @@ class MongoConnections {
 		this.clients
 			.get(name)
 			?.close()
-			.catch((err) => console.error(`Error closing client ${name}:`, err));
+			.catch((err) => logger.error(`Error closing client ${name}:`, err));
 		this.clients.delete(name);
 		this.clientIds.delete(name);
 	}
@@ -228,7 +229,7 @@ class MongoConnections {
 		// Close the old client
 		const oldClient = this.clients.get(name);
 		if (oldClient) {
-			oldClient.close()?.catch((err) => console.error(`Error closing old client ${name}:`, err));
+			oldClient.close()?.catch((err) => logger.error(`Error closing old client ${name}:`, err));
 		}
 
 		// Create a new client

@@ -1,5 +1,6 @@
 import { getMongo } from "$lib/server/mongo";
 import type { DatabaseStats } from "$lib/types";
+import { logger } from "$lib/utils/logger";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async () => {
@@ -18,7 +19,7 @@ export const load: PageServerLoad = async () => {
 						const db = client.db(d.name);
 						const dbStats: Pick<DatabaseStats, "collections"> = await (db.stats() as Promise<DatabaseStats>).catch(
 							() => {
-								console.error(`Error getting stats for database ${d.name} on server ${name}`);
+								logger.error(`Error getting stats for database ${d.name} on server ${name}`);
 								return {
 									collections: 0,
 								};
@@ -37,7 +38,7 @@ export const load: PageServerLoad = async () => {
 					size: results.totalSize ?? 0,
 				};
 			} catch (err) {
-				console.error(`Error getting details for server ${name}:`, err);
+				logger.error(`Error getting details for server ${name}:`, err);
 				return {
 					error: {
 						code: err instanceof Error && "code" in err ? err.code : undefined,
@@ -47,7 +48,7 @@ export const load: PageServerLoad = async () => {
 				};
 			}
 		})().catch((err) => {
-			console.error(`Error getting details for server ${name}:`, err);
+			logger.error(`Error getting details for server ${name}:`, err);
 			return {
 				error: {
 					code: err instanceof Error && "code" in err ? err.code : undefined,

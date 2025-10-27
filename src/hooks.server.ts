@@ -1,3 +1,4 @@
+import { logger } from "$lib/utils/logger";
 import type { Handle, HandleServerError } from "@sveltejs/kit";
 import { MongoError } from "mongodb";
 
@@ -26,7 +27,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 export const handleError: HandleServerError = ({ error }) => {
 	// Log the error server-side
-	console.error(error);
+	logger.error(error);
 
 	// Handle MongoDB errors specifically
 	if (error instanceof MongoError) {

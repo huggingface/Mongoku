@@ -1,5 +1,6 @@
 import JsonEncoder from "$lib/server/JsonEncoder";
 import { getMongo } from "$lib/server/mongo";
+import { logger } from "$lib/utils/logger";
 import type { IndexDescription } from "mongodb";
 import type { PageServerLoad } from "./$types";
 
@@ -31,7 +32,7 @@ export const load: PageServerLoad = async ({ params, depends }) => {
 					{} as Record<string, { ops: number; since: Date }>,
 				);
 			} catch (err) {
-				console.error("Error fetching index stats:", err);
+				logger.error("Error fetching index stats:", err);
 				// Continue without stats if unavailable
 			}
 
@@ -56,7 +57,7 @@ export const load: PageServerLoad = async ({ params, depends }) => {
 					indexSizes = collStatsResult.storageStats.indexSizes;
 				}
 			} catch (err) {
-				console.error("Error fetching index sizes:", err);
+				logger.error("Error fetching index sizes:", err);
 				// Continue without sizes if unavailable
 			}
 
@@ -73,7 +74,7 @@ export const load: PageServerLoad = async ({ params, depends }) => {
 				error: null as string | null,
 			};
 		} catch (err) {
-			console.error("Error fetching indexes:", err);
+			logger.error("Error fetching indexes:", err);
 			return {
 				data: [],
 				error: `Failed to fetch indexes: ${err instanceof Error ? err.message : String(err)}`,

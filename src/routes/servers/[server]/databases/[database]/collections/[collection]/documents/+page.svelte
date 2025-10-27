@@ -14,6 +14,7 @@
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import type { MongoDocument, SearchParams } from "$lib/types";
 	import { formatNumber } from "$lib/utils/filters";
+	import { logger } from "$lib/utils/logger";
 	import { SvelteURLSearchParams } from "svelte/reactivity";
 	import type { PageData } from "./$types";
 
@@ -103,7 +104,7 @@
 				modifiedItems = items;
 			}
 		} catch (error) {
-			console.log(error);
+			logger.log(error);
 			notificationStore.notifyError(error, "Failed to update document");
 		}
 	}
@@ -195,7 +196,7 @@
 				editMode = false;
 			}
 		} catch (error) {
-			console.error(error);
+			logger.error(error);
 			notificationStore.notifyError(error, "Failed to update documents");
 		} finally {
 			isUpdating = false;
