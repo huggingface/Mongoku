@@ -99,6 +99,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Update Docker Hub description
+        uses: peter-evans/dockerhub-description@v5
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          repository: huggingface/mongoku
+          readme-filepath: ./README.md
+
       # - name: Create GitHub Release
       #   uses: actions/create-release@v1
       #   env:

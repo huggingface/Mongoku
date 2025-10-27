@@ -37,6 +37,17 @@ mongoku --readonly
 mongoku stop
 ```
 
+### Using the Docker HUB image
+
+```bash
+docker run -d --name mongoku -p 3100:3100 huggingface/mongoku
+
+# Run with customized default hosts
+docker run -d --name mongoku -p 3100:3100 \
+  --env MONGOKU_DEFAULT_HOST="mongodb://user:password@myhost.com:8888" \
+  huggingface/mongoku
+```
+
 ## Local Development
 
 ### Prerequisites
@@ -61,17 +72,6 @@ You can use `pnpm lint` and `pnpm format` to format the code.
 You can use `npx simple-git-hooks` to set up git hooks
 
 ### Docker
-
-#### Using the Docker HUB image
-
-```bash
-docker run -d --name mongoku -p 3100:3100 huggingface/mongoku
-
-# Run with customized default hosts
-docker run -d --name mongoku -p 3100:3100 \
-  --env MONGOKU_DEFAULT_HOST="mongodb://user:password@myhost.com:8888" \
-  huggingface/mongoku
-```
 
 #### Build your own image
 
