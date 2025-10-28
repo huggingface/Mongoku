@@ -71,7 +71,7 @@ function buildObject(node: Node | Expression): unknown {
 
 		case "NewExpression":
 		case "CallExpression": {
-			const authorizedCalls = ["ObjectId", "Date", "RegExp"];
+			const authorizedCalls = ["ObjectId", "Date", "RegExp", "BinData"];
 			const callee = node.callee.type === "Identifier" ? node.callee.name : null;
 			if (callee && authorizedCalls.includes(callee)) {
 				if (callee === "RegExp") {
@@ -82,6 +82,16 @@ function buildObject(node: Node | Expression): unknown {
 							$pattern: pattern,
 							$flags: flags,
 						},
+					};
+				}
+
+				if (callee === "BinData") {
+					// BinData(subType, base64String)
+					const [subType, base64] = node.arguments.map((arg) => buildObject(arg));
+					return {
+						$type: "Binary",
+						$value: base64,
+						$subType: subType,
 					};
 				}
 

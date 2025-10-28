@@ -108,6 +108,8 @@
 						return "date";
 					case "RegExp":
 						return "regexp";
+					case "Binary":
+						return "binary";
 					default:
 						return "object";
 				}
@@ -234,6 +236,12 @@
 			<span class="call function">Date("<span class="string">{value.$value}</span>")</span>
 		{:else if valueType === "regexp"}
 			<span class="value regexp">/{value.$value.$pattern}/{value.$value.$flags}</span>
+		{:else if valueType === "binary"}
+			<span class="call function"
+				>BinData(<span class="number">{value.$subType}</span>, "<span class="string"
+					>{value.$value.length > 40 ? value.$value.substring(0, 40) + "..." : value.$value}</span
+				>")</span
+			>
 		{:else if valueType === "array"}
 			{#if isEmpty}
 				<span class="value array">[]</span>

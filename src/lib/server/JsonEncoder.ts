@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb";
+import { Binary, ObjectId } from "mongodb";
 
 export default class JsonEncoder {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -25,6 +25,13 @@ export default class JsonEncoder {
 				},
 			};
 		}
+		if (obj instanceof Binary) {
+			return {
+				$type: "Binary",
+				$value: Buffer.from(obj.buffer).toString("base64"),
+				$subType: obj.sub_type,
+			};
+		}
 		if (Array.isArray(obj)) {
 			return [...obj.map(JsonEncoder.encode)];
 		}
@@ -47,6 +54,9 @@ export default class JsonEncoder {
 		}
 		if (obj && obj.$type === "RegExp") {
 			return new RegExp(obj.$value.$pattern, obj.$value.$flags);
+		}
+		if (obj && obj.$type === "Binary") {
+			return new Binary(Buffer.from(obj.$value, "base64"), obj.$subType);
 		}
 		if (Array.isArray(obj)) {
 			return [...obj.map(JsonEncoder.decode)];
