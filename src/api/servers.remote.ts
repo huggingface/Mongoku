@@ -1,10 +1,10 @@
 import { command, query } from "$app/server";
 import { validateAggregationPipeline } from "$lib/server/aggregation";
 import JsonEncoder from "$lib/server/JsonEncoder";
+import { logger } from "$lib/server/logger";
 import { getMongo } from "$lib/server/mongo";
 import { isEmptyObject } from "$lib/utils/isEmptyObject";
 import { parseJSON } from "$lib/utils/jsonParser";
-import { logger } from "$lib/utils/logger";
 import { error } from "@sveltejs/kit";
 import { ObjectId, type Document } from "mongodb";
 import { z } from "zod";
@@ -16,13 +16,28 @@ function checkReadOnly() {
 	}
 }
 
+// Sanitize MongoDB connection string by removing credentials
+function sanitizeMongoUrl(url: string): string {
+	try {
+		const urlObj = new URL(url.startsWith("mongodb") ? url : `mongodb://${url}`);
+		if (urlObj.username || urlObj.password) {
+			urlObj.username = "***";
+			urlObj.password = "***";
+		}
+		return urlObj.toString();
+	} catch {
+		// If URL parsing fails, just mask the whole thing
+		return "***";
+	}
+}
+
 // Add a new server
 export const addServer = command(
 	z.object({
 		url: z.string(),
 	}),
 	async ({ url }) => {
-		logger.log("addServer called with payload:", { url });
+		logger.log("addServer called with payload:", { url: sanitizeMongoUrl(url) });
 		const mongo = await getMongo();
 		await mongo.addServer(url);
 		return { ok: true };

@@ -1,5 +1,5 @@
+import { logger } from "$lib/server/logger";
 import type { CollectionJSON, CollectionMappings, Mappings } from "$lib/types";
-import { logger } from "$lib/utils/logger";
 import { MongoClient, type Collection } from "mongodb";
 import { URL } from "url";
 import { HostsManager } from "./HostsManager";

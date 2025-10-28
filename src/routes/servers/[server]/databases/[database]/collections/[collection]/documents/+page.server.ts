@@ -1,10 +1,10 @@
 import { validateAggregationPipeline } from "$lib/server/aggregation";
 import JsonEncoder from "$lib/server/JsonEncoder";
+import { logger } from "$lib/server/logger";
 import { getMongo } from "$lib/server/mongo";
 import { type MongoDocument } from "$lib/types";
 import { isEmptyObject } from "$lib/utils/isEmptyObject";
 import { parseJSON } from "$lib/utils/jsonParser";
-import { logger } from "$lib/utils/logger";
 import type { Document } from "mongodb";
 import type { PageServerLoad } from "./$types";
 

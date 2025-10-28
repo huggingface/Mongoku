@@ -123,6 +123,12 @@ MONGOKU_READ_ONLY_MODE=true
 # Enable basic auth
 MONGOKU_AUTH_BASIC=user:password
 
+# Enable structured logging (JSON output)
+MONGOKU_STRUCTURED_LOG=true
+
+# Additional headers to log in structured logging (comma-delimited)
+MONGOKU_LOG_HEADERS=x-amzn-oidc-identity,x-forwarded-for,x-custom-header
+
 # Other reverse-proxy vars
 MONGOKU_SERVER_HOST=127.0.0.1
 MONGOKU_SERVER_PROTOCOL_HEADER=x-forwarded-proto

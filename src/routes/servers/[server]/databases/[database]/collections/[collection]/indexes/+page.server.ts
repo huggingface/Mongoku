@@ -1,6 +1,6 @@
 import JsonEncoder from "$lib/server/JsonEncoder";
+import { logger } from "$lib/server/logger";
 import { getMongo } from "$lib/server/mongo";
-import { logger } from "$lib/utils/logger";
 import type { IndexDescription } from "mongodb";
 import type { PageServerLoad } from "./$types";
 

@@ -1,6 +1,6 @@
+import { logger } from "$lib/server/logger";
 import { getMongo } from "$lib/server/mongo";
 import type { DatabaseStats } from "$lib/types";
-import { logger } from "$lib/utils/logger";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async () => {

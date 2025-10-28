@@ -1,4 +1,5 @@
-import { logger } from "$lib/utils/logger";
+import { contextStore } from "$lib/server/contextStore";
+import { logger } from "$lib/server/logger";
 import type { Handle, HandleServerError } from "@sveltejs/kit";
 import { MongoError } from "mongodb";
 
@@ -7,22 +8,30 @@ Error.stackTraceLimit = 100;
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const authBasic = process.env.MONGOKU_AUTH_BASIC;
-	if (authBasic) {
-		const [username, password] = authBasic.split(":");
-		const basicAuth = event.request.headers.get("Authorization");
-		if (
-			!basicAuth?.toLowerCase().startsWith("basic ") ||
-			basicAuth.slice("basic ".length) !== Buffer.from(`${username}:${password}`).toString("base64")
-		) {
-			return new Response("Unauthorized", {
-				status: 401,
-				headers: {
-					"WWW-Authenticate": "Basic",
-				},
-			});
+	event.locals.requestId = event.request.headers.get("X-Request-ID") || crypto.randomUUID();
+
+	event.setHeaders({
+		"X-Request-ID": event.locals.requestId,
+	});
+
+	return contextStore.run(event, () => {
+		if (authBasic) {
+			const [username, password] = authBasic.split(":");
+			const basicAuth = event.request.headers.get("Authorization");
+			if (
+				!basicAuth?.toLowerCase().startsWith("basic ") ||
+				basicAuth.slice("basic ".length) !== Buffer.from(`${username}:${password}`).toString("base64")
+			) {
+				return new Response("Unauthorized", {
+					status: 401,
+					headers: {
+						"WWW-Authenticate": "Basic",
+					},
+				});
+			}
 		}
-	}
-	return resolve(event);
+		return resolve(event);
+	});
 };
 
 export const handleError: HandleServerError = ({ error }) => {

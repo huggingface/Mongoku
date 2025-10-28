@@ -6,7 +6,9 @@ declare global {
 			message: string;
 			code?: number | string;
 		}
-		// interface Locals {}
+		interface Locals {
+			requestId: string;
+		}
 		// interface PageData {}
 		// interface PageState {}
 		// interface Platform {}
