@@ -14,7 +14,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 		"X-Request-ID": event.locals.requestId,
 	});
 
-	return contextStore.run(event, () => {
+	return contextStore.run(event, async () => {
+		const startTime = performance.now();
+
 		if (authBasic) {
 			const [username, password] = authBasic.split(":");
 			const basicAuth = event.request.headers.get("Authorization");
@@ -22,15 +24,26 @@ export const handle: Handle = async ({ event, resolve }) => {
 				!basicAuth?.toLowerCase().startsWith("basic ") ||
 				basicAuth.slice("basic ".length) !== Buffer.from(`${username}:${password}`).toString("base64")
 			) {
-				return new Response("Unauthorized", {
+				const response = new Response("Unauthorized", {
 					status: 401,
 					headers: {
 						"WWW-Authenticate": "Basic",
 					},
 				});
+
+				// Log unauthorized request
+				logger.logRequest(401, performance.now() - startTime);
+
+				return response;
 			}
 		}
-		return resolve(event);
+
+		const response = await resolve(event);
+
+		// Log successful request
+		logger.logRequest(response.status, performance.now() - startTime);
+
+		return response;
 	});
 };
 

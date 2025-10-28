@@ -124,6 +124,8 @@ MONGOKU_READ_ONLY_MODE=true
 MONGOKU_AUTH_BASIC=user:password
 
 # Enable structured logging (JSON output)
+# When enabled, all logs are output as JSON with timestamp, level, and request context
+# HTTP requests are logged in both modes (simple text format when false, JSON when true)
 MONGOKU_STRUCTURED_LOG=true
 
 # Additional headers to log in structured logging (comma-delimited)

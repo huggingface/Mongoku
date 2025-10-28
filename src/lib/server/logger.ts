@@ -144,6 +144,40 @@ class Logger {
 	debug(...args: unknown[]): void {
 		this._log("debug", args);
 	}
+
+	/**
+	 * Log an HTTP request
+	 */
+	logRequest(statusCode: number, durationMs: number): void {
+		const duration = Math.round(durationMs * 100) / 100; // Round to 2 decimal places
+
+		if (this.structuredLogging) {
+			const logEntry = {
+				level: "info" as LogLevel,
+				time: new Date().toISOString(),
+				type: "request",
+				statusCode,
+				duration,
+				...this.getRequestContext(),
+			};
+
+			console.log(JSON.stringify(logEntry));
+		} else {
+			// Simple console log for non-structured mode
+			const event = contextStore.getStore();
+			if (event) {
+				const url = new URL(event.request.url);
+				const urlPath = url.pathname + url.search;
+				const method = event.request.method;
+				const message = `${statusCode} ${method} ${urlPath} ${duration}ms`;
+				if (statusCode >= 400) {
+					console.error(message);
+				} else {
+					console.log(message);
+				}
+			}
+		}
+	}
 }
 
 // Export a singleton instance
