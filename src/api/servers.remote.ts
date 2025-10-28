@@ -156,11 +156,13 @@ export const deleteDocument = command(
 		const mongo = await getMongo();
 		const client = mongo.getClient(server);
 
+		const _id = /^[0-9a-fA-F]{24}$/.test(document) ? new ObjectId(document) : document;
+
 		await client
 			.db(database)
 			.collection(collection)
 			.deleteOne({
-				_id: new ObjectId(document),
+				_id: _id as unknown as ObjectId,
 			});
 
 		if (collection === "mongoku.mappings") {
