@@ -17,7 +17,11 @@
 	class="rounded-2xl border border-[var(--border-color)] bg-[var(--light-background)]/70 backdrop-blur-md shadow-sm {className}"
 >
 	{#if title}
-		<div class="px-4 sm:px-6 py-3 flex justify-between items-center border-b border-[var(--border-color)]">
+		<div
+			class="px-4 sm:px-6 py-3 flex justify-between items-center {children
+				? 'border-b border-[var(--border-color)]'
+				: ''}"
+		>
 			<div class="text-sm font-medium" style="color: var(--text);">
 				{#if typeof title === "string"}
 					<span>{title}</span>
