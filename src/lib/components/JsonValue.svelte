@@ -52,12 +52,19 @@
 	let fetchedCollection = $state<string | null>(null);
 	let isFetching = $state(false);
 	let fetchError = $state<string | null>(null);
+	let hideTooltipTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	// Check if current key has a mapping
 	const currentKeyPath = $derived([keyPath, key].filter(Boolean).join("."));
 
 	async function handleMouseEnter() {
 		if (!hasMappings || !fetchMappedDocument) return;
+
+		// Clear any pending hide timeout
+		if (hideTooltipTimeout) {
+			clearTimeout(hideTooltipTimeout);
+			hideTooltipTimeout = null;
+		}
 
 		showTooltip = true;
 
@@ -85,6 +92,23 @@
 	}
 
 	function handleMouseLeave() {
+		// Delay hiding to allow moving mouse to tooltip
+		hideTooltipTimeout = setTimeout(() => {
+			showTooltip = false;
+			hideTooltipTimeout = null;
+		}, 100);
+	}
+
+	function handleTooltipMouseEnter() {
+		// Cancel hiding when mouse enters tooltip
+		if (hideTooltipTimeout) {
+			clearTimeout(hideTooltipTimeout);
+			hideTooltipTimeout = null;
+		}
+	}
+
+	function handleTooltipMouseLeave() {
+		// Hide tooltip when mouse leaves tooltip content
 		showTooltip = false;
 	}
 
@@ -295,7 +319,12 @@
 		{/if}
 	{/snippet}
 	{#if hasMappings}
-		<Tooltip show={showTooltip} tooltipClass="max-w-[600px] max-h-[400px] overflow-auto whitespace-pre-wrap">
+		<Tooltip
+			show={showTooltip}
+			tooltipClass="max-w-[600px] max-h-[400px] overflow-auto whitespace-pre-wrap"
+			onTooltipMouseEnter={handleTooltipMouseEnter}
+			onTooltipMouseLeave={handleTooltipMouseLeave}
+		>
 			{#snippet trigger()}
 				<span
 					class="string mapped"

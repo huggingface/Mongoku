@@ -11,9 +11,13 @@
 		show?: boolean;
 		/** Additional class for the tooltip container */
 		tooltipClass?: string;
+		/** Callback when mouse enters the tooltip content */
+		onTooltipMouseEnter?: () => void;
+		/** Callback when mouse leaves the tooltip content */
+		onTooltipMouseLeave?: () => void;
 	}
 
-	let { trigger, content, show = false, tooltipClass = "" }: Props = $props();
+	let { trigger, content, show = false, tooltipClass = "", onTooltipMouseEnter, onTooltipMouseLeave }: Props = $props();
 
 	let tooltipElement = $state<HTMLDivElement>();
 	let containerElement = $state<HTMLDivElement>();
@@ -75,12 +79,15 @@
 {#if show}
 	<div
 		use:portal
+		role="tooltip"
 		class="fixed bg-[var(--light-background)] border border-[var(--border-color)] rounded-2xl z-[1000] shadow-xl backdrop-blur-md {tooltipClass}"
 		bind:this={tooltipElement}
 		style:left={tooltipPosition.left}
 		style:right={tooltipPosition.right}
 		style:top={tooltipPosition.top}
 		style="color: var(--text);"
+		onmouseenter={onTooltipMouseEnter}
+		onmouseleave={onTooltipMouseLeave}
 	>
 		{@render content()}
 	</div>
