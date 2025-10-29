@@ -142,7 +142,7 @@
 						<th class="shrink-column">Usage</th>
 						<th style="min-width: 300px">Details</th>
 						{#if !readOnly}
-							<th style="width: 120px">Actions</th>
+							<th style="width: 150px">Actions</th>
 						{/if}
 					</tr>
 				</thead>
