@@ -1,138 +1,142 @@
 @import "tailwindcss";
-@import "@fontsource/cuprum";
-@import "@fontsource/rajdhani";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Dark mode (default) */
-:root[data-theme="dark"] {
-	--color-1: hsl(216, 26%, 15%);
-	--color-1-5: hsl(218, 25%, 18%);
-	--light-background: hsl(220, 23%, 21%);
-	--color-3: hsl(217, 20%, 25%);
-	--color-4: hsl(220, 20%, 30%);
-
-	--background-color: var(--color-1);
-	--border-color: var(--color-3);
-
-	--text: hsl(0, 0%, 88%);
-	--text-inverse: hsl(0, 0%, 12%);
-	--text-darker: hsl(0, 0%, 57%);
-	--text-lighter: hsl(0, 0%, 100%);
-	--text-secondary: hsl(0, 0%, 60%);
-	--link: hsl(211, 100%, 89%);
-
-	--error: hsl(0, 78%, 28%);
-
-	--button-danger: #a31515;
-	--button-danger-l: #a54c4c;
-	--button-success: #008000;
-	--button-success-l: #4e994e;
-	--button-light: hsl(0, 0%, 88%);
-	--button-light-hover: hsl(0, 0%, 100%);
-
-	--code-namespace: #9cdcfe;
-	--code-boolean: #569cd6;
-	--code-null: #569cd6;
-	--code-numbers: #b5cea8;
-	--code-string: #ce9178;
-	--code-links: #4e94ce;
-	--code-summary: #6a9955;
-	--code-regexp: #ce696b;
-	--code-function: #dcdcaa;
-
-	--border: 1px solid var(--color-3);
-}
-
-/* Light mode */
+/* Light mode (Apple-style) */
 :root[data-theme="light"] {
-	--color-1: hsl(0, 0%, 98%);
-	--color-1-5: hsl(0, 0%, 96%);
-	--light-background: hsl(0, 0%, 94%);
-	--color-3: hsl(0, 0%, 88%);
-	--color-4: hsl(0, 0%, 80%);
+	--color-1: #f5f5f7;
+	--color-1-5: #ffffff;
+	--light-background: #ffffff;
+	--color-3: #f0f0f2;
+	--color-4: #e5e5e7;
 
 	--background-color: var(--color-1);
-	--border-color: var(--color-3);
+	--border-color: var(--color-4);
 
-	--text: hsl(0, 0%, 12%);
-	--text-inverse: hsl(0, 0%, 88%);
-	--text-darker: hsl(0, 0%, 43%);
-	--text-lighter: hsl(0, 0%, 0%);
-	--text-secondary: hsl(0, 0%, 40%);
-	--link: hsl(211, 100%, 35%);
+	--text: #1d1d1f;
+	--text-inverse: #ffffff;
+	--text-darker: #6e6e73;
+	--text-lighter: #000000;
+	--text-secondary: #86868b;
+	--link: #007aff;
 
-	--error: hsl(0, 78%, 50%);
+	--error: #ff3b30;
 
-	--button-danger: #d13438;
-	--button-danger-l: #e57373;
-	--button-success: #2e7d32;
-	--button-success-l: #66bb6a;
-	--button-light: hsl(0, 0%, 25%);
-	--button-light-hover: hsl(0, 0%, 15%);
+	--button-danger: #ff3b30;
+	--button-danger-l: #ff6961;
+	--button-success: #34c759;
+	--button-success-l: #5dd879;
+	--button-light: #1d1d1f;
+	--button-light-hover: #000000;
 
 	--code-namespace: #0070c1;
-	--code-boolean: #0000ff;
-	--code-null: #0000ff;
+	--code-boolean: #007aff;
+	--code-null: #007aff;
 	--code-numbers: #098658;
-	--code-string: #a31515;
+	--code-string: #d73a49;
 	--code-links: #0451a5;
-	--code-summary: #008000;
+	--code-summary: #22863a;
 	--code-regexp: #d16969;
-	--code-function: #795e26;
+	--code-function: #6f42c1;
 
-	--border: 1px solid var(--color-3);
+	--border: 1px solid var(--color-4);
 }
 
-/* Fallback for initial load before script runs */
-:root:not([data-theme]) {
-	--color-1: hsl(216, 26%, 15%);
-	--color-1-5: hsl(218, 25%, 18%);
-	--light-background: hsl(220, 23%, 21%);
-	--color-3: hsl(217, 20%, 25%);
-	--color-4: hsl(220, 20%, 30%);
+/* Dark mode (Apple-style) */
+:root[data-theme="dark"] {
+	--color-1: #1c1c1e;
+	--color-1-5: #2c2c2e;
+	--light-background: #2c2c2e;
+	--color-3: #3a3a3c;
+	--color-4: #48484a;
 
 	--background-color: var(--color-1);
 	--border-color: var(--color-3);
 
-	--text: hsl(0, 0%, 88%);
-	--text-inverse: hsl(0, 0%, 12%);
-	--text-darker: hsl(0, 0%, 57%);
-	--text-lighter: hsl(0, 0%, 100%);
-	--text-secondary: hsl(0, 0%, 60%);
-	--link: hsl(211, 100%, 89%);
+	--text: #f5f5f7;
+	--text-inverse: #1c1c1e;
+	--text-darker: #98989d;
+	--text-lighter: #ffffff;
+	--text-secondary: #8e8e93;
+	--link: #0a84ff;
 
-	--error: hsl(0, 78%, 28%);
+	--error: #ff453a;
 
-	--button-danger: #a31515;
-	--button-danger-l: #a54c4c;
-	--button-success: #008000;
-	--button-success-l: #4e994e;
-	--button-light: hsl(0, 0%, 88%);
-	--button-light-hover: hsl(0, 0%, 100%);
+	--button-danger: #ff453a;
+	--button-danger-l: #ff6961;
+	--button-success: #32d74b;
+	--button-success-l: #5dd879;
+	--button-light: #f5f5f7;
+	--button-light-hover: #ffffff;
 
 	--code-namespace: #9cdcfe;
-	--code-boolean: #569cd6;
-	--code-null: #569cd6;
-	--code-numbers: #b5cea8;
-	--code-string: #ce9178;
-	--code-links: #4e94ce;
-	--code-summary: #6a9955;
-	--code-regexp: #ce696b;
+	--code-boolean: #0a84ff;
+	--code-null: #0a84ff;
+	--code-numbers: #a5d6a7;
+	--code-string: #ff8a65;
+	--code-links: #4fc3f7;
+	--code-summary: #81c784;
+	--code-regexp: #ef9a9a;
 	--code-function: #dcdcaa;
 
 	--border: 1px solid var(--color-3);
+}
+
+/* Fallback for initial load before script runs (default to light) */
+:root:not([data-theme]) {
+	--color-1: #f5f5f7;
+	--color-1-5: #ffffff;
+	--light-background: #ffffff;
+	--color-3: #f0f0f2;
+	--color-4: #e5e5e7;
+
+	--background-color: var(--color-1);
+	--border-color: var(--color-4);
+
+	--text: #1d1d1f;
+	--text-inverse: #ffffff;
+	--text-darker: #6e6e73;
+	--text-lighter: #000000;
+	--text-secondary: #86868b;
+	--link: #007aff;
+
+	--error: #ff3b30;
+
+	--button-danger: #ff3b30;
+	--button-danger-l: #ff6961;
+	--button-success: #34c759;
+	--button-success-l: #5dd879;
+	--button-light: #1d1d1f;
+	--button-light-hover: #000000;
+
+	--code-namespace: #0070c1;
+	--code-boolean: #007aff;
+	--code-null: #007aff;
+	--code-numbers: #098658;
+	--code-string: #d73a49;
+	--code-links: #0451a5;
+	--code-summary: #22863a;
+	--code-regexp: #d16969;
+	--code-function: #6f42c1;
+
+	--border: 1px solid var(--color-4);
 }
 
 @layer base {
+	html {
+		height: 100%;
+	}
+
 	body {
 		background-color: var(--background-color);
-		font-family: "Rajdhani", sans-serif;
+		font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Inter", system-ui, sans-serif;
 		color: var(--text);
 		min-height: 100vh;
 		tab-size: 2;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
 	}
 
 	a:hover {
@@ -142,10 +146,13 @@
 	input[type="text"],
 	input[type="number"],
 	textarea {
-		@apply rounded-md px-2 py-1.5 text-sm;
-		background-color: var(--color-1);
+		@apply rounded-2xl px-4 py-3 text-sm;
+		background-color: var(--color-3);
 		color: var(--text);
 		border: 1px solid var(--color-4);
+		transition:
+			border-color 0.2s,
+			background-color 0.2s;
 	}
 
 	input[type="text"]:focus,
@@ -153,6 +160,12 @@
 	textarea:focus {
 		outline: none;
 		border-color: var(--link);
+		background-color: var(--light-background);
+	}
+
+	::selection {
+		background-color: rgba(0, 122, 255, 0.2);
+		color: var(--text);
 	}
 }
 
@@ -169,74 +182,73 @@
 
 @layer components {
 	.btn {
-		@apply px-4 py-2 rounded-md cursor-pointer font-medium transition-all duration-200 border;
+		@apply px-4 py-2 rounded-xl cursor-pointer font-semibold transition-all duration-200 border;
+		font-size: 14px;
 	}
 
 	.btn-sm {
-		@apply px-2 py-1.5 text-sm;
+		@apply px-3 py-2 text-sm;
 	}
 
 	.btn-default {
-		background-color: var(--color-1);
+		background-color: var(--light-background);
 		color: var(--text);
 		border-color: var(--color-4);
 	}
 
-	.btn-default:hover {
-		background-color: var(--color-3);
+	.btn-default:hover:not(:disabled) {
+		background-color: var(--color-1-5);
+		filter: brightness(0.98);
 	}
 
 	.btn-danger {
-		background-color: var(--button-danger-l);
-		color: var(--text-lighter);
-		border-color: var(--button-danger);
+		background-color: var(--button-danger);
+		color: white;
+		border-color: transparent;
 	}
 
-	.btn-danger:hover {
-		background-color: var(--button-danger);
+	.btn-danger:hover:not(:disabled) {
+		filter: brightness(1.1);
 	}
 
 	.btn-success {
-		background-color: var(--button-success-l);
-		color: var(--text-lighter);
-		border-color: var(--button-success);
+		background-color: var(--button-success);
+		color: white;
+		border-color: transparent;
 	}
 
-	.btn-success:hover {
-		background-color: var(--button-success);
+	.btn-success:hover:not(:disabled) {
+		filter: brightness(1.05);
 	}
 
 	.btn-outline-danger {
 		background: transparent;
 		color: var(--button-danger);
-		border-color: var(--button-danger);
+		border-color: rgba(255, 59, 48, 0.3);
 	}
 
-	.btn-outline-danger:hover {
-		background-color: var(--button-danger-l);
-		color: var(--text-lighter);
+	.btn-outline-danger:hover:not(:disabled) {
+		background-color: rgba(255, 59, 48, 0.1);
 	}
 
 	.btn-outline-success {
 		background: transparent;
 		color: var(--button-success);
-		border-color: var(--button-success);
+		border-color: rgba(52, 199, 89, 0.3);
 	}
 
-	.btn-outline-success:hover {
-		background-color: var(--button-success-l);
-		color: var(--text-lighter);
+	.btn-outline-success:hover:not(:disabled) {
+		background-color: rgba(52, 199, 89, 0.1);
 	}
 
 	.btn-outline-light {
 		background: transparent;
-		color: var(--button-light);
-		border-color: var(--button-light);
+		color: var(--text);
+		border-color: var(--color-4);
 	}
 
-	.btn-outline-light:hover {
-		background-color: var(--color-4);
-		color: var(--button-light-hover);
+	.btn-outline-light:hover:not(:disabled) {
+		background-color: var(--color-3);
 	}
 
 	.btn:disabled {
@@ -261,8 +273,8 @@
 	}
 
 	.table th {
-		font-weight: 500;
-		color: var(--text-lighter);
+		font-weight: 600;
+		color: var(--text);
 	}
 
 	.table tbody tr:hover {
@@ -271,15 +283,18 @@
 
 	.badge {
 		display: inline-block;
-		padding: 4px 8px;
-		border-radius: 3px;
+		padding: 4px 10px;
+		border-radius: 8px;
 		font-size: 12px;
 		margin-right: 8px;
+		border: 1px solid var(--color-4);
+		background-color: var(--light-background);
 	}
 
 	.badge-danger {
 		background-color: var(--button-danger);
-		color: var(--text-lighter);
+		color: white;
+		border-color: transparent;
 	}
 
 	.modal-overlay {
@@ -288,7 +303,8 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
-		background-color: rgba(0, 0, 0, 0.5);
+		background-color: rgba(0, 0, 0, 0.4);
+		backdrop-filter: blur(4px);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -297,19 +313,20 @@
 
 	.modal {
 		background-color: var(--light-background);
-		border: 1px solid var(--color-3);
-		border-radius: 4px;
+		border: 1px solid var(--color-4);
+		border-radius: 1.25rem;
 		max-width: 500px;
 		width: 90%;
+		box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
 	}
 
 	.modal-body {
-		padding: 20px;
+		padding: 24px;
 	}
 
 	.modal-footer {
-		border-top: 1px solid var(--color-3);
-		padding: 15px 20px;
+		border-top: 1px solid var(--color-4);
+		padding: 16px 24px;
 		display: flex;
 		justify-content: flex-end;
 		gap: 10px;

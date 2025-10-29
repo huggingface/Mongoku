@@ -207,47 +207,65 @@
 
 {#if editMode}
 	<Panel title="Update Multiple Documents">
-		<div class="p-4 space-y-4">
+		<div class="p-4 sm:p-6 space-y-4">
 			<div>
-				<label for="update-filter" class="block text-sm font-medium mb-2">Filter (which documents to update):</label>
+				<label for="update-filter" class="block text-sm font-semibold mb-2" style="color: var(--text);">
+					Filter (which documents to update):
+				</label>
 				<input
 					type="text"
 					id="update-filter"
 					value={params.query || "{}"}
 					readonly
-					class="w-full p-2 border border-[var(--color-4)] bg-[var(--light-background)] rounded font-mono text-sm opacity-75 cursor-not-allowed"
+					class="w-full p-3 rounded-xl border border-[var(--border-color)] bg-[var(--color-3)] font-mono text-sm opacity-75 cursor-not-allowed"
+					style="color: var(--text);"
 				/>
-				<p class="text-xs text-[var(--text-secondary,#888)] mt-1">
+				<p class="text-xs mt-2" style="color: var(--text-secondary);">
 					This filter is taken from the query above. Modify the query to change which documents will be updated.
 				</p>
 			</div>
 			<div>
-				<label for="update-operation" class="block text-sm font-medium mb-2"
-					>Update Operation (e.g., $set, $inc, $unset):</label
-				>
+				<label for="update-operation" class="block text-sm font-semibold mb-2" style="color: var(--text);">
+					Update Operation (e.g., $set, $inc, $unset):
+				</label>
 				<textarea
 					bind:value={updateQuery}
 					placeholder="Update operation"
 					rows="4"
 					use:jsonTextarea={{ onsubmit: executeUpdateMany }}
-					class="w-full p-2 border border-[var(--color-4)] bg-[var(--color-3)] rounded font-mono text-sm"
+					class="w-full p-3 rounded-xl border border-[var(--border-color)] bg-[var(--color-3)] font-mono text-sm focus:outline-none focus:ring-2"
+					style="color: var(--text); --tw-ring-color: var(--link);"
 				></textarea>
 			</div>
-			<div class="flex gap-2">
+			<div class="flex gap-3">
 				<button class="btn btn-success" disabled={isUpdating} onclick={executeUpdateMany}>
 					{isUpdating ? "Updating..." : "Execute Update"}
 				</button>
 				<button class="btn btn-default" onclick={() => (editMode = false)}>Cancel</button>
 			</div>
-			<div class="text-sm text-[var(--text-secondary,#888)]">
-				<p class="mb-1"><strong>Examples:</strong></p>
-				<p class="mb-1">
-					• Set a field: <code class="bg-[var(--color-3)] px-1 rounded">{'{"$set": {"status": "active"}}'}</code>
+			<div
+				class="text-sm rounded-xl bg-[var(--color-3)]/50 p-4 border border-[var(--border-color)]"
+				style="color: var(--text-secondary);"
+			>
+				<p class="mb-2 font-semibold" style="color: var(--text);">Examples:</p>
+				<p class="mb-2">
+					• Set a field: <code
+						class="bg-[var(--light-background)] px-2 py-1 rounded border border-[var(--border-color)] font-mono text-xs"
+						>{'{"$set": {"status": "active"}}'}</code
+					>
 				</p>
-				<p class="mb-1">
-					• Increment a value: <code class="bg-[var(--color-3)] px-1 rounded">{'{"$inc": {"count": 1}}'}</code>
+				<p class="mb-2">
+					• Increment a value: <code
+						class="bg-[var(--light-background)] px-2 py-1 rounded border border-[var(--border-color)] font-mono text-xs"
+						>{'{"$inc": {"count": 1}}'}</code
+					>
 				</p>
-				<p>• Unset a field: <code class="bg-[var(--color-3)] px-1 rounded">{'{"$unset": {"oldField": ""}}'}</code></p>
+				<p>
+					• Unset a field: <code
+						class="bg-[var(--light-background)] px-2 py-1 rounded border border-[var(--border-color)] font-mono text-xs"
+						>{'{"$unset": {"oldField": ""}}'}</code
+					>
+				</p>
 			</div>
 		</div>
 	</Panel>

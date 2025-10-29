@@ -15,26 +15,43 @@
 </svelte:head>
 
 <div style="min-height: 100vh">
-	<nav class="navbar px-6 py-4 flex items-center">
-		<a href={resolve("/")} class="text-2xl font-medium">Mongoku</a>
-		<Breadcrumbs />
-		<div class="ml-auto flex items-center gap-2">
-			<PageSwitcher class="" />
-			<ThemeSwitcher />
+	<!-- App bar -->
+	<header
+		class="sticky top-0 z-50 border-b border-[var(--border-color)] bg-[var(--background-color)]/80 backdrop-blur-md"
+	>
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="h-16 flex items-center gap-4">
+				<!-- Logo -->
+				<a href={resolve("/")} class="inline-flex items-center gap-2 group no-underline hover:no-underline">
+					<span
+						class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-black dark:bg-white text-white dark:text-black text-sm font-semibold select-none"
+					>
+						M
+					</span>
+					<span class="text-xl font-semibold tracking-tight" style="color: var(--text);">Mongoku</span>
+				</a>
+
+				<div class="hidden md:block w-px h-6 bg-[var(--border-color)]"></div>
+
+				<!-- Breadcrumbs -->
+				<Breadcrumbs />
+
+				<div class="ml-auto flex items-center gap-2">
+					<!-- View tabs -->
+					<PageSwitcher class="" />
+					<ThemeSwitcher />
+				</div>
+			</div>
 		</div>
-	</nav>
+	</header>
 
 	<OriginWarning serverOrigin={data.serverOrigin} readOnly={data.readOnly} />
 
-	<div class="px-6 py-6 flex flex-col gap-6">
+	<!-- Main -->
+	<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
 		<Notifications />
-		{@render children()}
-	</div>
+		<div class="flex flex-col gap-6">
+			{@render children()}
+		</div>
+	</main>
 </div>
-
-<style lang="postcss">
-	.navbar {
-		background-color: var(--light-background);
-		border-bottom: var(--border);
-	}
-</style>

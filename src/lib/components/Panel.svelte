@@ -11,14 +11,18 @@
 	let { children, title, actions, class: className }: Props = $props();
 </script>
 
-<div class="panel rounded-md {className}">
+<div
+	class="rounded-2xl border border-[var(--border-color)] bg-[var(--light-background)]/70 backdrop-blur-md shadow-sm {className}"
+>
 	{#if title}
-		<div class="px-4 py-2 flex justify-between items-center text-lg uppercase font-medium">
-			{#if typeof title === "string"}
-				<span>{title}</span>
-			{:else}
-				{@render title()}
-			{/if}
+		<div class="px-4 sm:px-6 py-3 flex justify-between items-center border-b border-[var(--border-color)]">
+			<div class="text-sm font-medium" style="color: var(--text);">
+				{#if typeof title === "string"}
+					<span>{title}</span>
+				{:else}
+					{@render title()}
+				{/if}
+			</div>
 			{#if actions}
 				<div class="flex gap-2 items-center">
 					{@render actions()}
@@ -28,10 +32,3 @@
 	{/if}
 	{@render children?.()}
 </div>
-
-<style lang="postcss">
-	.panel {
-		background-color: var(--light-background);
-		border: var(--border);
-	}
-</style>

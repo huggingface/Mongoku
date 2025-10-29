@@ -1,21 +1,33 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="h-full">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="color-scheme" content="light dark" />
 		<script>
-			// Immediately set theme to prevent flash
+			// Set initial theme early to avoid flash
 			(function () {
-				const theme = localStorage.getItem("theme") || "dark";
-				let actualTheme;
+				try {
+					const stored = localStorage.getItem("theme");
+					const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+					const theme = stored || "system";
+					let actualTheme;
 
-				if (theme === "system") {
-					actualTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-				} else {
-					actualTheme = theme;
-				}
+					if (theme === "system") {
+						actualTheme = prefersDark ? "dark" : "light";
+					} else {
+						actualTheme = theme;
+					}
 
-				document.documentElement.setAttribute("data-theme", actualTheme);
+					document.documentElement.setAttribute("data-theme", actualTheme);
+
+					// Also add/remove dark class for Tailwind
+					if (actualTheme === "dark") {
+						document.documentElement.classList.add("dark");
+					} else {
+						document.documentElement.classList.remove("dark");
+					}
+				} catch (e) {}
 			})();
 		</script>
 		%sveltekit.head%
