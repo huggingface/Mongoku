@@ -103,7 +103,7 @@ jobs:
         uses: peter-evans/dockerhub-description@v5
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          password: ${{ secrets.DOCKERHUB_MONGOKU_PASSWORD }}
           repository: huggingface/mongoku
           readme-filepath: ./README.md
 
