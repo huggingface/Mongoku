@@ -51,9 +51,21 @@
 				root.classList.remove("dark");
 			}
 		}
+
+		// Set theme mode for CSS-based rendering
+		root.setAttribute("data-theme-mode", theme);
 	}
 
 	const oppositeTheme = $derived(systemTheme === "dark" ? "light" : "dark");
+
+	function toggleTheme() {
+		if (currentTheme === "system") {
+			setTheme(oppositeTheme);
+		} else {
+			// Toggle between light and dark
+			setTheme(currentTheme === "light" ? "dark" : "light");
+		}
+	}
 </script>
 
 {#snippet sunIcon()}
@@ -101,38 +113,36 @@
 {/snippet}
 
 <div
-	class="inline-flex rounded-xl border border-[var(--border-color)] bg-[var(--light-background)] overflow-hidden text-sm font-medium"
+	class="theme-switcher inline-flex rounded-xl border border-[var(--border-color)] bg-[var(--light-background)] overflow-hidden text-sm font-medium"
 	style="color: var(--text);"
 >
 	<!-- Left side -->
 	<button
-		onclick={() => {
-			if (currentTheme === "system") {
-				setTheme(oppositeTheme);
-			} else {
-				// Toggle between light and dark
-				setTheme(currentTheme === "light" ? "dark" : "light");
-			}
-		}}
+		onclick={toggleTheme}
 		class="inline-flex items-center gap-2 px-3 py-2 hover:bg-[var(--color-3)] transition cursor-pointer"
-		class:opacity-100={currentTheme !== "system"}
-		class:opacity-60={currentTheme === "system"}
-		title={currentTheme === "system" ? `Switch to ${oppositeTheme} mode` : `Toggle theme (current: ${currentTheme})`}
-		aria-label={currentTheme === "system"
-			? `Switch to ${oppositeTheme} mode`
-			: `Toggle theme (current: ${currentTheme})`}
+		aria-label="Toggle theme"
 	>
-		{#if currentTheme === "light"}
+		<!-- Light mode selected -->
+		<span class="theme-content theme-light inline-flex items-center gap-2">
 			{@render sunIcon()}
 			<span class="hidden sm:inline" style="color: var(--text-secondary);">Light</span>
-		{:else if currentTheme === "dark"}
+		</span>
+
+		<!-- Dark mode selected -->
+		<span class="theme-content theme-dark inline-flex items-center gap-2">
 			{@render moonIcon()}
 			<span class="hidden sm:inline" style="color: var(--text-secondary);">Dark</span>
-		{:else if oppositeTheme === "light"}
+		</span>
+
+		<!-- System mode + light actual theme -->
+		<span class="theme-content theme-system-light inline-flex items-center gap-2">
 			{@render sunIcon()}
-		{:else}
+		</span>
+
+		<!-- System mode + dark actual theme -->
+		<span class="theme-content theme-system-dark inline-flex items-center gap-2">
 			{@render moonIcon()}
-		{/if}
+		</span>
 	</button>
 
 	<!-- Divider -->
@@ -142,14 +152,70 @@
 	<button
 		onclick={() => setTheme("system")}
 		class="inline-flex items-center gap-2 px-3 py-2 hover:bg-[var(--color-3)] transition cursor-pointer"
-		class:opacity-100={currentTheme === "system"}
-		class:opacity-60={currentTheme !== "system"}
-		title={currentTheme === "system" ? "Current theme: System" : "Switch to system theme"}
-		aria-label={currentTheme === "system" ? "Current theme: System" : "Switch to system theme"}
+		aria-label="Switch to system theme"
 	>
 		{@render systemIcon()}
-		{#if currentTheme === "system"}
-			<span class="hidden sm:inline" style="color: var(--text-secondary);">System</span>
-		{/if}
+		<span class="theme-text-system hidden sm:inline" style="color: var(--text-secondary);"> System </span>
 	</button>
 </div>
+
+<style>
+	/* Hide all theme content by default */
+	.theme-content {
+		display: none;
+	}
+
+	/* Show light mode when selected */
+	:global(html[data-theme-mode="light"]) .theme-light {
+		display: inline-flex;
+		opacity: 1;
+	}
+
+	/* Show dark mode when selected */
+	:global(html[data-theme-mode="dark"]) .theme-dark {
+		display: inline-flex;
+		opacity: 1;
+	}
+
+	/* Show system mode icons based on actual theme */
+	:global(html[data-theme-mode="system"][data-theme="light"]) .theme-system-light {
+		display: inline-flex;
+		opacity: 0.6;
+	}
+
+	:global(html[data-theme-mode="system"][data-theme="dark"]) .theme-system-dark {
+		display: inline-flex;
+		opacity: 0.6;
+	}
+
+	/* Show System text only when system mode is selected */
+	.theme-text-system {
+		display: none;
+	}
+
+	:global(html[data-theme-mode="system"]) .theme-text-system {
+		display: inline;
+	}
+
+	/* Opacity for left button when not system mode */
+	:global(html[data-theme-mode="light"]) .theme-switcher button:first-child,
+	:global(html[data-theme-mode="dark"]) .theme-switcher button:first-child {
+		opacity: 1;
+	}
+
+	/* Opacity for left button when system mode */
+	:global(html[data-theme-mode="system"]) .theme-switcher button:first-child {
+		opacity: 0.6;
+	}
+
+	/* Opacity for right button when system mode */
+	:global(html[data-theme-mode="system"]) .theme-switcher button:last-child {
+		opacity: 1;
+	}
+
+	/* Opacity for right button when not system mode */
+	:global(html[data-theme-mode="light"]) .theme-switcher button:last-child,
+	:global(html[data-theme-mode="dark"]) .theme-switcher button:last-child {
+		opacity: 0.6;
+	}
+</style>
