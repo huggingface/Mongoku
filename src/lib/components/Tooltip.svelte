@@ -21,9 +21,6 @@
 		left: "",
 		right: "",
 		top: "",
-		bottom: "",
-		marginTop: "",
-		marginBottom: "",
 	});
 
 	$effect(() => {
@@ -31,6 +28,7 @@
 			tick().then(() => {
 				if (!containerElement || !tooltipElement) return;
 
+				const containerRect = containerElement.getBoundingClientRect();
 				const tooltipRect = tooltipElement.getBoundingClientRect();
 				const viewportWidth = window.innerWidth;
 				const viewportHeight = window.innerHeight;
@@ -40,25 +38,29 @@
 					left: "",
 					right: "",
 					top: "",
-					bottom: "",
-					marginTop: "",
-					marginBottom: "",
 				};
 
 				// Position horizontally
-				if (tooltipRect.right > viewportWidth) {
-					tooltipPosition.right = "0";
+				const wouldOverflowRight = containerRect.left + tooltipRect.width > viewportWidth;
+				if (wouldOverflowRight) {
+					// Align to the right edge of the container
+					tooltipPosition.right = `${viewportWidth - containerRect.right}px`;
 				} else {
-					tooltipPosition.left = "0";
+					// Align to the left edge of the container
+					tooltipPosition.left = `${containerRect.left}px`;
 				}
 
-				// Position vertically
-				if (tooltipRect.bottom > viewportHeight) {
-					tooltipPosition.bottom = "100%";
-					tooltipPosition.marginBottom = "5px";
+				// Position vertically - prefer below, but show above if no room
+				const spaceBelow = viewportHeight - containerRect.bottom;
+				const spaceAbove = containerRect.top;
+				const MARGIN = 5;
+
+				if (spaceBelow >= tooltipRect.height + MARGIN || spaceBelow > spaceAbove) {
+					// Show below
+					tooltipPosition.top = `${containerRect.bottom + MARGIN}px`;
 				} else {
-					tooltipPosition.top = "100%";
-					tooltipPosition.marginTop = "5px";
+					// Show above
+					tooltipPosition.top = `${containerRect.top - tooltipRect.height - MARGIN}px`;
 				}
 			});
 		}
@@ -68,14 +70,11 @@
 <div class="relative inline-block" bind:this={containerElement}>
 	{@render trigger()}{#if show}
 		<div
-			class="absolute bg-[var(--light-background)] border border-[var(--color-3)] rounded z-[1000] shadow-lg {tooltipClass}"
+			class="fixed bg-[var(--light-background)] border border-[var(--color-3)] rounded z-[1000] shadow-lg {tooltipClass}"
 			bind:this={tooltipElement}
 			style:left={tooltipPosition.left}
 			style:right={tooltipPosition.right}
 			style:top={tooltipPosition.top}
-			style:bottom={tooltipPosition.bottom}
-			style:margin-top={tooltipPosition.marginTop}
-			style:margin-bottom={tooltipPosition.marginBottom}
 		>
 			{@render content()}
 		</div>
