@@ -250,7 +250,7 @@
 				{@const timestamp = getTimestampFromObjectId(json._id.$value)}
 				{#if timestamp}
 					<p class="text-xs" style="color: var(--text-secondary);">
-						Last modified: {timestamp.toLocaleDateString()} · {timestamp.toLocaleTimeString()}
+						Created on {timestamp.toLocaleDateString()} · {timestamp.toLocaleTimeString()}
 					</p>
 				{/if}
 			{/if}

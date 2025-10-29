@@ -105,7 +105,7 @@
 			<div class="flex items-center gap-2">
 				<button
 					type="button"
-					class="px-4 py-3 rounded-2xl border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] text-xl font-semibold leading-none transition"
+					class="px-4 py-3 rounded-2xl border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] text-xl font-semibold leading-none transition cursor-pointer"
 					style="color: var(--text);"
 					title="Toggle optional fields"
 					onclick={() => {
@@ -117,7 +117,7 @@
 				{#if !readonly}
 					<button
 						type="button"
-						class="px-4 py-3 rounded-2xl border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] transition disabled:opacity-50"
+						class="px-4 py-3 rounded-2xl border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] transition disabled:opacity-50 cursor-pointer"
 						style="color: var(--text);"
 						title={isAggregation ? "Update not available in aggregation mode" : "Update multiple documents"}
 						disabled={isAggregation}
@@ -143,7 +143,7 @@
 				{/if}
 				<button
 					type="submit"
-					class="px-6 py-3 rounded-2xl bg-[var(--button-success)] text-white font-semibold hover:brightness-105 active:brightness-95 transition"
+					class="px-6 py-3 rounded-2xl bg-[var(--button-success)] text-white font-semibold hover:brightness-105 active:brightness-95 transition cursor-pointer"
 				>
 					Go
 				</button>
