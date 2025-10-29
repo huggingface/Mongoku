@@ -72,11 +72,8 @@
 	});
 </script>
 
-<div class="relative inline-block" bind:this={containerElement}>
-	{@render trigger()}
-</div>
-
-{#if show}
+<!-- The formatting is intentional to avoid adding extra spaces around the trigger -->
+<div class="relative inline-block" bind:this={containerElement}>{@render trigger()}</div>{#if show}
 	<div
 		use:portal
 		role="tooltip"

@@ -1,1 +1,3 @@
 pnpm-lock.yaml
+# To avoid adding extra spaces
+src/lib/components/Tooltip.svelte
