@@ -171,7 +171,7 @@
 								{/if}
 							{/await}
 						</td>
-						<td style="width: 200px">
+						<td style="width: 250px">
 							<div class="flex gap-2 justify-end">
 								{#await server.details then details}
 									{#if "error" in details && details.error}
