@@ -159,11 +159,15 @@ Please analyze the codebase and database, then generate the appropriate mappings
 	}
 </script>
 
-<Panel title="Mappings for {data.collection}">
+<Panel title="Mappings for {data.collection}" titleClass="py-2">
 	{#snippet actions()}
-		<button class="btn btn-outline-light btn-sm -my-2" onclick={() => (showAiPrompt = true)}> 🤖 AI Helper </button>
+		<button class="btn btn-outline-light btn-sm -my-2 hover:bg-[var(--color-3)]" onclick={() => (showAiPrompt = true)}>
+			🤖 AI Helper
+		</button>
 		{#if !data.readOnly}
-			<button class="btn btn-success btn-sm -my-2" onclick={saveMappings}>Save</button>
+			<button class="btn btn-success btn-sm -my-2 hover:bg-[var(--button-success-l)]" onclick={saveMappings}
+				>Save</button
+			>
 		{/if}
 	{/snippet}
 
@@ -225,7 +229,10 @@ Please analyze the codebase and database, then generate the appropriate mappings
 								</label>
 							</div>
 							{#if !data.readOnly}
-								<button class="btn btn-outline-danger btn-sm mt-6" onclick={() => removeMapping(entryIndex)}>
+								<button
+									class="btn btn-outline-danger btn-sm mt-6 hover:bg-[rgba(255,59,48,0.1)]"
+									onclick={() => removeMapping(entryIndex)}
+								>
 									Remove Mapping
 								</button>
 							{/if}
@@ -263,7 +270,7 @@ Please analyze the codebase and database, then generate the appropriate mappings
 									</div>
 									{#if !data.readOnly}
 										<button
-											class="btn btn-outline-danger btn-sm mt-5"
+											class="btn btn-outline-danger btn-sm mt-5 hover:bg-[rgba(255,59,48,0.1)]"
 											onclick={() => removeTarget(entry, targetIndex)}
 											disabled={entry.targets.length === 1}
 										>
@@ -275,7 +282,10 @@ Please analyze the codebase and database, then generate the appropriate mappings
 						</div>
 
 						{#if !data.readOnly}
-							<button class="btn btn-outline-light btn-sm mt-2 ml-4" onclick={() => addTarget(entry)}>
+							<button
+								class="btn btn-outline-light btn-sm mt-2 ml-4 hover:bg-[var(--color-3)]"
+								onclick={() => addTarget(entry)}
+							>
 								+ Add Alternative Target
 							</button>
 						{/if}
@@ -289,7 +299,9 @@ Please analyze the codebase and database, then generate the appropriate mappings
 		{#if !data.readOnly}
 			<div class="mt-4">
 				{#if !isAdding}
-					<button class="btn btn-success" onclick={() => (isAdding = true)}>+ Add New Mapping</button>
+					<button class="btn btn-success hover:bg-[var(--button-success-l)]" onclick={() => (isAdding = true)}
+						>+ Add New Mapping</button
+					>
 				{:else}
 					<div class="border border-[var(--border-color)] rounded p-4 bg-[var(--light-background)]">
 						<h3 class="text-lg font-medium mb-3">New Mapping</h3>
@@ -325,8 +337,8 @@ Please analyze the codebase and database, then generate the appropriate mappings
 								/>
 							</label>
 							<div class="flex gap-2">
-								<button class="btn btn-success" onclick={addNewMapping}>Add</button>
-								<button class="btn btn-default" onclick={cancelAdd}>Cancel</button>
+								<button class="btn btn-success hover:bg-[var(--button-success-l)]" onclick={addNewMapping}>Add</button>
+								<button class="btn btn-default hover:bg-[var(--color-3)]" onclick={cancelAdd}>Cancel</button>
 							</div>
 						</div>
 					</div>
@@ -356,7 +368,9 @@ Please analyze the codebase and database, then generate the appropriate mappings
 		>
 			<div class="p-4 border-b border-[var(--border-color)] flex justify-between items-center">
 				<h2 class="text-xl font-semibold">AI Mapping Generator Prompt</h2>
-				<button class="btn btn-outline-light btn-sm" onclick={() => (showAiPrompt = false)}>Close</button>
+				<button class="btn btn-outline-light btn-sm hover:bg-[var(--color-3)]" onclick={() => (showAiPrompt = false)}
+					>Close</button
+				>
 			</div>
 
 			<div class="p-4 overflow-auto flex-1">
@@ -369,8 +383,8 @@ Please analyze the codebase and database, then generate the appropriate mappings
 			</div>
 
 			<div class="p-4 border-t border-[var(--border-color)] flex justify-end gap-2">
-				<button class="btn btn-default" onclick={() => (showAiPrompt = false)}>Close</button>
-				<button class="btn btn-primary" onclick={copyAiPrompt}>Copy to Clipboard</button>
+				<button class="btn btn-default hover:bg-[var(--color-3)]" onclick={() => (showAiPrompt = false)}>Close</button>
+				<button class="btn btn-primary hover:brightness-110" onclick={copyAiPrompt}>Copy to Clipboard</button>
 			</div>
 		</div>
 	</div>

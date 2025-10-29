@@ -58,7 +58,7 @@
 	});
 
 	$effect(() => {
-		data.count.then((result) => {
+		data.count?.then((result) => {
 			// Don't show notification for timeout errors - they're displayed in the UI
 			if (result.error && !result.error.includes("operation exceeded time limit")) {
 				notificationStore.notifyError(result.error);
@@ -262,10 +262,14 @@
 				></textarea>
 			</div>
 			<div class="flex gap-3">
-				<button class="btn btn-success" disabled={isUpdating} onclick={executeUpdateMany}>
+				<button
+					class="btn btn-success hover:bg-[var(--button-success-l)]"
+					disabled={isUpdating}
+					onclick={executeUpdateMany}
+				>
 					{isUpdating ? "Updating..." : "Execute Update"}
 				</button>
-				<button class="btn btn-default" onclick={() => (editMode = false)}>Cancel</button>
+				<button class="btn btn-default hover:bg-[var(--color-3)]" onclick={() => (editMode = false)}>Cancel</button>
 			</div>
 			<div
 				class="text-sm rounded-xl bg-[var(--color-3)]/50 p-4 border border-[var(--border-color)]"

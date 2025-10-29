@@ -221,6 +221,16 @@
 		filter: brightness(1.05);
 	}
 
+	.btn-primary {
+		background-color: var(--link);
+		color: white;
+		border-color: transparent;
+	}
+
+	.btn-primary:hover:not(:disabled) {
+		filter: brightness(1.1);
+	}
+
 	.btn-outline-danger {
 		background: transparent;
 		color: var(--button-danger);

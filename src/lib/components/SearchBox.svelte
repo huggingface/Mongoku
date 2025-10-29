@@ -141,7 +141,7 @@
 				{/if}
 				<button
 					type="submit"
-					class="h-9 px-4 rounded-xl bg-[var(--button-success)] text-white font-semibold hover:brightness-105 active:brightness-95 transition cursor-pointer"
+					class="h-9 px-4 rounded-xl bg-[var(--button-success)] text-white font-semibold transition cursor-pointer hover:bg-[var(--button-success-l)] active:brightness-95"
 				>
 					Go
 				</button>
