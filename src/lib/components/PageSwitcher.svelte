@@ -14,21 +14,25 @@
 </script>
 
 {#if categories.length}
-	<div class="flex {className}">
-		{#each categories as category, index (category.key)}
+	<div
+		class="hidden sm:flex rounded-lg border border-[var(--border-color)] overflow-hidden bg-[var(--light-background)] shadow-sm {className}"
+	>
+		{#each categories as category (category.key)}
 			{@const isActive = currentPath === category.key}
-			{@const sharedClasses = `btn btn-default btn-sm uppercase
-				${index === 0 ? "" : "rounded-l-none"}
-				${index === categories.length - 1 ? "" : "rounded-r-none"}
-				${index > 0 ? "-ml-px" : ""}
-				${isActive ? "opacity-100 cursor-default !bg-[var(--color-3)]" : ""}`}
 			{#if isActive}
-				<span class={sharedClasses}>
+				<span
+					class="px-3 py-1.5 text-[13px] font-medium bg-[var(--color-1)] shadow-[inset_0_-1px_0_rgba(0,0,0,0.06)] cursor-default"
+					style="color: var(--text);"
+				>
 					{category.label}
 				</span>
 			{:else}
-				<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-				<a href={resolve(category.href as any)} class={sharedClasses}>
+				<!-- eslint-disable @typescript-eslint/no-explicit-any -->
+				<a
+					href={resolve(category.href as any)}
+					class="px-3 py-1.5 text-[13px] hover:bg-[var(--color-3)] transition no-underline"
+					style="color: var(--text-secondary);"
+				>
 					{category.label}
 				</a>
 			{/if}

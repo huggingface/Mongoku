@@ -90,7 +90,9 @@
 	let editJson = $state("");
 	let removing = $state(false);
 	let contentContainerRef = $state<HTMLDivElement>();
-	let editorHeight = $state<string>("300px");
+	let textareaRef = $state<HTMLTextAreaElement>();
+	let panelRef = $state<HTMLDivElement>();
+	let lastSetHeight = $state<number>(0);
 
 	// Extract timestamp from ObjectId
 	function getTimestampFromObjectId(objectId: string): Date | null {
@@ -151,13 +153,6 @@
 
 	function enableEditor() {
 		editJson = serializeForEditing(json);
-
-		// Set editor height to match the full content container (including padding)
-		if (contentContainerRef) {
-			const height = contentContainerRef.offsetHeight;
-			editorHeight = `${Math.max(height, 300)}px`;
-		}
-
 		editorVisible = true;
 	}
 
@@ -168,9 +163,39 @@
 		}
 	});
 
+	// Watch for textarea resize and update panel height
+	$effect(() => {
+		if (!textareaRef || !panelRef || !editorVisible) return;
+
+		const resizeObserver = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				const newHeight = entry.borderBoxSize[0].blockSize;
+				// Only update if height changed and is different from what we last set
+				if (newHeight > 0 && Math.abs(newHeight - lastSetHeight) > 1) {
+					const totalHeight = newHeight; // Add padding for buttons
+					lastSetHeight = newHeight;
+					if (panelRef) {
+						panelRef.style.minHeight = `${totalHeight}px`;
+					}
+				}
+			}
+		});
+
+		resizeObserver.observe(textareaRef);
+
+		return () => {
+			resizeObserver.disconnect();
+		};
+	});
+
 	function disableEditor() {
 		editorVisible = false;
 		editJson = "";
+		lastSetHeight = 0;
+		// Reset panel min-height when editor closes
+		if (panelRef) {
+			panelRef.style.minHeight = "";
+		}
 	}
 
 	function save() {
@@ -209,20 +234,24 @@
 {#snippet title()}
 	{#if json._id}
 		{@const idValue = json._id.$value ?? json._id}
-		<div class="">
-			<a
-				type="button"
-				class="bg-transparent border-none text-[var(--text)] no-underline cursor-pointer text-xl font-inherit p-0 hover:underline normal-case"
-				href={resolve(
-					`/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(collection)}/documents/${idValue}`,
-				)}
-			>
-				{idValue}
-			</a>
+		<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 min-w-0 flex-1">
+			<h2 class="truncate">
+				<a
+					class="text-[15px] sm:text-base font-semibold hover:underline no-underline"
+					style="color: var(--text); text-decoration-color: var(--link);"
+					href={resolve(
+						`/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(collection)}/documents/${idValue}`,
+					)}
+				>
+					{idValue}
+				</a>
+			</h2>
 			{#if json._id.$value}
 				{@const timestamp = getTimestampFromObjectId(json._id.$value)}
 				{#if timestamp}
-					<span class="ml-2 text-md text-[var(--text-secondary,#888)]">{timestamp.toLocaleString()}</span>
+					<p class="text-xs" style="color: var(--text-secondary);">
+						Created on {timestamp.toLocaleDateString()} · {timestamp.toLocaleTimeString()}
+					</p>
 				{/if}
 			{/if}
 		</div>
@@ -230,44 +259,73 @@
 {/snippet}
 
 {#snippet actions()}
-	<div class="hidden group-hover:block">
-		<button class="btn btn-outline-light btn-sm ml-2 -my-2" onclick={copyToClipboard}>Copy</button>
+	<div class="hidden group-hover:flex items-center gap-2 -my-2">
+		<button
+			class="px-3 py-1 rounded-lg border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] text-[13px] transition cursor-pointer"
+			style="color: var(--text);"
+			onclick={copyToClipboard}
+		>
+			Copy
+		</button>
 		{#if onedit}
-			<button class="btn btn-outline-light btn-sm ml-2 -my-2" onclick={enableEditor}>Edit</button>
+			<button
+				class="px-3 py-1 rounded-lg border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] text-[13px] transition cursor-pointer"
+				style="color: var(--text);"
+				onclick={enableEditor}
+			>
+				Edit
+			</button>
 		{/if}
 		{#if onremove}
-			<button class="btn btn-outline-danger btn-sm ml-2 -my-2" onclick={showRemove}>Remove</button>
+			<button
+				class="px-3 py-1 rounded-lg border border-red-200 hover:bg-red-50 text-[13px] transition cursor-pointer"
+				style="color: var(--button-danger);"
+				onclick={showRemove}
+			>
+				Delete
+			</button>
 		{/if}
 	</div>
 {/snippet}
 
-<Panel class="group" title={json._id ? title : undefined} {actions}>
-	<div bind:this={contentContainerRef} class=" relative border-t border-[var(--border-color)]">
-		<div class="font-mono text-sm leading-tight whitespace-pre-wrap break-words p-4 overflow-x-auto">
+<Panel class="group relative" title={json._id ? title : undefined} {actions} bind:ref={panelRef}>
+	<div bind:this={contentContainerRef} class="relative p-4 sm:p-6">
+		<div class="font-mono text-[13px] sm:text-[14px] leading-relaxed whitespace-pre-wrap break-words overflow-x-auto">
 			<JsonValue value={json} {autoCollapse} collapsed={false} {isKeyMapped} {fetchMappedDocument} />
 		</div>
 
-		<div class="absolute h-full z-[100] w-full top-0 left-0" class:hidden={!editorVisible} class:block={editorVisible}>
-			<div class="absolute z-10 right-5 top-4">
-				<button class="btn btn-success ml-2" onclick={save}>Save</button>
-				<button class="btn btn-default ml-2" onclick={disableEditor}>Cancel</button>
-			</div>
-			<textarea
-				bind:value={editJson}
-				style="height: {editorHeight};"
-				use:jsonTextarea={{ onsubmit: save, onescape: disableEditor }}
-				class="w-full font-mono text-sm leading-relaxed p-2.5 bg-[var(--color-1)] text-[var(--text)] border border-[var(--border-color)] rounded resize-y"
-			></textarea>
-		</div>
-
 		{#if removing}
-			<div class="absolute z-10 top-0 left-0 w-full h-full rounded bg-[var(--text-inverse)] opacity-70">
-				<p class="text-[var(--text)] text-center mt-5 text-2xl">Are you sure?</p>
-				<div class="absolute w-full h-full top-0 flex justify-center items-center">
-					<button class="btn btn-danger m-5" onclick={confirmRemove}>Yes - Remove</button>
-					<button class="btn btn-success m-5" onclick={cancelRemove}>No - Cancel</button>
+			<div
+				class="absolute z-10 top-0 left-0 w-full h-full rounded-2xl backdrop-blur-sm flex items-center justify-center"
+				style="background-color: rgba(0, 0, 0, 0.4);"
+			>
+				<div
+					class="bg-[var(--light-background)] rounded-2xl p-6 shadow-xl border border-[var(--border-color)] max-w-sm mx-4"
+				>
+					<p class="text-lg font-semibold mb-4" style="color: var(--text);">Delete this document?</p>
+					<p class="text-sm mb-6" style="color: var(--text-secondary);">This action cannot be undone.</p>
+					<div class="flex gap-3">
+						<button class="btn btn-danger flex-1" onclick={confirmRemove}>Delete</button>
+						<button class="btn btn-default flex-1" onclick={cancelRemove}>Cancel</button>
+					</div>
 				</div>
 			</div>
 		{/if}
 	</div>
+
+	{#if editorVisible}
+		<div class="absolute inset-0 z-[100] bg-[var(--light-background)]">
+			<textarea
+				bind:this={textareaRef}
+				bind:value={editJson}
+				use:jsonTextarea={{ onsubmit: save, onescape: disableEditor }}
+				class="w-full h-full font-mono text-[13px] sm:text-[14px] leading-relaxed p-4 border-0 bg-[var(--color-3)] focus:outline-none focus:ring-0"
+				style="color: var(--text);"
+			></textarea>
+			<div class="absolute top-3 right-3 flex items-center gap-2">
+				<button class="btn btn-success" onclick={save}>Save</button>
+				<button class="btn btn-default" onclick={disableEditor}>Cancel</button>
+			</div>
+		</div>
+	{/if}
 </Panel>

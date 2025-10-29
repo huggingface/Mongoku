@@ -31,10 +31,10 @@
 		<div class="modal" onclick={(e) => e.stopPropagation()}>
 			{#if title}
 				<div class="modal-header">
-					<h3>{title}</h3>
+					<h3 style="color: var(--text);">{title}</h3>
 				</div>
 			{/if}
-			<div class="modal-body">
+			<div class="modal-body" style="color: var(--text);">
 				{@render children?.()}
 			</div>
 			{#if footer}
@@ -48,12 +48,12 @@
 
 <style lang="postcss">
 	.modal-header {
-		padding: 20px 20px 0;
+		padding: 24px 24px 0;
 	}
 
 	.modal-header h3 {
 		margin: 0;
-		font-size: 1.25rem;
-		font-weight: 500;
+		font-size: 1.375rem;
+		font-weight: 600;
 	}
 </style>

@@ -132,109 +132,111 @@
 		</Panel>
 	{:else}
 		<Panel title="Indexes">
-			<table class="table">
-				<thead>
-					<tr>
-						<th class="shrink-column">Name</th>
-						<th>Keys</th>
-						<th>Properties</th>
-						<th class="shrink-column">Size</th>
-						<th class="shrink-column">Usage</th>
-						<th style="min-width: 300px">Details</th>
-						{#if !readOnly}
-							<th style="width: 120px">Actions</th>
-						{/if}
-					</tr>
-				</thead>
-				<tbody>
-					{#each result.data as index (index.name)}
-						{@const isLoading = loadingIndexes.has(index.name)}
-						<tr class="group" class:opacity-50={isLoading}>
-							<td>
-								<span class="font-mono text-sm">{index.name}</span>
-							</td>
-							<td>
-								{#if index.key}
-									<div class="flex flex-wrap gap-2">
-										{#each Object.entries(index.key) as [field, direction], i (i)}
-											<span class="index-key">
-												{field}: {direction === 1 ? "↑" : direction === -1 ? "↓" : direction}
-											</span>
-										{/each}
-									</div>
-								{:else}
-									<span style="color: var(--text-darker)">-</span>
-								{/if}
-							</td>
-							<td>
-								<div class="flex flex-wrap gap-2">
-									{#if index.hidden}
-										<span class="badge badge-hidden">hidden</span>
-									{/if}
-									{#if index.unique}
-										<span class="badge badge-unique">unique</span>
-									{/if}
-									{#if index.sparse}
-										<span class="badge badge-sparse">sparse</span>
-									{/if}
-									{#if index.partialFilterExpression}
-										<span class="badge badge-partial">partial</span>
-									{/if}
-									{#if !index.hidden && !index.unique && !index.sparse && !index.partialFilterExpression}
-										<span style="color: var(--text-darker)">-</span>
-									{/if}
-								</div>
-							</td>
-							<td>
-								{#if index.size}
-									<span class="text-sm whitespace-nowrap">{formatBytes(index.size)}</span>
-								{:else}
-									<span style="color: var(--text-darker)">-</span>
-								{/if}
-							</td>
-							<td>
-								{#if index.stats}
-									<div class="text-sm mt-1">
-										<div>{index.stats.ops.toLocaleString()}</div>
-									</div>
-								{:else}
-									<span style="color: var(--text-darker)">-</span>
-								{/if}
-							</td>
-							<td>
-								<details class="cursor-pointer">
-									<summary class="details-link">View full</summary>
-									<div class="details-content">
-										<JsonValue value={omit(index, ["stats"])} collapsed={false} />
-									</div>
-								</details>
-							</td>
+			<div class="table-wrapper">
+				<table class="table">
+					<thead>
+						<tr>
+							<th class="name-column">Name</th>
+							<th>Keys</th>
+							<th>Properties</th>
+							<th class="shrink-column">Size</th>
+							<th class="shrink-column">Usage</th>
+							<th style="min-width: 300px">Details</th>
 							{#if !readOnly}
-								<td>
-									{#if index.name !== "_id_"}
-										<div class="flex gap-2 hidden group-hover:flex -my-2">
-											<button
-												class="btn btn-outline-light btn-sm"
-												onclick={() => toggleHidden(index.name, index.hidden)}
-												disabled={isLoading}
-											>
-												{index.hidden ? "Unhide" : "Hide"}
-											</button>
-											<button
-												class="btn btn-outline-danger btn-sm"
-												onclick={() => openDropModal(index.name)}
-												disabled={isLoading}
-											>
-												Drop
-											</button>
-										</div>
-									{/if}
-								</td>
+								<th style="width: 150px">Actions</th>
 							{/if}
 						</tr>
-					{/each}
-				</tbody>
-			</table>
+					</thead>
+					<tbody>
+						{#each result.data as index (index.name)}
+							{@const isLoading = loadingIndexes.has(index.name)}
+							<tr class="group" class:opacity-50={isLoading}>
+								<td class="name-cell">
+									<span class="font-mono text-sm index-name" title={index.name}>{index.name}</span>
+								</td>
+								<td>
+									{#if index.key}
+										<div class="flex flex-wrap gap-2">
+											{#each Object.entries(index.key) as [field, direction], i (i)}
+												<span class="index-key">
+													{field}: {direction === 1 ? "↑" : direction === -1 ? "↓" : direction}
+												</span>
+											{/each}
+										</div>
+									{:else}
+										<span style="color: var(--text-darker)">-</span>
+									{/if}
+								</td>
+								<td>
+									<div class="flex flex-wrap gap-2">
+										{#if index.hidden}
+											<span class="badge badge-hidden">hidden</span>
+										{/if}
+										{#if index.unique}
+											<span class="badge badge-unique">unique</span>
+										{/if}
+										{#if index.sparse}
+											<span class="badge badge-sparse">sparse</span>
+										{/if}
+										{#if index.partialFilterExpression}
+											<span class="badge badge-partial">partial</span>
+										{/if}
+										{#if !index.hidden && !index.unique && !index.sparse && !index.partialFilterExpression}
+											<span style="color: var(--text-darker)">-</span>
+										{/if}
+									</div>
+								</td>
+								<td>
+									{#if index.size}
+										<span class="text-sm whitespace-nowrap">{formatBytes(index.size)}</span>
+									{:else}
+										<span style="color: var(--text-darker)">-</span>
+									{/if}
+								</td>
+								<td>
+									{#if index.stats}
+										<div class="text-sm mt-1">
+											<div>{index.stats.ops.toLocaleString()}</div>
+										</div>
+									{:else}
+										<span style="color: var(--text-darker)">-</span>
+									{/if}
+								</td>
+								<td>
+									<details class="cursor-pointer">
+										<summary class="details-link">View full</summary>
+										<div class="details-content">
+											<JsonValue value={omit(index, ["stats"])} collapsed={false} />
+										</div>
+									</details>
+								</td>
+								{#if !readOnly}
+									<td>
+										{#if index.name !== "_id_"}
+											<div class="flex gap-2 hidden group-hover:flex -my-2">
+												<button
+													class="btn btn-outline-light btn-sm"
+													onclick={() => toggleHidden(index.name, index.hidden)}
+													disabled={isLoading}
+												>
+													{index.hidden ? "Unhide" : "Hide"}
+												</button>
+												<button
+													class="btn btn-outline-danger btn-sm"
+													onclick={() => openDropModal(index.name)}
+													disabled={isLoading}
+												>
+													Drop
+												</button>
+											</div>
+										{/if}
+									</td>
+								{/if}
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
 		</Panel>
 	{/if}
 {:catch err}
@@ -259,12 +261,33 @@
 </Modal>
 
 <style lang="postcss">
+	.table-wrapper {
+		overflow-x: auto;
+	}
+
 	.table tbody td {
 		vertical-align: top;
 	}
 
 	.shrink-column {
 		width: 1%;
+		white-space: nowrap;
+	}
+
+	.name-column {
+		width: 20%;
+		min-width: 150px;
+		max-width: 300px;
+	}
+
+	.name-cell {
+		max-width: 300px;
+	}
+
+	.index-name {
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
 

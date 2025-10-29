@@ -6,7 +6,22 @@
 	{#each notificationStore.items as notification (notification.id)}
 		<div class="notification notification-{notification.type}">
 			<span>{notification.message}</span>
-			<button onclick={() => notificationStore.remove(notification.id)}>&times;</button>
+			<button onclick={() => notificationStore.remove(notification.id)} aria-label="Dismiss notification">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="18"
+					height="18"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<line x1="18" y1="6" x2="6" y2="18"></line>
+					<line x1="6" y1="6" x2="18" y2="18"></line>
+				</svg>
+			</button>
 		</div>
 	{/each}
 </div>
@@ -14,63 +29,68 @@
 <style lang="postcss">
 	.notifications {
 		position: fixed;
-		top: 80px;
+		top: 90px;
 		right: 20px;
 		z-index: 1000;
 		display: flex;
 		flex-direction: column;
-		gap: 10px;
+		gap: 12px;
 	}
 
 	.notification {
-		padding: 15px 20px;
-		border-radius: 4px;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+		padding: 14px 18px;
+		border-radius: 1rem;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		backdrop-filter: blur(10px);
 		display: flex;
 		align-items: center;
-		gap: 15px;
-		min-width: 300px;
-		max-width: 500px;
-		animation: slideIn 0.3s ease-out;
+		gap: 12px;
+		min-width: 320px;
+		max-width: 480px;
+		animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		font-size: 14px;
 
 		button {
-			background: none;
+			background: rgba(255, 255, 255, 0.2);
 			border: none;
-			font-size: 24px;
+			border-radius: 8px;
 			cursor: pointer;
-			opacity: 0.7;
+			opacity: 0.8;
 			margin-left: auto;
-			padding: 0;
-			width: 24px;
-			height: 24px;
+			padding: 4px;
+			width: 28px;
+			height: 28px;
 			display: flex;
 			align-items: center;
 			justify-content: center;
+			transition: all 0.2s;
 
 			&:hover {
 				opacity: 1;
+				background: rgba(255, 255, 255, 0.3);
 			}
 		}
 	}
 
 	.notification-error {
-		background-color: #dc3545;
+		background-color: #ff453a;
 		color: white;
 	}
 
 	.notification-success {
-		background-color: #28a745;
+		background-color: #32d74b;
 		color: white;
 	}
 
 	.notification-info {
-		background-color: #17a2b8;
+		background-color: #0a84ff;
 		color: white;
 	}
 
 	@keyframes slideIn {
 		from {
-			transform: translateX(400px);
+			transform: translateX(450px);
 			opacity: 0;
 		}
 		to {

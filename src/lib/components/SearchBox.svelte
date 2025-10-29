@@ -61,18 +61,18 @@
 	let form = $state<HTMLFormElement | undefined>(undefined);
 </script>
 
-<div>
-	<form class="flex items-stretch w-full" method="GET" action="?" onsubmit={submit} bind:this={form}>
-		<!-- Parameters group -->
-		<div class="flex-grow">
-			<!-- Query input (always shown) -->
-			<div class="flex items-stretch w-full {isAggregation ? 'min-h-10' : 'h-10'}">
+<div class="rounded-2xl border border-[var(--border-color)] bg-[var(--light-background)]/70 shadow-sm p-3 sm:p-4">
+	<form class="flex flex-col gap-3" method="GET" action="?" onsubmit={submit} bind:this={form}>
+		<!-- Query input (always shown) -->
+		<div class="flex items-stretch gap-2">
+			<div
+				class="flex-1 flex items-stretch rounded-xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50"
+			>
 				<div
-					class="min-w-[100px] flex justify-center items-center border border-[var(--color-4)] {!showOptionalFields
-						? 'border-b rounded-bl-md'
-						: 'border-b-0'} bg-[var(--color-1)] rounded-tl-md"
+					class="px-3 flex items-center text-[13px] border-r border-[var(--border-color)]"
+					style="color: var(--text-secondary);"
 				>
-					{isAggregation ? "Aggregation:" : "Query:"}
+					{isAggregation ? "Aggregation" : "Query"}
 				</div>
 				{#if isAggregation}
 					<textarea
@@ -82,7 +82,8 @@
 						name="query"
 						rows="5"
 						use:jsonTextarea={{ onsubmit: () => form?.requestSubmit() }}
-						class="flex-grow border-0 bg-[var(--color-3)] pl-2.5 font-mono py-2 resize-y"
+						class="w-full px-3 py-2 bg-transparent outline-none font-mono text-[13px] resize-y"
+						style="color: var(--text);"
 					></textarea>
 				{:else}
 					<input
@@ -91,134 +92,154 @@
 						bind:value={params.query}
 						placeholder={"{}"}
 						name="query"
-						class="flex-grow border-0 bg-[var(--color-3)] pl-2.5 font-mono"
+						class="w-full h-9 px-3 bg-transparent outline-none font-mono text-[13px] border-0 !rounded-none"
+						style="color: var(--text);"
 					/>
 				{/if}
 			</div>
 
 			<input type="hidden" value={counter} name="v" />
-			<!-- Sort input -->
-			{#if showOptionalFields}
-				<div class="flex items-stretch w-full h-10">
-					<div
-						class="min-w-[100px] flex justify-center items-center border border-[var(--color-4)] border-b-0 bg-[var(--color-1)]"
+
+			<div class="flex items-center gap-2">
+				<button
+					type="button"
+					class="h-9 px-3 rounded-xl border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] text-[15px] font-semibold leading-none transition cursor-pointer"
+					style="color: var(--text);"
+					title="Toggle optional fields"
+					onclick={() => {
+						showOptionalFields = !showOptionalFields;
+					}}
+				>
+					{showOptionalFields ? "−" : "+"}
+				</button>
+				{#if !readonly}
+					<button
+						type="button"
+						class="h-9 px-3 rounded-xl border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] transition disabled:opacity-50 cursor-pointer"
+						style="color: var(--text);"
+						title={isAggregation ? "Update not available in aggregation mode" : "Update multiple documents"}
+						disabled={isAggregation}
+						onclick={() => {
+							editMode = !editMode;
+						}}
 					>
-						Sort:
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="16"
+							height="16"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+							<path d="m15 5 4 4"></path>
+						</svg>
+					</button>
+				{/if}
+				<button
+					type="submit"
+					class="h-9 px-4 rounded-xl bg-[var(--button-success)] text-white font-semibold transition cursor-pointer hover:bg-[var(--button-success-l)] active:brightness-95"
+				>
+					Go
+				</button>
+			</div>
+		</div>
+
+		<!-- Optional fields -->
+		{#if showOptionalFields}
+			<div class="grid gap-2 sm:grid-cols-2">
+				<!-- Sort -->
+				<div class="rounded-xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50">
+					<div
+						class="px-3 py-1.5 text-[12px] border-b border-[var(--border-color)]"
+						style="color: var(--text-secondary);"
+					>
+						Sort
 					</div>
 					<input
 						type="text"
 						bind:value={params.sort}
 						name="sort"
 						placeholder={"{}"}
-						class="flex-grow border-0 border-t border-[var(--color-4)] bg-[var(--color-3)] pl-2.5 font-mono"
+						class="w-full h-9 px-3 bg-transparent outline-none font-mono text-[13px] border-0 !rounded-none"
+						style="color: var(--text);"
 					/>
 				</div>
 
-				<!-- Skip input -->
-				<div class="flex items-stretch w-full h-10">
+				<!-- Project -->
+				<div class="rounded-xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50">
 					<div
-						class="min-w-[100px] flex justify-center items-center border border-[var(--color-4)] border-b-0 bg-[var(--color-1)]"
+						class="px-3 py-1.5 text-[12px] border-b border-[var(--border-color)]"
+						style="color: var(--text-secondary);"
 					>
-						Skip:
-					</div>
-					<input
-						type="number"
-						bind:value={params.skip}
-						name="skip"
-						min="0"
-						class="flex-grow border-0 border-t border-[var(--color-4)] bg-[var(--color-3)] pl-2.5 font-mono"
-					/>
-				</div>
-
-				<!-- Limit input -->
-				<div class="flex items-stretch w-full h-10">
-					<div
-						class="min-w-[100px] flex justify-center items-center border border-[var(--color-4)] border-b-0 bg-[var(--color-1)]"
-					>
-						Limit:
-					</div>
-					<input
-						type="number"
-						bind:value={params.limit}
-						name="limit"
-						min="1"
-						class="flex-grow border-0 border-t border-[var(--color-4)] bg-[var(--color-3)] pl-2.5 font-mono"
-					/>
-				</div>
-
-				<!-- Project input -->
-				<div class="flex items-stretch w-full h-10">
-					<div
-						class="min-w-[100px] flex justify-center items-center border border-[var(--color-4)] border-b bg-[var(--color-1)] rounded-bl-md"
-					>
-						Project:
+						Project
 					</div>
 					<input
 						type="text"
 						bind:value={params.project}
 						name="project"
 						placeholder={"{}"}
-						class="flex-grow border-0 border-t border-[var(--color-4)] bg-[var(--color-3)] pl-2.5 font-mono"
+						class="w-full h-9 px-3 bg-transparent outline-none font-mono text-[13px] border-0 !rounded-none"
+						style="color: var(--text);"
 					/>
 				</div>
-			{/if}
-		</div>
 
-		<!-- Toggle optional fields button -->
-		<button
-			class="btn btn-default !w-12 !rounded-none !border-r-0 text-2xl leading-none font-bold !py-1.5"
-			type="button"
-			onclick={() => {
-				showOptionalFields = !showOptionalFields;
-			}}
-		>
-			{showOptionalFields ? "−" : "+"}
-		</button>
+				<!-- Skip -->
+				<div class="rounded-xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50">
+					<div
+						class="px-3 py-1.5 text-[12px] border-b border-[var(--border-color)]"
+						style="color: var(--text-secondary);"
+					>
+						Skip
+					</div>
+					<input
+						type="number"
+						bind:value={params.skip}
+						name="skip"
+						min="0"
+						class="w-full h-9 px-3 bg-transparent outline-none font-mono text-[13px] border-0 !rounded-none"
+						style="color: var(--text);"
+					/>
+				</div>
 
-		<!-- Edit/Update button -->
-		{#if !readonly}
-			<button
-				class="btn btn-default !w-12 !rounded-none !border-r-0 text-lg leading-none font-bold !py-1.5"
-				type="button"
-				title={isAggregation ? "Update not available in aggregation mode" : "Update multiple documents"}
-				disabled={isAggregation}
-				onclick={() => {
-					editMode = !editMode;
-				}}
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="18"
-					height="18"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-				>
-					<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
-					<path d="m15 5 4 4"></path>
-				</svg>
-			</button>
+				<!-- Limit -->
+				<div class="rounded-xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50">
+					<div
+						class="px-3 py-1.5 text-[12px] border-b border-[var(--border-color)]"
+						style="color: var(--text-secondary);"
+					>
+						Limit
+					</div>
+					<input
+						type="number"
+						bind:value={params.limit}
+						name="limit"
+						min="1"
+						class="w-full h-9 px-3 bg-transparent outline-none font-mono text-[13px] border-0 !rounded-none"
+						style="color: var(--text);"
+					/>
+				</div>
+			</div>
 		{/if}
 
-		<!-- Search button -->
-		<button class="btn btn-success !rounded-l-none !rounded-r-md font-bold !py-1.5" type="submit"> GO! </button>
+		<!-- Help text -->
+		{#if !showOptionalFields && !isAggregation && params.query === "{}"}
+			<div class="text-xs" style="color: var(--text-secondary);">
+				Tip: Use <code class="px-1.5 py-0.5 rounded bg-[var(--color-3)] border border-[var(--border-color)] font-mono"
+					>[{"{...}"}]</code
+				> to switch to aggregation mode
+			</div>
+		{/if}
 	</form>
-
-	<!-- Help text when collapsed -->
-	{#if !showOptionalFields && !isAggregation && params.query === "{}"}
-		<div class="text-xs mt-1 ml-1" style="color: var(--text-secondary);">
-			Tip: Use <code class="bg-[var(--color-3)] px-1 py-0.5 rounded font-mono">[{"{...}"}]</code> to switch to aggregation
-			mode
-		</div>
-	{/if}
 </div>
 
 <style lang="postcss">
-	input,
+	input[type="text"],
+	input[type="number"],
 	textarea {
-		border-radius: 0;
+		border-radius: 0 !important;
 	}
 </style>
