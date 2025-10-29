@@ -63,6 +63,9 @@ async function startAction(options: { pm2?: boolean; port?: string; readonly?: b
 		process.env.MONGOKU_SERVER_ORIGIN = `http://localhost:${port}`;
 	}
 
+	// Suppress the default "Listening on..." log since we show our own message
+	process.env.MONGOKU_SUPPRESS_STARTUP_LOG = "true";
+
 	// Set read-only mode if specified
 	if (options.readonly) {
 		process.env.MONGOKU_READ_ONLY_MODE = "true";
@@ -117,7 +120,6 @@ function runCommand(command: string, args: string[], options: SpawnOptions = {})
 	return new Promise((resolve, reject) => {
 		const childProcess = spawn(command, args, {
 			...options,
-			shell: true,
 			env: { ...process.env },
 		});
 

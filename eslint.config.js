@@ -31,7 +31,7 @@ export default defineConfig(
 	},
 	{
 		// Allow console in CLI tool and logger implementation
-		files: ["cli.ts", "src/lib/server/logger.ts", "**/*.svelte"],
+		files: ["cli.ts", "src/lib/server/logger.ts", "**/*.svelte", "scripts/**/*.ts"],
 		rules: {
 			"no-console": "off",
 		},

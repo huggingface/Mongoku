@@ -17,6 +17,7 @@
 	"scripts": {
 		"dev": "vite dev --port 3100",
 		"build": "vite build && tsc cli.ts --outDir dist --module esnext --target es2022 --moduleResolution bundler --esModuleInterop",
+		"postbuild": "node --experimental-strip-types scripts/postbuild.ts",
 		"build:app": "vite build",
 		"build:cli": "tsc cli.ts --outDir dist --module esnext --target es2022 --moduleResolution bundler --esModuleInterop",
 		"preview": "vite preview",
