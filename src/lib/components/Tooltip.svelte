@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { portal } from "$lib/actions/portal";
 	import { tick, type Snippet } from "svelte";
 
 	interface Props {
@@ -68,16 +69,19 @@
 </script>
 
 <div class="relative inline-block" bind:this={containerElement}>
-	{@render trigger()}{#if show}
-		<div
-			class="fixed bg-[var(--light-background)] border border-[var(--border-color)] rounded-2xl z-[1000] shadow-xl backdrop-blur-md {tooltipClass}"
-			bind:this={tooltipElement}
-			style:left={tooltipPosition.left}
-			style:right={tooltipPosition.right}
-			style:top={tooltipPosition.top}
-			style="color: var(--text);"
-		>
-			{@render content()}
-		</div>
-	{/if}
+	{@render trigger()}
 </div>
+
+{#if show}
+	<div
+		use:portal
+		class="fixed bg-[var(--light-background)] border border-[var(--border-color)] rounded-2xl z-[1000] shadow-xl backdrop-blur-md {tooltipClass}"
+		bind:this={tooltipElement}
+		style:left={tooltipPosition.left}
+		style:right={tooltipPosition.right}
+		style:top={tooltipPosition.top}
+		style="color: var(--text);"
+	>
+		{@render content()}
+	</div>
+{/if}

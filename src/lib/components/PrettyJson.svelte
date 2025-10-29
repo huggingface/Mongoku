@@ -90,7 +90,9 @@
 	let editJson = $state("");
 	let removing = $state(false);
 	let contentContainerRef = $state<HTMLDivElement>();
-	let editorHeight = $state<string>("300px");
+	let textareaRef = $state<HTMLTextAreaElement>();
+	let panelRef = $state<HTMLDivElement>();
+	let lastSetHeight = $state<number>(0);
 
 	// Extract timestamp from ObjectId
 	function getTimestampFromObjectId(objectId: string): Date | null {
@@ -151,13 +153,6 @@
 
 	function enableEditor() {
 		editJson = serializeForEditing(json);
-
-		// Set editor height to match the full content container (including padding)
-		if (contentContainerRef) {
-			const height = contentContainerRef.offsetHeight;
-			editorHeight = `${Math.max(height, 300)}px`;
-		}
-
 		editorVisible = true;
 	}
 
@@ -168,9 +163,39 @@
 		}
 	});
 
+	// Watch for textarea resize and update panel height
+	$effect(() => {
+		if (!textareaRef || !panelRef || !editorVisible) return;
+
+		const resizeObserver = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				const newHeight = entry.borderBoxSize[0].blockSize;
+				// Only update if height changed and is different from what we last set
+				if (newHeight > 0 && Math.abs(newHeight - lastSetHeight) > 1) {
+					const totalHeight = newHeight; // Add padding for buttons
+					lastSetHeight = newHeight;
+					if (panelRef) {
+						panelRef.style.minHeight = `${totalHeight}px`;
+					}
+				}
+			}
+		});
+
+		resizeObserver.observe(textareaRef);
+
+		return () => {
+			resizeObserver.disconnect();
+		};
+	});
+
 	function disableEditor() {
 		editorVisible = false;
 		editJson = "";
+		lastSetHeight = 0;
+		// Reset panel min-height when editor closes
+		if (panelRef) {
+			panelRef.style.minHeight = "";
+		}
 	}
 
 	function save() {
@@ -263,28 +288,11 @@
 	</div>
 {/snippet}
 
-<Panel class="group" title={json._id ? title : undefined} {actions}>
-	<div bind:this={contentContainerRef} class="relative">
-		<div
-			class="font-mono text-[13px] sm:text-[14px] leading-relaxed whitespace-pre-wrap break-words overflow-x-auto sm:p-6"
-		>
+<Panel class="group" title={json._id ? title : undefined} {actions} bind:ref={panelRef}>
+	<div bind:this={contentContainerRef} class="relative p-4 sm:p-6">
+		<div class="font-mono text-[13px] sm:text-[14px] leading-relaxed whitespace-pre-wrap break-words overflow-x-auto">
 			<JsonValue value={json} {autoCollapse} collapsed={false} {isKeyMapped} {fetchMappedDocument} />
 		</div>
-
-		{#if editorVisible}
-			<div class="absolute h-full z-[100] w-full top-0 left-0 p-4 sm:p-6">
-				<div class="mb-3 flex items-center justify-end gap-2">
-					<button class="btn btn-success" onclick={save}>Save</button>
-					<button class="btn btn-default" onclick={disableEditor}>Cancel</button>
-				</div>
-				<textarea
-					bind:value={editJson}
-					use:jsonTextarea={{ onsubmit: save, onescape: disableEditor }}
-					class="w-full font-mono text-[13px] sm:text-[14px] leading-relaxed p-4 rounded-xl border border-[var(--border-color)] bg-[var(--color-3)] resize-y focus:outline-none focus:ring-2"
-					style="height: calc({editorHeight} - 60px); color: var(--text); --tw-ring-color: var(--link);"
-				></textarea>
-			</div>
-		{/if}
 
 		{#if removing}
 			<div
@@ -304,4 +312,20 @@
 			</div>
 		{/if}
 	</div>
+
+	{#if editorVisible}
+		<div class="absolute inset-0 z-[100] bg-[var(--light-background)]">
+			<textarea
+				bind:this={textareaRef}
+				bind:value={editJson}
+				use:jsonTextarea={{ onsubmit: save, onescape: disableEditor }}
+				class="w-full h-full font-mono text-[13px] sm:text-[14px] leading-relaxed p-4 border-0 bg-[var(--color-3)] focus:outline-none focus:ring-0"
+				style="color: var(--text);"
+			></textarea>
+			<div class="absolute top-3 right-3 flex items-center gap-2">
+				<button class="btn btn-success" onclick={save}>Save</button>
+				<button class="btn btn-default" onclick={disableEditor}>Cancel</button>
+			</div>
+		</div>
+	{/if}
 </Panel>

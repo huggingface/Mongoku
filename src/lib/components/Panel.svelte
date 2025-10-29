@@ -6,12 +6,14 @@
 		title?: string | Snippet;
 		actions?: Snippet;
 		class?: string;
+		ref?: HTMLDivElement;
 	}
 
-	let { children, title, actions, class: className }: Props = $props();
+	let { children, title, actions, class: className, ref = $bindable() }: Props = $props();
 </script>
 
 <div
+	bind:this={ref}
 	class="rounded-2xl border border-[var(--border-color)] bg-[var(--light-background)]/70 backdrop-blur-md shadow-sm {className}"
 >
 	{#if title}
