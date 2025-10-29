@@ -61,17 +61,15 @@
 	let form = $state<HTMLFormElement | undefined>(undefined);
 </script>
 
-<div
-	class="rounded-3xl border border-[var(--border-color)] bg-[var(--light-background)]/70 backdrop-blur-md shadow-sm p-4 sm:p-6"
->
-	<form class="flex flex-col gap-4" method="GET" action="?" onsubmit={submit} bind:this={form}>
+<div class="rounded-2xl border border-[var(--border-color)] bg-[var(--light-background)]/70 shadow-sm p-3 sm:p-4">
+	<form class="flex flex-col gap-3" method="GET" action="?" onsubmit={submit} bind:this={form}>
 		<!-- Query input (always shown) -->
 		<div class="flex items-stretch gap-2">
 			<div
-				class="flex-1 grid sm:grid-cols-[auto,1fr] rounded-2xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50"
+				class="flex-1 flex items-stretch rounded-xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50"
 			>
 				<div
-					class="px-3 sm:px-4 flex items-center text-sm border-r border-[var(--border-color)]"
+					class="px-3 flex items-center text-[13px] border-r border-[var(--border-color)]"
 					style="color: var(--text-secondary);"
 				>
 					{isAggregation ? "Aggregation" : "Query"}
@@ -84,7 +82,7 @@
 						name="query"
 						rows="5"
 						use:jsonTextarea={{ onsubmit: () => form?.requestSubmit() }}
-						class="w-full px-4 py-3 bg-transparent outline-none font-mono text-[13px] sm:text-[14px] resize-y"
+						class="w-full px-3 py-2 bg-transparent outline-none font-mono text-[13px] resize-y"
 						style="color: var(--text);"
 					></textarea>
 				{:else}
@@ -94,7 +92,7 @@
 						bind:value={params.query}
 						placeholder={"{}"}
 						name="query"
-						class="w-full px-4 py-3 bg-transparent outline-none font-mono text-[13px] sm:text-[14px] border-0 !rounded-none"
+						class="w-full h-9 px-3 bg-transparent outline-none font-mono text-[13px] border-0 !rounded-none"
 						style="color: var(--text);"
 					/>
 				{/if}
@@ -105,7 +103,7 @@
 			<div class="flex items-center gap-2">
 				<button
 					type="button"
-					class="px-4 py-3 rounded-2xl border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] text-xl font-semibold leading-none transition cursor-pointer"
+					class="h-9 px-3 rounded-xl border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] text-[15px] font-semibold leading-none transition cursor-pointer"
 					style="color: var(--text);"
 					title="Toggle optional fields"
 					onclick={() => {
@@ -117,7 +115,7 @@
 				{#if !readonly}
 					<button
 						type="button"
-						class="px-4 py-3 rounded-2xl border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] transition disabled:opacity-50 cursor-pointer"
+						class="h-9 px-3 rounded-xl border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] transition disabled:opacity-50 cursor-pointer"
 						style="color: var(--text);"
 						title={isAggregation ? "Update not available in aggregation mode" : "Update multiple documents"}
 						disabled={isAggregation}
@@ -127,8 +125,8 @@
 					>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
-							width="18"
-							height="18"
+							width="16"
+							height="16"
 							viewBox="0 0 24 24"
 							fill="none"
 							stroke="currentColor"
@@ -143,7 +141,7 @@
 				{/if}
 				<button
 					type="submit"
-					class="px-6 py-3 rounded-2xl bg-[var(--button-success)] text-white font-semibold hover:brightness-105 active:brightness-95 transition cursor-pointer"
+					class="h-9 px-4 rounded-xl bg-[var(--button-success)] text-white font-semibold hover:brightness-105 active:brightness-95 transition cursor-pointer"
 				>
 					Go
 				</button>
@@ -152,11 +150,11 @@
 
 		<!-- Optional fields -->
 		{#if showOptionalFields}
-			<div class="grid gap-3 sm:grid-cols-2">
+			<div class="grid gap-2 sm:grid-cols-2">
 				<!-- Sort -->
-				<div class="rounded-2xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50">
+				<div class="rounded-xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50">
 					<div
-						class="px-3 sm:px-4 py-2 text-xs border-b border-[var(--border-color)]"
+						class="px-3 py-1.5 text-[12px] border-b border-[var(--border-color)]"
 						style="color: var(--text-secondary);"
 					>
 						Sort
@@ -166,15 +164,15 @@
 						bind:value={params.sort}
 						name="sort"
 						placeholder={"{}"}
-						class="w-full px-4 py-2 bg-transparent outline-none font-mono text-[13px] sm:text-[14px] border-0 !rounded-none"
+						class="w-full h-9 px-3 bg-transparent outline-none font-mono text-[13px] border-0 !rounded-none"
 						style="color: var(--text);"
 					/>
 				</div>
 
 				<!-- Project -->
-				<div class="rounded-2xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50">
+				<div class="rounded-xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50">
 					<div
-						class="px-3 sm:px-4 py-2 text-xs border-b border-[var(--border-color)]"
+						class="px-3 py-1.5 text-[12px] border-b border-[var(--border-color)]"
 						style="color: var(--text-secondary);"
 					>
 						Project
@@ -184,15 +182,15 @@
 						bind:value={params.project}
 						name="project"
 						placeholder={"{}"}
-						class="w-full px-4 py-2 bg-transparent outline-none font-mono text-[13px] sm:text-[14px] border-0 !rounded-none"
+						class="w-full h-9 px-3 bg-transparent outline-none font-mono text-[13px] border-0 !rounded-none"
 						style="color: var(--text);"
 					/>
 				</div>
 
 				<!-- Skip -->
-				<div class="rounded-2xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50">
+				<div class="rounded-xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50">
 					<div
-						class="px-3 sm:px-4 py-2 text-xs border-b border-[var(--border-color)]"
+						class="px-3 py-1.5 text-[12px] border-b border-[var(--border-color)]"
 						style="color: var(--text-secondary);"
 					>
 						Skip
@@ -202,15 +200,15 @@
 						bind:value={params.skip}
 						name="skip"
 						min="0"
-						class="w-full px-4 py-2 bg-transparent outline-none font-mono text-[13px] sm:text-[14px] border-0 !rounded-none"
+						class="w-full h-9 px-3 bg-transparent outline-none font-mono text-[13px] border-0 !rounded-none"
 						style="color: var(--text);"
 					/>
 				</div>
 
 				<!-- Limit -->
-				<div class="rounded-2xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50">
+				<div class="rounded-xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50">
 					<div
-						class="px-3 sm:px-4 py-2 text-xs border-b border-[var(--border-color)]"
+						class="px-3 py-1.5 text-[12px] border-b border-[var(--border-color)]"
 						style="color: var(--text-secondary);"
 					>
 						Limit
@@ -220,7 +218,7 @@
 						bind:value={params.limit}
 						name="limit"
 						min="1"
-						class="w-full px-4 py-2 bg-transparent outline-none font-mono text-[13px] sm:text-[14px] border-0 !rounded-none"
+						class="w-full h-9 px-3 bg-transparent outline-none font-mono text-[13px] border-0 !rounded-none"
 						style="color: var(--text);"
 					/>
 				</div>

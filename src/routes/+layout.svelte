@@ -17,22 +17,20 @@
 
 <div style="min-height: 100vh">
 	<!-- App bar -->
-	<header
-		class="sticky top-0 z-50 border-b border-[var(--border-color)] bg-[var(--background-color)]/80 backdrop-blur-md"
-	>
+	<header class="sticky top-0 z-50 border-b border-[var(--border-color)] bg-[var(--background-color)]/80">
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-			<div class="h-16 flex items-center gap-4">
+			<div class="h-14 flex items-center gap-3">
 				<!-- Logo -->
 				<a href={resolve("/")} class="inline-flex items-center gap-2 group no-underline hover:no-underline">
 					<span
-						class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-black dark:bg-white text-white dark:text-black text-sm font-semibold select-none"
+						class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-black dark:bg-white text-white dark:text-black text-sm font-semibold select-none"
 					>
 						M
 					</span>
-					<span class="text-xl font-semibold tracking-tight" style="color: var(--text);">Mongoku</span>
+					<span class="text-lg font-semibold tracking-tight" style="color: var(--text);">Mongoku</span>
 				</a>
 
-				<div class="hidden md:block w-px h-6 bg-[var(--border-color)]"></div>
+				<div class="hidden md:block w-px h-5 bg-[var(--border-color)]"></div>
 
 				<!-- Breadcrumbs -->
 				<Breadcrumbs />

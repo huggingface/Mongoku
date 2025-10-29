@@ -15,13 +15,13 @@
 
 {#if categories.length}
 	<div
-		class="hidden sm:flex rounded-xl border border-[var(--border-color)] overflow-hidden bg-[var(--light-background)] shadow-sm {className}"
+		class="hidden sm:flex rounded-lg border border-[var(--border-color)] overflow-hidden bg-[var(--light-background)] shadow-sm {className}"
 	>
 		{#each categories as category (category.key)}
 			{@const isActive = currentPath === category.key}
 			{#if isActive}
 				<span
-					class="px-4 py-2 text-sm font-medium bg-[var(--color-1)] shadow-[inset_0_-1px_0_rgba(0,0,0,0.06)] cursor-default"
+					class="px-3 py-1.5 text-[13px] font-medium bg-[var(--color-1)] shadow-[inset_0_-1px_0_rgba(0,0,0,0.06)] cursor-default"
 					style="color: var(--text);"
 				>
 					{category.label}
@@ -30,7 +30,7 @@
 				<!-- eslint-disable @typescript-eslint/no-explicit-any -->
 				<a
 					href={resolve(category.href as any)}
-					class="px-4 py-2 text-sm hover:bg-[var(--color-3)] transition no-underline"
+					class="px-3 py-1.5 text-[13px] hover:bg-[var(--color-3)] transition no-underline"
 					style="color: var(--text-secondary);"
 				>
 					{category.label}

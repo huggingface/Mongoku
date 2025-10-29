@@ -71,7 +71,7 @@
 {#snippet sunIcon()}
 	<svg
 		xmlns="http://www.w3.org/2000/svg"
-		class="h-5 w-5"
+		class="h-4 w-4"
 		viewBox="0 0 24 24"
 		fill="none"
 		stroke="currentColor"
@@ -87,7 +87,7 @@
 {#snippet moonIcon()}
 	<svg
 		xmlns="http://www.w3.org/2000/svg"
-		class="h-5 w-5"
+		class="h-4 w-4"
 		viewBox="0 0 24 24"
 		fill="none"
 		stroke="currentColor"
@@ -100,7 +100,7 @@
 {#snippet systemIcon()}
 	<svg
 		xmlns="http://www.w3.org/2000/svg"
-		class="h-5 w-5"
+		class="h-4 w-4"
 		viewBox="0 0 24 24"
 		fill="none"
 		stroke="currentColor"
@@ -113,25 +113,25 @@
 {/snippet}
 
 <div
-	class="theme-switcher inline-flex rounded-xl border border-[var(--border-color)] bg-[var(--light-background)] overflow-hidden text-sm font-medium"
+	class="theme-switcher inline-flex rounded-lg border border-[var(--border-color)] bg-[var(--light-background)] overflow-hidden text-sm font-medium"
 	style="color: var(--text);"
 >
 	<!-- Left side -->
 	<button
 		onclick={toggleTheme}
-		class="inline-flex items-center gap-2 px-3 py-2 hover:bg-[var(--color-3)] transition cursor-pointer"
+		class="inline-flex items-center gap-2 px-2.5 py-1.5 hover:bg-[var(--color-3)] transition cursor-pointer"
 		aria-label="Toggle theme"
 	>
 		<!-- Light mode selected -->
 		<span class="theme-content theme-light inline-flex items-center gap-2">
 			{@render sunIcon()}
-			<span class="hidden sm:inline" style="color: var(--text-secondary);">Light</span>
+			<span class="hidden sm:inline text-[13px]" style="color: var(--text-secondary);">Light</span>
 		</span>
 
 		<!-- Dark mode selected -->
 		<span class="theme-content theme-dark inline-flex items-center gap-2">
 			{@render moonIcon()}
-			<span class="hidden sm:inline" style="color: var(--text-secondary);">Dark</span>
+			<span class="hidden sm:inline text-[13px]" style="color: var(--text-secondary);">Dark</span>
 		</span>
 
 		<!-- System mode + light actual theme -->
@@ -151,11 +151,11 @@
 	<!-- Right side -->
 	<button
 		onclick={() => setTheme("system")}
-		class="inline-flex items-center gap-2 px-3 py-2 hover:bg-[var(--color-3)] transition cursor-pointer"
+		class="inline-flex items-center gap-2 px-2.5 py-1.5 hover:bg-[var(--color-3)] transition cursor-pointer"
 		aria-label="Switch to system theme"
 	>
 		{@render systemIcon()}
-		<span class="theme-text-system hidden sm:inline" style="color: var(--text-secondary);"> System </span>
+		<span class="theme-text-system hidden sm:inline text-[13px]" style="color: var(--text-secondary);"> System </span>
 	</button>
 </div>
 

@@ -203,6 +203,30 @@
 	}
 </script>
 
+{#snippet previousButton(url: string, onClick: (e: MouseEvent) => void)}
+	<!-- eslint-disable @typescript-eslint/no-explicit-any -->
+	<a
+		href={resolve(url as any)}
+		onclick={onClick}
+		class="px-3 py-1 rounded-lg border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] text-[13px] transition no-underline -my-2"
+		style="color: var(--text);"
+	>
+		Previous
+	</a>
+{/snippet}
+
+{#snippet nextButton(url: string, onClick: (e: MouseEvent) => void)}
+	<!-- eslint-disable @typescript-eslint/no-explicit-any -->
+	<a
+		href={resolve(url as any)}
+		onclick={onClick}
+		class="px-3 py-1 rounded-lg border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] text-[13px] transition no-underline"
+		style="color: var(--text);"
+	>
+		Next
+	</a>
+{/snippet}
+
 <SearchBox bind:params bind:editMode readonly={data.readOnly} />
 
 {#if editMode}
@@ -276,18 +300,15 @@
 		title={finalCount !== null
 			? `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + data.params.limit)} of ${formatNumber(finalCount)} documents...`
 			: "Loading documents..."}
+		titleClass="py-1"
 	>
 		{#snippet actions()}
 			{#if finalCount !== null}
 				{#if data.params.skip > 0}
-					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-					<a href={resolve(previousUrl as any)} onclick={navigatePrevious} class="btn btn-default btn-sm -my-2">
-						Previous
-					</a>
+					{@render previousButton(previousUrl, navigatePrevious)}
 				{/if}
 				{#if data.params.skip + data.params.limit < finalCount}
-					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-					<a href={resolve(nextUrl as any)} onclick={navigateNext} class="btn btn-default btn-sm -my-2">Next</a>
+					{@render nextButton(nextUrl, navigateNext)}
 				{/if}
 			{/if}
 		{/snippet}
@@ -297,20 +318,17 @@
 	{@const items = resultsData?.data ?? []}
 	{#await data.count}
 		<Panel
+			titleClass="py-1"
 			title={items.length > 0
 				? `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} Documents (counting...)`
 				: "No documents"}
 		>
 			{#snippet actions()}
 				{#if data.params.skip > 0}
-					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-					<a href={resolve(previousUrl as any)} onclick={navigatePrevious} class="btn btn-default btn-sm -my-2">
-						Previous
-					</a>
+					{@render previousButton(previousUrl, navigatePrevious)}
 				{/if}
 				{#if items.length >= data.params.limit}
-					<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-					<a href={resolve(nextUrl as any)} onclick={navigateNext} class="btn btn-default btn-sm -my-2">Next</a>
+					{@render nextButton(nextUrl, navigateNext)}
 				{/if}
 			{/snippet}
 		</Panel>
@@ -324,20 +342,17 @@
 			<Panel
 				title={items.length > 0
 					? count > 0
-						? `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} of ${formatNumber(count)} Documents`
-						: `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} Documents (count ${isTimeout ? "timeout" : "unavailable"})`
+						? `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} of ${formatNumber(count)} documents`
+						: `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} documents (count ${isTimeout ? "timeout" : "unavailable"})`
 					: "No documents"}
+				titleClass="py-1"
 			>
 				{#snippet actions()}
 					{#if hasPrevious}
-						<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-						<a href={resolve(previousUrl as any)} onclick={navigatePrevious} class="btn btn-default btn-sm -my-2">
-							Previous
-						</a>
+						{@render previousButton(previousUrl, navigatePrevious)}
 					{/if}
 					{#if hasNext}
-						<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-						<a href={resolve(nextUrl as any)} onclick={navigateNext} class="btn btn-default btn-sm -my-2">Next</a>
+						{@render nextButton(nextUrl, navigateNext)}
 					{/if}
 				{/snippet}
 			</Panel>

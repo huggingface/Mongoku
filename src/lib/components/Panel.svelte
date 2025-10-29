@@ -4,25 +4,26 @@
 	interface Props {
 		children?: Snippet;
 		title?: string | Snippet;
+		titleClass?: string;
 		actions?: Snippet;
 		class?: string;
 		ref?: HTMLDivElement;
 	}
 
-	let { children, title, actions, class: className, ref = $bindable() }: Props = $props();
+	let { children, title, titleClass, actions, class: className, ref = $bindable() }: Props = $props();
 </script>
 
 <div
 	bind:this={ref}
-	class="rounded-2xl border border-[var(--border-color)] bg-[var(--light-background)]/70 backdrop-blur-md shadow-sm {className}"
+	class="rounded-2xl border border-[var(--border-color)] bg-[var(--light-background)]/70 shadow-sm {className}"
 >
 	{#if title}
 		<div
-			class="px-4 sm:px-6 py-3 flex justify-between items-center {children
+			class="px-3 sm:px-4 py-2 flex justify-between items-center {children
 				? 'border-b border-[var(--border-color)]'
 				: ''}"
 		>
-			<div class="text-sm font-medium" style="color: var(--text);">
+			<div class="text-sm font-medium {titleClass}" style="color: var(--text);">
 				{#if typeof title === "string"}
 					<span>{title}</span>
 				{:else}

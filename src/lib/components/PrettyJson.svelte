@@ -261,7 +261,7 @@
 {#snippet actions()}
 	<div class="hidden group-hover:flex items-center gap-2 -my-2">
 		<button
-			class="px-3 py-2 rounded-xl border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] text-sm transition cursor-pointer"
+			class="px-3 py-1 rounded-lg border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] text-[13px] transition cursor-pointer"
 			style="color: var(--text);"
 			onclick={copyToClipboard}
 		>
@@ -269,7 +269,7 @@
 		</button>
 		{#if onedit}
 			<button
-				class="px-3 py-2 rounded-xl border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] text-sm transition cursor-pointer"
+				class="px-3 py-1 rounded-lg border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] text-[13px] transition cursor-pointer"
 				style="color: var(--text);"
 				onclick={enableEditor}
 			>
@@ -278,7 +278,7 @@
 		{/if}
 		{#if onremove}
 			<button
-				class="px-3 py-2 rounded-xl border border-red-200 hover:bg-red-50 text-sm transition cursor-pointer"
+				class="px-3 py-1 rounded-lg border border-red-200 hover:bg-red-50 text-[13px] transition cursor-pointer"
 				style="color: var(--button-danger);"
 				onclick={showRemove}
 			>
@@ -288,7 +288,7 @@
 	</div>
 {/snippet}
 
-<Panel class="group" title={json._id ? title : undefined} {actions} bind:ref={panelRef}>
+<Panel class="group relative" title={json._id ? title : undefined} {actions} bind:ref={panelRef}>
 	<div bind:this={contentContainerRef} class="relative p-4 sm:p-6">
 		<div class="font-mono text-[13px] sm:text-[14px] leading-relaxed whitespace-pre-wrap break-words overflow-x-auto">
 			<JsonValue value={json} {autoCollapse} collapsed={false} {isKeyMapped} {fetchMappedDocument} />
