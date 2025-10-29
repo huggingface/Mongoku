@@ -242,8 +242,8 @@
 {/snippet}
 
 <Panel class="group" title={json._id ? title : undefined} {actions}>
-	<div bind:this={contentContainerRef} class="p-4 relative border-t border-[var(--border-color)] overflow-x-auto">
-		<div class="font-mono text-sm leading-tight whitespace-pre-wrap break-words relative">
+	<div bind:this={contentContainerRef} class=" relative border-t border-[var(--border-color)]">
+		<div class="font-mono text-sm leading-tight whitespace-pre-wrap break-words p-4 overflow-x-auto">
 			<JsonValue value={json} {autoCollapse} collapsed={false} {isKeyMapped} {fetchMappedDocument} />
 		</div>
 
