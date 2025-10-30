@@ -18,7 +18,7 @@
 <div style="min-height: 100vh">
 	<!-- App bar -->
 	<header class="sticky top-0 z-50 border-b border-[var(--border-color)] bg-[var(--background-color)]/80">
-		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+		<div class="max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8">
 			<div class="h-14 flex items-center gap-3">
 				<!-- Logo -->
 				<a href={resolve("/")} class="inline-flex items-center gap-2 group no-underline hover:no-underline">
@@ -47,7 +47,7 @@
 	<OriginWarning serverOrigin={data.serverOrigin} readOnly={data.readOnly} />
 
 	<!-- Main -->
-	<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+	<main class="max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
 		<Notifications />
 		<div class="flex flex-col gap-6">
 			{@render children()}
