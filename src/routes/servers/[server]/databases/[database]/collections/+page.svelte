@@ -15,6 +15,7 @@
 
 	let showDropModal = $state(false);
 	let collectionToDrop = $state<Collection | null>(null);
+	let isDropping = $state(false);
 
 	function openDropModal(collection: Collection) {
 		collectionToDrop = collection;
@@ -24,11 +25,13 @@
 	function closeDropModal() {
 		showDropModal = false;
 		collectionToDrop = null;
+		isDropping = false;
 	}
 
 	async function confirmDrop() {
-		if (!collectionToDrop) return;
+		if (!collectionToDrop || isDropping) return;
 
+		isDropping = true;
 		try {
 			await dropCollectionCommand({
 				server: data.server,
@@ -41,6 +44,7 @@
 			await invalidateAll();
 		} catch (error) {
 			notificationStore.notifyError(error, "Failed to drop collection");
+			isDropping = false;
 		}
 	}
 </script>
@@ -163,7 +167,13 @@
 		undone.
 	</p>
 	{#snippet footer()}
-		<button class="btn btn-default btn-sm" onclick={closeDropModal}>Cancel</button>
-		<button class="btn btn-outline-danger btn-sm" onclick={confirmDrop}>Drop Collection</button>
+		<button class="btn btn-default btn-sm" onclick={closeDropModal} disabled={isDropping}>Cancel</button>
+		<button class="btn btn-outline-danger btn-sm" onclick={confirmDrop} disabled={isDropping}>
+			{#if isDropping}
+				Dropping...
+			{:else}
+				Drop Collection
+			{/if}
+		</button>
 	{/snippet}
 </Modal>

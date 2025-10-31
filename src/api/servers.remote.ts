@@ -312,6 +312,27 @@ export const dropCollection = command(
 	},
 );
 
+// Drop a database
+export const dropDatabase = command(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+	}),
+	async ({ server, database }) => {
+		logger.log("dropDatabase called with payload:", { server, database });
+		checkReadOnly();
+
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+
+		await client.db(database).dropDatabase();
+
+		return {
+			ok: true,
+		};
+	},
+);
+
 // Retry connection to a server
 export const retryConnection = command(z.string(), async (serverName) => {
 	logger.log("retryConnection called with payload:", { serverName });

@@ -31,7 +31,8 @@
 		position: fixed;
 		top: 90px;
 		right: 20px;
-		z-index: 1000;
+		/* Show above modal overlay */
+		z-index: 1001;
 		display: flex;
 		flex-direction: column;
 		gap: 12px;
