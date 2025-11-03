@@ -111,7 +111,7 @@ export const insertDocument = command(
 		server: z.string(),
 		database: z.string(),
 		collection: z.string(),
-		document: z.string(),
+		document: z.string().nullable().optional(),
 		value: z.unknown(),
 	}),
 	async ({ server, database, collection, document, value }) => {
@@ -124,14 +124,16 @@ export const insertDocument = command(
 
 		const newValue = JsonEncoder.decode(value);
 
-		// Ensure _id matches the document parameter
-		const _id = /^[0-9a-fA-F]{24}$/.test(document) ? new ObjectId(document) : document;
-		newValue._id = _id;
+		// If document is provided, use it as _id; otherwise let insertOne generate it automatically
+		if (document !== null && document !== undefined) {
+			const _id = /^[0-9a-fA-F]{24}$/.test(document) ? new ObjectId(document) : document;
+			newValue._id = _id;
+		}
 
-		await coll.insertOne(newValue);
+		const res = await coll.insertOne(newValue);
 
-		if (collection === "mongoku.mappings") {
-			client.clearMappingsCache(database, document);
+		if (collection === "mongoku.mappings" && typeof (res.insertedId as unknown) === "string") {
+			client.clearMappingsCache(database, res.insertedId as unknown as string);
 		}
 
 		return {

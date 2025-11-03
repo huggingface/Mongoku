@@ -1,6 +1,7 @@
 <script lang="ts">
 	import {
 		deleteDocument as deleteDocumentCommand,
+		insertDocument as insertDocumentCommand,
 		loadDocuments,
 		updateDocument as updateDocumentCommand,
 		updateMany as updateManyCommand,
@@ -26,6 +27,7 @@
 	let editMode = $state(false);
 	let updateQuery = $state("{}");
 	let isUpdating = $state(false);
+	let showInsertEditor = $state(false);
 
 	let finalCount = $state<number | null>(null);
 	let countCount = 0;
@@ -203,6 +205,45 @@
 		}
 	}
 
+	let insertJson = $state("{}");
+
+	async function executeInsert() {
+		isUpdating = true;
+		try {
+			const json = parseJSON(insertJson);
+			const result = await insertDocumentCommand({
+				server: data.server,
+				database: data.database,
+				collection: data.collection,
+				document: null,
+				value: json,
+			});
+
+			if (result.ok) {
+				notificationStore.notifySuccess("Document inserted successfully");
+				// Reset the modified items to force a refresh
+				modifiedItems = null;
+				showInsertEditor = false;
+				insertJson = "{}";
+			}
+		} catch (error) {
+			console.error(error);
+			notificationStore.notifyError(error, "Failed to insert document");
+		} finally {
+			isUpdating = false;
+		}
+	}
+
+	function handleInsertClick() {
+		showInsertEditor = true;
+		insertJson = "{}";
+	}
+
+	function cancelInsert() {
+		showInsertEditor = false;
+		insertJson = "{}";
+	}
+
 	function getReversedSort(): string {
 		const currentSort = params.sort || "{}";
 
@@ -317,52 +358,119 @@
 <SearchBox bind:params bind:editMode readonly={data.readOnly} />
 
 {#if editMode}
-	<Panel title="Update Multiple Documents">
-		<div class="p-4 sm:p-6 space-y-4">
-			<div>
-				<label for="update-filter" class="block text-sm font-semibold mb-2" style="color: var(--text);">
-					Filter (which documents to update):
-				</label>
-				<input
-					type="text"
-					id="update-filter"
-					value={params.query || "{}"}
-					readonly
-					class="w-full p-3 rounded-xl border border-[var(--border-color)] bg-[var(--color-3)] font-mono text-sm opacity-75 cursor-not-allowed"
-					style="color: var(--text);"
-				/>
-				<p class="text-xs mt-2" style="color: var(--text-secondary);">
-					This filter is taken from the query above. Modify the query to change which documents will be updated.
-				</p>
+	<Panel title="Edit Mode">
+		<div class="p-4 sm:p-6 space-y-6">
+			<!-- Insert Document Section -->
+			<div class="rounded-xl bg-[var(--color-3)]/30 p-4 border border-[var(--border-color)]">
+				<h3 class="text-lg font-semibold mb-3" style="color: var(--text);">Insert New Document</h3>
+				{#if !showInsertEditor}
+					<button class="btn btn-success" onclick={handleInsertClick}>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="w-4 h-4 inline mr-2"
+						>
+							<path d="M12 5v14M5 12h14" />
+						</svg>
+						Insert Document
+					</button>
+				{:else}
+					<div class="space-y-3">
+						<label for="insert-document" class="block text-sm font-semibold mb-2" style="color: var(--text);">
+							Document JSON:
+						</label>
+						<textarea
+							id="insert-document"
+							bind:value={insertJson}
+							placeholder="Document JSON"
+							rows="6"
+							use:jsonTextarea={{ onsubmit: executeInsert }}
+							class="w-full p-3 rounded-xl border border-[var(--border-color)] bg-[var(--color-3)] font-mono text-sm focus:outline-none focus:ring-2"
+							style="color: var(--text); --tw-ring-color: var(--link);"
+						></textarea>
+						<div class="flex gap-3">
+							<button
+								class="btn btn-success hover:bg-[var(--button-success-l)]"
+								disabled={isUpdating}
+								onclick={executeInsert}
+							>
+								{isUpdating ? "Inserting..." : "Insert"}
+							</button>
+							<button class="btn btn-default" onclick={cancelInsert} disabled={isUpdating}>Cancel</button>
+						</div>
+					</div>
+				{/if}
 			</div>
-			<div>
-				<label for="update-operation" class="block text-sm font-semibold mb-2" style="color: var(--text);">
-					Update Operation (e.g., $set, $inc, $unset):
-				</label>
-				<textarea
-					bind:value={updateQuery}
-					placeholder="Update operation"
-					rows="4"
-					use:jsonTextarea={{ onsubmit: executeUpdateMany }}
-					class="w-full p-3 rounded-xl border border-[var(--border-color)] bg-[var(--color-3)] font-mono text-sm focus:outline-none focus:ring-2"
-					style="color: var(--text); --tw-ring-color: var(--link);"
-				></textarea>
+
+			<!-- Update Multiple Documents Section -->
+			<div class="rounded-xl bg-[var(--color-3)]/30 p-4 border border-[var(--border-color)]">
+				<h3 class="text-lg font-semibold mb-3" style="color: var(--text);">Update Multiple Documents</h3>
+				<div class="space-y-4">
+					<div>
+						<label for="update-filter" class="block text-sm font-semibold mb-2" style="color: var(--text);">
+							Filter (which documents to update):
+						</label>
+						<input
+							type="text"
+							id="update-filter"
+							value={params.query || "{}"}
+							readonly
+							class="w-full p-3 rounded-xl border border-[var(--border-color)] bg-[var(--color-3)] font-mono text-sm opacity-75 cursor-not-allowed"
+							style="color: var(--text);"
+						/>
+						<p class="text-xs mt-2" style="color: var(--text-secondary);">
+							This filter is taken from the query above. Modify the query to change which documents will be updated.
+						</p>
+					</div>
+					<div>
+						<label for="update-operation" class="block text-sm font-semibold mb-2" style="color: var(--text);">
+							Update Operation (e.g., $set, $inc, $unset):
+						</label>
+						<textarea
+							bind:value={updateQuery}
+							placeholder="Update operation"
+							rows="4"
+							use:jsonTextarea={{ onsubmit: executeUpdateMany }}
+							class="w-full p-3 rounded-xl border border-[var(--border-color)] bg-[var(--color-3)] font-mono text-sm focus:outline-none focus:ring-2"
+							style="color: var(--text); --tw-ring-color: var(--link);"
+						></textarea>
+					</div>
+					<div class="flex gap-3">
+						<button
+							class="btn btn-success hover:bg-[var(--button-success-l)]"
+							disabled={isUpdating}
+							onclick={executeUpdateMany}
+						>
+							{isUpdating ? "Updating..." : "Execute Update"}
+						</button>
+					</div>
+				</div>
 			</div>
-			<div class="flex gap-3">
+
+			<!-- Close Edit Mode -->
+			<div class="flex justify-end">
 				<button
-					class="btn btn-success hover:bg-[var(--button-success-l)]"
-					disabled={isUpdating}
-					onclick={executeUpdateMany}
+					class="btn btn-default hover:bg-[var(--color-3)]"
+					onclick={() => {
+						editMode = false;
+						showInsertEditor = false;
+					}}
 				>
-					{isUpdating ? "Updating..." : "Execute Update"}
+					Close Edit Mode
 				</button>
-				<button class="btn btn-default hover:bg-[var(--color-3)]" onclick={() => (editMode = false)}>Cancel</button>
 			</div>
+
+			<!-- Update Operation Examples -->
 			<div
 				class="text-sm rounded-xl bg-[var(--color-3)]/50 p-4 border border-[var(--border-color)]"
 				style="color: var(--text-secondary);"
 			>
-				<p class="mb-2 font-semibold" style="color: var(--text);">Examples:</p>
+				<p class="mb-2 font-semibold" style="color: var(--text);">Update Operation Examples:</p>
 				<p class="mb-2">
 					• Set a field: <code
 						class="bg-[var(--light-background)] px-2 py-1 rounded border border-[var(--border-color)] font-mono text-xs"
