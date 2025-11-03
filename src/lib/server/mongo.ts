@@ -89,7 +89,17 @@ export async function getCollectionJson(
 }
 
 class MongoClientWithMappings extends MongoClient {
+	url: string;
 	mappings: Record<string, Record<string, Mappings>> = {};
+	_id: string;
+	name: string;
+
+	constructor(url: string, _id: string, name: string) {
+		super(url);
+		this.url = url;
+		this._id = _id;
+		this.name = name;
+	}
 
 	async getMappings(dbName: string, collectionName: string, opts?: { forceRefresh?: boolean }): Promise<Mappings> {
 		if (opts?.forceRefresh || !this.mappings[dbName]?.[collectionName]) {
@@ -111,7 +121,7 @@ class MongoConnections {
 	 * Todo: better system where we can have mutiple servers with same hostname, and labels for each server that
 	 * would be displayed in the UI instead of the hostname.
 	 */
-	private clients: Map<string, MongoClientWithMappings> = new Map();
+	private clients: Map<string, MongoClientWithMappings> = new Map(); // _id -> MongoClientWithMappings
 	private clientIds: Map<string, string> = new Map(); // hostname -> _id
 	private hostsManager: HostsManager;
 	private countTimeout = parseInt(process.env.MONGOKU_COUNT_TIMEOUT!, 10) || 30_000;
@@ -144,8 +154,8 @@ class MongoConnections {
 				const hostname = url.host || host.path;
 
 				if (!this.clients.has(hostname)) {
-					const client = new MongoClientWithMappings(urlStr);
-					this.clients.set(hostname, client);
+					const client = new MongoClientWithMappings(urlStr, host._id, hostname);
+					this.clients.set(host._id, client);
 					this.clientIds.set(hostname, host._id);
 				}
 			} catch (err) {
@@ -155,7 +165,11 @@ class MongoConnections {
 	}
 
 	getClient(name: string): MongoClientWithMappings {
-		const client = this.clients.get(name) || this.clients.get(`${name}:27017`);
+		const clientId = this.clientIds.get(name) || this.clientIds.get(`${name}:27017`);
+		if (!clientId) {
+			throw new Error(`Client not found: ${name}`);
+		}
+		const client = this.clients.get(clientId);
 		if (!client) {
 			throw new Error(`Client not found: ${name}`);
 		}
@@ -197,8 +211,8 @@ class MongoConnections {
 			const hostname = url.host || hostPath;
 
 			if (!this.clients.has(hostname)) {
-				const client = new MongoClientWithMappings(urlStr);
-				this.clients.set(hostname, client);
+				const client = new MongoClientWithMappings(urlStr, id, hostname);
+				this.clients.set(id, client);
 				this.clientIds.set(hostname, id);
 			}
 		} catch (err) {
@@ -218,23 +232,18 @@ class MongoConnections {
 		this.clientIds.delete(name);
 	}
 
-	async reconnectClient(name: string) {
-		// Try to find the connection string with the same logic as getClient
-		const connectionString = this.hostsManager.getHost(name);
-
-		if (!connectionString) {
-			throw new Error(`Connection string not found for client: ${name}`);
-		}
-
+	async reconnectClient(id: string) {
 		// Close the old client
-		const oldClient = this.clients.get(name);
-		if (oldClient) {
-			oldClient.close()?.catch((err) => logger.error(`Error closing old client ${name}:`, err));
+		const oldClient = this.clients.get(id);
+		if (!oldClient) {
+			throw new Error(`Client not found: ${id}`);
 		}
+
+		oldClient.close().catch((err) => logger.error(`Error closing old client ${id}:`, err));
 
 		// Create a new client
-		const newClient = new MongoClientWithMappings(connectionString);
-		this.clients.set(name, newClient);
+		const newClient = new MongoClientWithMappings(oldClient.url, id, oldClient.name);
+		this.clients.set(id, newClient);
 
 		// Test the connection
 		await newClient.connect();

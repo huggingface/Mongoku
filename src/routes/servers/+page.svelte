@@ -73,17 +73,16 @@
 	}
 
 	async function retryServerConnection(server: Server) {
-		const name = serverName(server.name);
-		retryingServers.add(name);
+		retryingServers.add(server._id);
 
 		try {
-			await retryConnection(name);
+			await retryConnection(server._id);
 			notificationStore.notifySuccess("Connection restored successfully");
 			await invalidateAll();
 		} catch (error) {
 			notificationStore.notifyError(error, "Failed to retry connection");
 		} finally {
-			retryingServers.delete(name);
+			retryingServers.delete(server._id);
 		}
 	}
 </script>
@@ -178,9 +177,9 @@
 										<button
 											class="btn btn-default btn-sm -my-2 hidden group-hover:inline"
 											onclick={() => retryServerConnection(server)}
-											disabled={retryingServers.has(serverName(server.name))}
+											disabled={retryingServers.has(server._id)}
 										>
-											{retryingServers.has(serverName(server.name)) ? "Retrying..." : "Retry"}
+											{retryingServers.has(server._id) ? "Retrying..." : "Retry"}
 										</button>
 									{/if}
 								{/await}

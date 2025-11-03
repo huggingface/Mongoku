@@ -336,12 +336,12 @@ export const dropDatabase = command(
 );
 
 // Retry connection to a server
-export const retryConnection = command(z.string(), async (serverName) => {
-	logger.log("retryConnection called with payload:", { serverName });
+export const retryConnection = command(z.string(), async (serverId) => {
+	logger.log("retryConnection called with payload:", { serverId });
 	const mongo = await getMongo();
 
 	// Reconnect the client (closes old connection and creates a new one)
-	await mongo.reconnectClient(serverName);
+	await mongo.reconnectClient(serverId);
 
 	return { ok: true };
 });
