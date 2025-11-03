@@ -1,6 +1,7 @@
 <script lang="ts">
 	import {
 		dropIndex as dropIndexCommand,
+		getIndexStatsWithReadPreference,
 		hideIndex as hideIndexCommand,
 		unhideIndex as unhideIndexCommand,
 	} from "$api/servers.remote";
@@ -8,6 +9,7 @@
 	import JsonValue from "$lib/components/JsonValue.svelte";
 	import Modal from "$lib/components/Modal.svelte";
 	import Panel from "$lib/components/Panel.svelte";
+	import ReplicaSetSelector from "$lib/components/ReplicaSetSelector.svelte";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import { formatBytes } from "$lib/utils/filters";
 	import { omit } from "$lib/utils/omit.js";
@@ -20,6 +22,11 @@
 	let loadingIndexes = $state<Set<string>>(new Set());
 	let showDropModal = $state(false);
 	let indexToDrop = $state<string | null>(null);
+	let showReplicaSetSelector = $state(false);
+	let selectedNodes = $state<string[]>([]);
+	let customTags = $state('{ nodeType: "READ_ONLY" }');
+	let multiNodeStats = $state<Record<string, { ops: number; since: Date; host: string; readPreference: string }>>({});
+	let loadingMultiNodeStats = $state(false);
 
 	// Resolve the promise once and store the result
 	$effect(() => {
@@ -113,6 +120,96 @@
 			loadingIndexes = loadingIndexes;
 		}
 	}
+
+	async function fetchMultiNodeStats() {
+		const { server, database, collection } = page.params;
+		if (!server || !database || !collection) return;
+
+		loadingMultiNodeStats = true;
+		multiNodeStats = {};
+
+		try {
+			// Fetch stats from selected nodes
+			const requests = [
+				...(selectedNodes.includes("primary")
+					? [
+							{
+								promise: getIndexStatsWithReadPreference({
+									server,
+									database,
+									collection,
+									readPreferenceMode: "primary",
+								}),
+								readPreference: "primary",
+							},
+						]
+					: []),
+				...(selectedNodes.includes("secondary")
+					? [
+							{
+								promise: getIndexStatsWithReadPreference({
+									server,
+									database,
+									collection,
+									readPreferenceMode: "secondary",
+								}),
+								readPreference: "secondary",
+							},
+						]
+					: []),
+				...(selectedNodes.includes("custom") || (customTags && customTags.trim() && !selectedNodes.length)
+					? [
+							{
+								promise: getIndexStatsWithReadPreference({
+									server,
+									database,
+									collection,
+									readPreferenceMode: "nearest",
+									readPreferenceTags: customTags,
+								}),
+								readPreference: `tags: ${customTags}`,
+							},
+						]
+					: []),
+			];
+
+			const results = await Promise.all(requests.map((r) => r.promise));
+
+			// Merge results
+			const mergedStats: Record<string, { ops: number; since: Date; host: string; readPreference: string }> = {};
+
+			for (let i = 0; i < results.length; i++) {
+				const result = results[i];
+				const readPreference = requests[i].readPreference;
+
+				if (result.error) {
+					notificationStore.notifyError(result.error, "Failed to fetch stats");
+					continue;
+				}
+
+				// Merge stats by index name and host
+				for (const [indexName, stats] of Object.entries(result.data)) {
+					const typedStats = stats as { ops: number; since: Date; host: string };
+					const key = `${indexName}::${typedStats.host}`;
+					mergedStats[key] = { ...typedStats, readPreference };
+				}
+			}
+
+			multiNodeStats = mergedStats;
+
+			if (Object.keys(mergedStats).length === 0) {
+				notificationStore.notifyError("No stats found", "No index stats found for selected nodes");
+			} else {
+				notificationStore.notifySuccess(
+					`Fetched stats from ${Object.keys(mergedStats).length} index/host combinations`,
+				);
+			}
+		} catch (error) {
+			notificationStore.notifyError(error, "Failed to fetch multi-node usage");
+		} finally {
+			loadingMultiNodeStats = false;
+		}
+	}
 </script>
 
 {#await indexesData}
@@ -131,6 +228,24 @@
 			<div class="text-center p-4" style="color: var(--text-darker)">No indexes found</div>
 		</Panel>
 	{:else}
+		<!-- Replica Set Selector Section -->
+		<div class="mb-4">
+			<button class="btn btn-primary btn-sm mb-3" onclick={() => (showReplicaSetSelector = !showReplicaSetSelector)}>
+				{showReplicaSetSelector ? "Hide" : "Show"} Multi-Node Usage
+			</button>
+
+			{#if showReplicaSetSelector}
+				<ReplicaSetSelector bind:selectedNodes bind:customTags />
+				<button
+					class="btn btn-primary btn-sm mt-3"
+					onclick={fetchMultiNodeStats}
+					disabled={loadingMultiNodeStats || (selectedNodes.length === 0 && !customTags.trim())}
+				>
+					{loadingMultiNodeStats ? "Fetching..." : "Fetch Usage"}
+				</button>
+			{/if}
+		</div>
+
 		<Panel title="Indexes">
 			<div class="table-wrapper">
 				<table class="table">
@@ -195,8 +310,18 @@
 								</td>
 								<td>
 									{#if index.stats}
+										{@const indexMultiNodeStats = Object.entries(multiNodeStats)
+											.filter(([key]) => key.startsWith(`${index.name}::`))
+											.map(([, stats]) => stats)}
 										<div class="text-sm mt-1">
-											<div>{index.stats.ops.toLocaleString()}</div>
+											{#if indexMultiNodeStats.length > 0}
+												{#each indexMultiNodeStats as stats, i (i)}
+													{#if i > 0}<span> + </span>{/if}
+													<span class="stat-value" title={stats.readPreference}>{stats.ops.toLocaleString()}</span>
+												{/each}
+											{:else}
+												<div>{index.stats.ops.toLocaleString()}</div>
+											{/if}
 										</div>
 									{:else}
 										<span style="color: var(--text-darker)">-</span>
@@ -352,5 +477,10 @@
 		background-color: var(--color-1);
 		border: 1px solid var(--border-color);
 		max-width: 600px;
+	}
+
+	.stat-value {
+		border-bottom: 1px dotted var(--text);
+		cursor: help;
 	}
 </style>

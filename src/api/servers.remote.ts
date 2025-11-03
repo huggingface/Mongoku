@@ -6,7 +6,7 @@ import { getMongo } from "$lib/server/mongo";
 import { isEmptyObject } from "$lib/utils/isEmptyObject";
 import { parseJSON } from "$lib/utils/jsonParser";
 import { error } from "@sveltejs/kit";
-import { ObjectId, type Document } from "mongodb";
+import { ObjectId, ReadPreference, type Document } from "mongodb";
 import { z } from "zod";
 
 // Check if read-only mode is enabled
@@ -495,5 +495,81 @@ export const fetchMappedDocument = query(
 			collection: null,
 			error: "Document not found in any mapped collection",
 		};
+	},
+);
+
+// Fetch index stats with read preference
+export const getIndexStatsWithReadPreference = query(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		collection: z.string(),
+		readPreferenceMode: z.string().optional(),
+		readPreferenceTags: z.string().optional(),
+	}),
+	async ({ server, database, collection, readPreferenceMode, readPreferenceTags }) => {
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+
+		try {
+			// Parse tags if provided
+			let tags;
+			if (readPreferenceTags) {
+				try {
+					tags = parseJSON(readPreferenceTags);
+					// Ensure tags is an object or array of objects
+					if (typeof tags !== "object" || tags === null) {
+						error(400, "Invalid read preference tags format");
+					}
+					// If it's a single object, wrap it in an array
+					if (!Array.isArray(tags)) {
+						tags = [tags];
+					}
+				} catch (err) {
+					error(400, `Invalid read preference tags JSON: ${err}`);
+				}
+			}
+
+			// Build read preference
+			let readPreference;
+			if (readPreferenceMode || tags) {
+				const mode = (readPreferenceMode || "nearest") as
+					| "primary"
+					| "primaryPreferred"
+					| "secondary"
+					| "secondaryPreferred"
+					| "nearest";
+				readPreference = tags ? new ReadPreference(mode, tags) : new ReadPreference(mode);
+			}
+
+			const coll = client.db(database).collection(collection);
+
+			// Get index usage statistics with read preference
+			const aggregateOptions = readPreference ? { readPreference } : {};
+			const statsResult = await coll.aggregate([{ $indexStats: {} }], aggregateOptions).toArray();
+
+			const indexStats = statsResult.reduce(
+				(acc, stat) => {
+					acc[stat.name] = {
+						ops: stat.accesses?.ops || 0,
+						since: stat.accesses?.since || new Date(),
+						host: stat.host || "unknown",
+					};
+					return acc;
+				},
+				{} as Record<string, { ops: number; since: Date; host: string }>,
+			);
+
+			return {
+				data: JsonEncoder.encode(indexStats),
+				error: null,
+			};
+		} catch (err) {
+			logger.error("Error fetching index stats with read preference:", err);
+			return {
+				data: {},
+				error: `Failed to fetch index stats: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
 	},
 );
