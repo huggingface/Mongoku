@@ -14,6 +14,7 @@
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import type { MongoDocument, SearchParams } from "$lib/types";
 	import { formatNumber } from "$lib/utils/filters";
+	import { parseJSON, serializeForEditing } from "$lib/utils/jsonParser";
 	import { SvelteURLSearchParams } from "svelte/reactivity";
 	import type { PageData } from "./$types";
 
@@ -71,7 +72,7 @@
 
 	async function editDocument(_id: { $value?: string } | undefined, json: MongoDocument, items: MongoDocument[]) {
 		const partial = Boolean(
-			params.project && params.project !== "{}" && Object.keys(JSON.parse(params.project)).length > 0,
+			params.project && params.project !== "{}" && Object.keys(parseJSON(params.project) as object).length > 0,
 		);
 		const newId = json?._id?.$value;
 		const oldId = _id?.$value;
@@ -201,6 +202,67 @@
 			isUpdating = false;
 		}
 	}
+
+	function getReversedSort(): string {
+		const currentSort = params.sort || "{}";
+
+		// If no sort is defined, default to _id: -1
+		if (currentSort.replace(/\s/g, "") === "{}") {
+			return serializeForEditing({ _id: -1 })
+				.replace(/[\n\t]/g, " ")
+				.replace(/\s+/g, " ");
+		}
+
+		const sortObj = parseJSON(currentSort) as Record<string, unknown>;
+		const reversedSort: Record<string, number> = {};
+
+		// Reverse each sort field
+		for (const [key, value] of Object.entries(sortObj)) {
+			if (typeof value === "number") {
+				reversedSort[key] = value === 1 ? -1 : 1;
+			} else {
+				// Keep non-numeric values as-is
+				reversedSort[key] = value as number;
+			}
+		}
+
+		// Serialize and compact the output (remove newlines and extra spaces)
+		return serializeForEditing(reversedSort)
+			.replace(/[\n\t]/g, " ")
+			.replace(/\s+/g, " ");
+	}
+
+	function toggleSort(e: MouseEvent) {
+		e.preventDefault();
+		const newSort = getReversedSort();
+
+		params.sort = newSort;
+		data.params.sort = newSort;
+		data.params.skip = 0;
+		params.skip = 0;
+
+		const queryParams = new SvelteURLSearchParams();
+		queryParams.set("query", params.query || "{}");
+		queryParams.set("sort", newSort);
+		queryParams.set("project", params.project || "");
+		queryParams.set("skip", "0");
+		queryParams.set("limit", String(params.limit));
+
+		const url = `/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}/documents?${queryParams.toString()}`;
+
+		/* eslint-disable-next-line svelte/no-navigation-without-resolve */
+		pushState(url, {});
+		dataPromise = loadDocuments({
+			server: data.server,
+			database: data.database,
+			collection: data.collection,
+			query: params.query,
+			sort: newSort,
+			project: params.project,
+			skip: 0,
+			limit: params.limit,
+		});
+	}
 </script>
 
 {#snippet previousButton(url: string, onClick: (e: MouseEvent) => void)}
@@ -225,6 +287,31 @@
 	>
 		Next
 	</a>
+{/snippet}
+
+{#snippet sortButton()}
+	<button
+		onclick={toggleSort}
+		class="px-3 py-1 rounded-lg border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] text-[13px] transition"
+		style="color: var(--text); cursor: pointer;"
+		title="Reverse sort order"
+	>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			class="w-4 h-4"
+		>
+			<path d="M3 6h18" />
+			<path d="M7 12h10" />
+			<path d="M10 18h4" />
+			<path d="m7 16 3 3 3-3" />
+		</svg>
+	</button>
 {/snippet}
 
 <SearchBox bind:params bind:editMode readonly={data.readOnly} />
@@ -314,6 +401,7 @@
 				{#if data.params.skip + data.params.limit < finalCount}
 					{@render nextButton(nextUrl, navigateNext)}
 				{/if}
+				{@render sortButton()}
 			{/if}
 		{/snippet}
 	</Panel>
@@ -334,6 +422,7 @@
 				{#if items.length >= data.params.limit}
 					{@render nextButton(nextUrl, navigateNext)}
 				{/if}
+				{@render sortButton()}
 			{/snippet}
 		</Panel>
 	{:then countData}
@@ -358,6 +447,7 @@
 					{#if hasNext}
 						{@render nextButton(nextUrl, navigateNext)}
 					{/if}
+					{@render sortButton()}
 				{/snippet}
 			</Panel>
 		{/if}

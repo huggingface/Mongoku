@@ -4,7 +4,7 @@
 	import { jsonTextarea } from "$lib/actions/jsonTextarea";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import type { Mappings, MongoDocument } from "$lib/types";
-	import { parseJSON } from "$lib/utils/jsonParser";
+	import { parseJSON, serializeForEditing } from "$lib/utils/jsonParser";
 	import JsonValue from "./JsonValue.svelte";
 	import Panel from "./Panel.svelte";
 
@@ -103,52 +103,6 @@
 		} catch {
 			return null;
 		}
-	}
-
-	// Custom serializer that converts ObjectId objects back to new ObjectId() format
-	function serializeForEditing(obj: any, depth = 0): string {
-		const indent = "\t".repeat(depth);
-		const nextIndent = "\t".repeat(depth + 1);
-
-		if (obj === null) return "null";
-		if (obj === undefined) return "undefined";
-		if (typeof obj === "string") return JSON.stringify(obj);
-		if (typeof obj === "number") return obj.toString();
-		if (typeof obj === "boolean") return obj.toString();
-
-		if (Array.isArray(obj)) {
-			if (obj.length === 0) return "[]";
-			const items = obj.map((item) => `${nextIndent}${serializeForEditing(item, depth + 1)}`).join(",\n");
-			return `[\n${items}\n${indent}]`;
-		}
-
-		if (typeof obj === "object") {
-			// Handle special MongoDB types
-			if (obj.$type === "ObjectId") {
-				return `new ObjectId("${obj.$value}")`;
-			}
-			if (obj.$type === "Date") {
-				return `new Date("${obj.$value}")`;
-			}
-			if (obj.$type === "RegExp") {
-				return `new RegExp("${obj.$value.$pattern}", "${obj.$value.$flags}")`;
-			}
-
-			// Handle regular objects
-			const keys = Object.keys(obj);
-			if (keys.length === 0) return "{}";
-
-			const pairs = keys
-				.map((key) => {
-					const value = serializeForEditing(obj[key], depth + 1);
-					return `${nextIndent}${JSON.stringify(key)}: ${value}`;
-				})
-				.join(",\n");
-
-			return `{\n${pairs}\n${indent}}`;
-		}
-
-		return JSON.stringify(obj);
 	}
 
 	function enableEditor() {

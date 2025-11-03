@@ -1,5 +1,19 @@
 import { tick } from "svelte";
 
+/**
+ * This action is used to create a portal for a given node.
+ *
+ * On the container:
+ * <div use:createPortal></div>
+ *
+ * On the target:
+ * <div use:portal></div>
+ *
+ * Or if you want to use a custom id:
+ * <div use:createPortal="custom-id"></div>
+ * <div use:portal="custom-id"></div>
+ */
+
 const portal_map = new Map<string, HTMLElement>();
 
 export function createPortal(node: HTMLElement, id = "default") {
