@@ -53,7 +53,7 @@
 		if (dataPromise) {
 			modifiedItems = null;
 		}
-		dataPromise.then((result) => {
+		dataPromise?.then((result) => {
 			if (result.error) {
 				notificationStore.notifyError(result.error);
 			}
