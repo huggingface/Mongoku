@@ -317,7 +317,9 @@
 											{#if indexMultiNodeStats.length > 0}
 												{#each indexMultiNodeStats as stats, i (i)}
 													{#if i > 0}<span> + </span>{/if}
-													<span class="stat-value" title={stats.readPreference}>{stats.ops.toLocaleString()}</span>
+													<span class="stat-value" title={`${stats.host} (${stats.readPreference})`}>
+														{stats.ops.toLocaleString()}
+													</span>
 												{/each}
 											{:else}
 												<div>{index.stats.ops.toLocaleString()}</div>

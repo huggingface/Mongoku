@@ -548,16 +548,15 @@ export const getIndexStatsWithReadPreference = query(
 			const aggregateOptions = readPreference ? { readPreference } : {};
 			const statsResult = await coll.aggregate([{ $indexStats: {} }], aggregateOptions).toArray();
 
-			const indexStats = statsResult.reduce(
-				(acc, stat) => {
-					acc[stat.name] = {
+			const indexStats = Object.fromEntries(
+				statsResult.map((stat) => [
+					stat.name,
+					{
 						ops: stat.accesses?.ops || 0,
 						since: stat.accesses?.since || new Date(),
 						host: stat.host || "unknown",
-					};
-					return acc;
-				},
-				{} as Record<string, { ops: number; since: Date; host: string }>,
+					},
+				]),
 			);
 
 			return {
