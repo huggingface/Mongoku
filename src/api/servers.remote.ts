@@ -6,7 +6,7 @@ import { getMongo } from "$lib/server/mongo";
 import { isEmptyObject } from "$lib/utils/isEmptyObject";
 import { parseJSON } from "$lib/utils/jsonParser";
 import { error } from "@sveltejs/kit";
-import { ObjectId, ReadPreference, type Document } from "mongodb";
+import { MongoClient, ObjectId, ReadPreference, type Document } from "mongodb";
 import { z } from "zod";
 
 // Check if read-only mode is enabled
@@ -506,10 +506,35 @@ export const getIndexStatsWithReadPreference = query(
 		collection: z.string(),
 		readPreferenceMode: z.string().optional(),
 		readPreferenceTags: z.string().optional(),
+		targetHost: z.string().optional(),
 	}),
-	async ({ server, database, collection, readPreferenceMode, readPreferenceTags }) => {
+	async ({ server, database, collection, readPreferenceMode, readPreferenceTags, targetHost }) => {
 		const mongo = await getMongo();
-		const client = mongo.getClient(server);
+
+		// Get client - either the default or a new one targeting a specific host
+		const client = await (async () => {
+			if (!targetHost) {
+				return mongo.getClient(server);
+			}
+
+			try {
+				const baseClient = mongo.getClient(server);
+				const connectionString = new URL(baseClient.url);
+
+				connectionString.host = targetHost;
+				// remove the "+srv" from the protocol for direct connection
+				connectionString.protocol = "mongodb://";
+				connectionString.searchParams.set("directConnection", "true");
+
+				// Create a temporary client for this specific host
+				const tempClient = new MongoClient(connectionString.href) as typeof baseClient;
+				await tempClient.connect();
+				return tempClient;
+			} catch (err) {
+				logger.error(`Error creating client for target host ${targetHost}:`, err);
+				error(500, `Failed to connect to host ${targetHost}: ${err instanceof Error ? err.message : String(err)}`);
+			}
+		})();
 
 		try {
 			// Parse tags if provided
@@ -559,12 +584,23 @@ export const getIndexStatsWithReadPreference = query(
 				]),
 			);
 
+			// Close the temporary client if we created one
+			if (targetHost) {
+				await client.close().catch((err) => logger.error("Error closing temporary client:", err));
+			}
+
 			return {
 				data: JsonEncoder.encode(indexStats),
 				error: null,
 			};
 		} catch (err) {
 			logger.error("Error fetching index stats with read preference:", err);
+
+			// Close the temporary client if we created one
+			if (targetHost) {
+				await client.close().catch((closeErr) => logger.error("Error closing temporary client:", closeErr));
+			}
+
 			return {
 				data: {},
 				error: `Failed to fetch index stats: ${err instanceof Error ? err.message : String(err)}`,

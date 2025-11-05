@@ -25,8 +25,12 @@
 	let showReplicaSetSelector = $state(false);
 	let selectedNodes = $state<string[]>([]);
 	let customTags = $state('{ nodeType: "READ_ONLY" }');
+	let delaySeconds = $state(30);
 	let multiNodeStats = $state<Record<string, { ops: number; since: Date; host: string; readPreference: string }>>({});
 	let loadingMultiNodeStats = $state(false);
+	let measuringDelta = $state(false);
+	let progressPercent = $state(0);
+	let progressInterval: ReturnType<typeof setInterval> | null = null;
 
 	// Resolve the promise once and store the result
 	$effect(() => {
@@ -125,11 +129,19 @@
 		const { server, database, collection } = page.params;
 		if (!server || !database || !collection) return;
 
+		// Clear any existing progress interval
+		if (progressInterval) {
+			clearInterval(progressInterval);
+			progressInterval = null;
+		}
+
 		loadingMultiNodeStats = true;
+		measuringDelta = false;
+		progressPercent = 0;
 		multiNodeStats = {};
 
 		try {
-			// Fetch stats from selected nodes
+			// Fetch stats from selected nodes - FIRST FETCH
 			const requests = [
 				...(selectedNodes.includes("primary")
 					? [
@@ -175,8 +187,9 @@
 
 			const results = await Promise.all(requests.map((r) => r.promise));
 
-			// Merge results
-			const mergedStats: Record<string, { ops: number; since: Date; host: string; readPreference: string }> = {};
+			// Store initial stats and track hosts
+			const initialStats: Record<string, { ops: number; since: Date; host: string; readPreference: string }> = {};
+			const hostsToQuery: string[] = [];
 
 			for (let i = 0; i < results.length; i++) {
 				const result = results[i];
@@ -187,27 +200,99 @@
 					continue;
 				}
 
-				// Merge stats by index name and host
+				// Store initial stats by index name and host
 				for (const [indexName, stats] of Object.entries(result.data)) {
 					const typedStats = stats as { ops: number; since: Date; host: string };
 					const key = `${indexName}::${typedStats.host}`;
-					mergedStats[key] = { ...typedStats, readPreference };
+					initialStats[key] = { ...typedStats, readPreference };
+
+					// Track unique hosts
+					if (!hostsToQuery.includes(typedStats.host)) {
+						hostsToQuery.push(typedStats.host);
+					}
 				}
 			}
 
-			multiNodeStats = mergedStats;
-
-			if (Object.keys(mergedStats).length === 0) {
+			if (Object.keys(initialStats).length === 0) {
 				notificationStore.notifyError("No stats found", "No index stats found for selected nodes");
-			} else {
-				notificationStore.notifySuccess(
-					`Fetched stats from ${Object.keys(mergedStats).length} index/host combinations`,
-				);
+				loadingMultiNodeStats = false;
+				return;
 			}
+
+			notificationStore.notifySuccess(`Initial fetch complete. Waiting ${delaySeconds}s to measure delta...`);
+			loadingMultiNodeStats = false;
+			measuringDelta = true;
+
+			// Start progress bar
+			const startTime = Date.now();
+			const totalMs = delaySeconds * 1000;
+			progressInterval = setInterval(() => {
+				const elapsed = Date.now() - startTime;
+				progressPercent = Math.min((elapsed / totalMs) * 100, 100);
+
+				if (progressPercent >= 100) {
+					if (progressInterval) clearInterval(progressInterval);
+				}
+			}, 100);
+
+			// Wait for the configured delay
+			await new Promise((resolve) => setTimeout(resolve, totalMs));
+
+			// SECOND FETCH - from specific hosts
+			const secondRequests = hostsToQuery.map((host) => ({
+				promise: getIndexStatsWithReadPreference({
+					server,
+					database,
+					collection,
+					targetHost: host,
+				}),
+				host,
+			}));
+
+			const secondResults = await Promise.all(secondRequests.map((r) => r.promise));
+
+			// Calculate deltas
+			const deltaStats: Record<string, { ops: number; since: Date; host: string; readPreference: string }> = {};
+
+			for (let i = 0; i < secondResults.length; i++) {
+				const result = secondResults[i];
+				const host = secondRequests[i].host;
+
+				if (result.error) {
+					notificationStore.notifyError(result.error, `Failed to fetch stats from ${host}`);
+					continue;
+				}
+
+				// Calculate delta for each index
+				for (const [indexName, stats] of Object.entries(result.data)) {
+					const typedStats = stats as { ops: number; since: Date; host: string };
+					const key = `${indexName}::${typedStats.host}`;
+					const initial = initialStats[key];
+
+					if (initial) {
+						const delta = typedStats.ops - initial.ops;
+						deltaStats[key] = {
+							ops: delta,
+							since: initial.since,
+							host: typedStats.host,
+							readPreference: initial.readPreference,
+						};
+					}
+				}
+			}
+
+			multiNodeStats = deltaStats;
+			notificationStore.notifySuccess(`Delta measurement complete! Showing usage increase over ${delaySeconds}s`);
 		} catch (error) {
 			notificationStore.notifyError(error, "Failed to fetch multi-node usage");
 		} finally {
 			loadingMultiNodeStats = false;
+			measuringDelta = false;
+			progressPercent = 0;
+			if (progressInterval) {
+				clearInterval(progressInterval);
+				progressInterval = null;
+			}
 		}
 	}
 </script>
@@ -235,14 +320,25 @@
 			</button>
 
 			{#if showReplicaSetSelector}
-				<ReplicaSetSelector bind:selectedNodes bind:customTags />
+				<ReplicaSetSelector bind:selectedNodes bind:customTags bind:delaySeconds />
 				<button
 					class="btn btn-primary btn-sm mt-3"
 					onclick={fetchMultiNodeStats}
-					disabled={loadingMultiNodeStats || (selectedNodes.length === 0 && !customTags.trim())}
+					disabled={loadingMultiNodeStats || measuringDelta || (selectedNodes.length === 0 && !customTags.trim())}
 				>
-					{loadingMultiNodeStats ? "Fetching..." : "Fetch Usage"}
+					{loadingMultiNodeStats ? "Fetching..." : measuringDelta ? "Measuring..." : "Fetch Usage Delta"}
 				</button>
+
+				{#if measuringDelta}
+					<div class="progress-bar-container mt-3">
+						<div class="progress-bar-label">
+							Measuring delta... {Math.round(progressPercent)}% ({Math.round((delaySeconds * progressPercent) / 100)}s / {delaySeconds}s)
+						</div>
+						<div class="progress-bar">
+							<div class="progress-bar-fill" style="width: {progressPercent}%"></div>
+						</div>
+					</div>
+				{/if}
 			{/if}
 		</div>
 
@@ -484,5 +580,34 @@
 	.stat-value {
 		border-bottom: 1px dotted var(--text);
 		cursor: help;
+	}
+
+	.progress-bar-container {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.progress-bar-label {
+		font-size: 13px;
+		color: var(--text);
+	}
+
+	.progress-bar {
+		height: 24px;
+		background-color: var(--color-3);
+		border-radius: 6px;
+		border: 1px solid var(--border-color);
+		overflow: hidden;
+		position: relative;
+	}
+
+	.progress-bar-fill {
+		height: 100%;
+		background: linear-gradient(90deg, var(--button-primary), var(--button-success));
+		transition: width 0.1s linear;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 </style>

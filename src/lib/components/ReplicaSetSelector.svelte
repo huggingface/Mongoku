@@ -2,12 +2,14 @@
 	interface Props {
 		selectedNodes?: string[];
 		customTags?: string;
+		delaySeconds?: number;
 		onchange?: (nodes: string[], tags: string) => void;
 	}
 
 	let {
 		selectedNodes = $bindable([]),
 		customTags = $bindable('{ nodeType: "READ_ONLY" }'),
+		delaySeconds = $bindable(30),
 		onchange,
 	}: Props = $props();
 
@@ -64,6 +66,24 @@
 			/>
 		</div>
 	{/if}
+
+	<div class="delay-input">
+		<label for="delaySeconds" class="tags-label">
+			Delta Measurement Delay (seconds):
+		</label>
+		<input
+			id="delaySeconds"
+			type="number"
+			bind:value={delaySeconds}
+			min="5"
+			max="300"
+			step="5"
+			class="tags-input"
+		/>
+		<span class="text-xs" style="color: var(--text-darker)">
+			Will measure usage delta over this time period
+		</span>
+	</div>
 </div>
 
 <style lang="postcss">
@@ -147,5 +167,11 @@
 
 	.tags-input::placeholder {
 		color: var(--text-darker);
+	}
+
+	.delay-input {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
 	}
 </style>
