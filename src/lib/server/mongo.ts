@@ -177,13 +177,11 @@ class MongoConnections {
 	}
 
 	listClients(): Array<{ name: string; _id: string; client: MongoClient }> {
-		return Array.from(this.clients.entries())
-			.filter(([, client]) => client instanceof MongoClient)
-			.map(([name, client]) => ({
-				name,
-				_id: this.clientIds.get(name) || "",
-				client: client as MongoClient,
-			}));
+		return Array.from(this.clients.values()).map((client) => ({
+			name: client.name,
+			_id: client._id,
+			client: client as MongoClient,
+		}));
 	}
 
 	getCountTimeout() {
