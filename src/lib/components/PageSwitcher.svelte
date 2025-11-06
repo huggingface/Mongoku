@@ -28,7 +28,9 @@
 				</span>
 			{:else}
 				<!-- eslint-disable @typescript-eslint/no-explicit-any -->
+				<!-- data-sveltekit-reload because sometimes, when on documents pages and switching to indexes page, I get an error -->
 				<a
+					data-sveltekit-reload
 					href={resolve(category.href as any)}
 					class="px-3 py-1.5 text-[13px] hover:bg-[var(--color-3)] transition no-underline"
 					style="color: var(--text-secondary);"

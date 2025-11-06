@@ -39,7 +39,7 @@
 	$effect(() => {
 		const currentCount = ++countCount;
 		finalCount = null;
-		data.count?.then((result) => {
+		data.count.then((result) => {
 			if (currentCount !== countCount) {
 				return;
 			}
@@ -53,7 +53,7 @@
 		if (dataPromise) {
 			modifiedItems = null;
 		}
-		dataPromise?.then((result) => {
+		dataPromise.then((result) => {
 			if (result.error) {
 				notificationStore.notifyError(result.error);
 			}
@@ -61,7 +61,7 @@
 	});
 
 	$effect(() => {
-		data.count?.then((result) => {
+		data.count.then((result) => {
 			// Don't show notification for timeout errors - they're displayed in the UI
 			if (result.error && !result.error.includes("operation exceeded time limit")) {
 				notificationStore.notifyError(result.error);
