@@ -17,19 +17,19 @@ export const load: PageServerLoad = async ({ params, depends }) => {
 			const indexList = (await collection.listIndexes().toArray()) as IndexDescription[];
 
 			// Get index usage statistics
-			let indexStats: Record<string, { ops: number; since: Date }> = {};
+			let indexStats: Record<string, { ops: number; since: Date; building: boolean }> = {};
 			try {
 				const statsResult = await collection.aggregate([{ $indexStats: {} }]).toArray();
 
-				indexStats = statsResult.reduce(
-					(acc, stat) => {
-						acc[stat.name] = {
+				indexStats = Object.fromEntries(
+					statsResult.map((stat) => [
+						stat.name,
+						{
 							ops: stat.accesses?.ops || 0,
 							since: stat.accesses?.since || new Date(),
-						};
-						return acc;
-					},
-					{} as Record<string, { ops: number; since: Date }>,
+							building: stat.building || false,
+						},
+					]),
 				);
 			} catch (err) {
 				logger.error("Error fetching index stats:", err);

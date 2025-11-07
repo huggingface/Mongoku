@@ -163,6 +163,12 @@
 		background-color: var(--light-background);
 	}
 
+	input::placeholder,
+	textarea::placeholder {
+		color: var(--text-secondary);
+		opacity: 1;
+	}
+
 	::selection {
 		background-color: rgba(0, 122, 255, 0.2);
 		color: var(--text);
@@ -296,7 +302,6 @@
 		padding: 4px 10px;
 		border-radius: 8px;
 		font-size: 12px;
-		margin-right: 8px;
 		border: 1px solid var(--color-4);
 		background-color: var(--light-background);
 	}

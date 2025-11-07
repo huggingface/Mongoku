@@ -265,6 +265,61 @@ export const unhideIndex = command(
 	},
 );
 
+// Create an index
+export const createIndex = command(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		collection: z.string(),
+		keys: z.string(),
+		name: z.string().optional(),
+		unique: z.boolean().optional(),
+		sparse: z.boolean().optional(),
+		partialFilterExpression: z.string().optional(),
+		expireAfterSeconds: z.number().optional(),
+		background: z.boolean().optional(),
+	}),
+	async ({
+		server,
+		database,
+		collection,
+		keys,
+		name,
+		unique,
+		sparse,
+		partialFilterExpression,
+		expireAfterSeconds,
+		background,
+	}) => {
+		logger.log("createIndex called with payload:", { server, database, collection, keys, name, unique, sparse });
+		checkReadOnly();
+
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+		const coll = client.db(database).collection(collection);
+
+		// Parse keys JSON
+		const keysDoc = JsonEncoder.decode(parseJSON(keys));
+
+		// Build options object
+		const options: Record<string, unknown> = {};
+		if (name) options.name = name;
+		if (unique) options.unique = unique;
+		if (sparse) options.sparse = sparse;
+		if (partialFilterExpression) {
+			options.partialFilterExpression = JsonEncoder.decode(parseJSON(partialFilterExpression));
+		}
+		if (expireAfterSeconds !== undefined) options.expireAfterSeconds = expireAfterSeconds;
+		if (background) options.background = background;
+
+		await coll.createIndex(keysDoc, options);
+
+		return {
+			ok: true,
+		};
+	},
+);
+
 // Drop an index
 export const dropIndex = command(
 	z.object({
