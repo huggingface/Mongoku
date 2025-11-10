@@ -36,6 +36,7 @@
 	let loadingMultiNodeStats = $state(false);
 	let creatingIndex = $state(false);
 	let aggregateUsage = $state(false);
+	let hasLoadedFromUrl = $state(false);
 
 	// Calculate shortened hostnames for display
 	const shortenedHostnames = $derived.by(() => {
@@ -218,7 +219,7 @@
 		}
 	}
 
-	async function fetchMultiNodeStats() {
+	async function fetchMultiNodeStats(updateUrl = true) {
 		const { server, database, collection } = page.params;
 		if (!server || !database || !collection) return;
 
@@ -250,6 +251,16 @@
 			} else {
 				notificationStore.notifySuccess(`Fetched stats from ${statsCount} index/host combination(s)`);
 			}
+
+			// Update URL with pushState
+			if (updateUrl) {
+				const url = new URL(window.location.href);
+				url.searchParams.set("nodes", selectedNodes.join(","));
+				if (aggregateUsage) {
+					url.searchParams.set("aggregate", "true");
+				}
+				window.history.pushState({}, "", url.toString());
+			}
 		} catch (error) {
 			notificationStore.notifyError(error, "Failed to fetch multi-node usage");
 		} finally {
@@ -261,6 +272,51 @@
 	$effect(() => {
 		if (showReplicaSetSelector && availableNodes.length === 0 && !loadingNodes) {
 			loadNodes();
+		}
+	});
+
+	// Restore state from URL on mount (only once)
+	$effect(() => {
+		if (!hasLoadedFromUrl) {
+			const url = new URL(page.url);
+			const nodesParam = url.searchParams.get("nodes");
+			const aggregateParam = url.searchParams.get("aggregate");
+
+			if (nodesParam) {
+				const nodes = nodesParam.split(",").filter((n) => n.length > 0);
+				if (nodes.length > 0) {
+					showReplicaSetSelector = true;
+					selectedNodes = nodes;
+
+					// Auto-fetch if we have nodes in URL
+					if (availableNodes.length === 0) {
+						loadNodes().then(() => {
+							if (nodes.length > 0) {
+								fetchMultiNodeStats(false); // Don't update URL since we're loading from it
+							}
+						});
+					}
+				}
+			}
+
+			if (aggregateParam !== null) {
+				aggregateUsage = aggregateParam === "true";
+			}
+
+			hasLoadedFromUrl = true;
+		}
+	});
+
+	// Update URL when aggregate mode changes (replaceState)
+	$effect(() => {
+		if (hasLoadedFromUrl && Object.keys(multiNodeStats).length > 0) {
+			const url = new URL(window.location.href);
+			if (aggregateUsage) {
+				url.searchParams.set("aggregate", "true");
+			} else {
+				url.searchParams.delete("aggregate");
+			}
+			window.history.replaceState({}, "", url.toString());
 		}
 	});
 </script>
@@ -313,7 +369,7 @@
 					<div class="mt-3 flex gap-3 items-center">
 						<button
 							class="btn btn-primary btn-sm"
-							onclick={fetchMultiNodeStats}
+							onclick={() => fetchMultiNodeStats()}
 							disabled={loadingMultiNodeStats || selectedNodes.length === 0}
 						>
 							{loadingMultiNodeStats ? "Fetching..." : "Fetch Usage"}

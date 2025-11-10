@@ -7,8 +7,10 @@
 
 	let { availableNodes = $bindable([]), selectedNodes = $bindable([]), loading = false }: Props = $props();
 
-	// Track which nodes are checked
-	let nodeCheckedState = $derived.by(() => Object.fromEntries(availableNodes.map((node) => [node, false])));
+	// Track which nodes are checked - sync with selectedNodes prop
+	let nodeCheckedState = $derived.by(() =>
+		Object.fromEntries(availableNodes.map((node) => [node, selectedNodes.includes(node)])),
+	);
 
 	function refreshSelectedNodes() {
 		selectedNodes = Object.keys(nodeCheckedState).filter((node) => nodeCheckedState[node]);
