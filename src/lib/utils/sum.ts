@@ -8,4 +8,3 @@ export function sum(numbers: number[]): number {
 	}
 	return total;
 }
-

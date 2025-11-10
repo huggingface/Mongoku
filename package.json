@@ -96,7 +96,8 @@
 	},
 	"lint-staged": {
 		"*.{js,ts,svelte}": [
-			"eslint --fix"
+			"eslint --fix",
+			"prettier --write"
 		]
 	},
 	"packageManager": "pnpm@10.11.0"

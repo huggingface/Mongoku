@@ -18,4 +18,3 @@ export function formatTimeAgo(timestamp: Date | null): string {
 		return `${seconds}s ago`;
 	}
 }
-
