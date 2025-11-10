@@ -16,8 +16,11 @@
 	import ReplicaSetSelector from "$lib/components/ReplicaSetSelector.svelte";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import { formatBytes } from "$lib/utils/filters";
+	import { formatSignificantDigits } from "$lib/utils/formatSignificantDigits";
+	import { formatTimeAgo } from "$lib/utils/formatTimeAgo";
 	import { getShortenedHostnames } from "$lib/utils/hostnames";
 	import { omit } from "$lib/utils/omit.js";
+	import { sum } from "$lib/utils/sum";
 	import type { PageData } from "./$types.js";
 
 	const { data } = $props();
@@ -33,15 +36,44 @@
 	let selectedNodes = $state<string[]>([]);
 	let loadingNodes = $state(false);
 	let multiNodeStats = $state<Record<string, { ops: number; since: Date; host: string }>>({});
+	let baselineMultiNodeStats = $state<Record<string, { ops: number; since: Date; host: string }>>({});
+	let baselineTimestamp = $state<Date | null>(null);
 	let loadingMultiNodeStats = $state(false);
 	let creatingIndex = $state(false);
 	let aggregateUsage = $state(false);
 	let hasLoadedFromUrl = $state(false);
+	let lastFetchedNodes = $state<string[]>([]);
+	let now = $state(new Date());
 
 	// Calculate shortened hostnames for display
 	const shortenedHostnames = $derived.by(() => {
 		const hosts = [...new Set(Object.values(multiNodeStats).map((stat) => stat.host))];
 		return getShortenedHostnames(hosts);
+	});
+
+	// Check if selected nodes have changed since last fetch
+	const selectedNodesChanged = $derived(
+		selectedNodes.length !== lastFetchedNodes.length || !selectedNodes.every((node) => lastFetchedNodes.includes(node)),
+	);
+
+	// Check if we have a baseline
+	const hasBaseline = $derived(Object.keys(baselineMultiNodeStats).length > 0 && !selectedNodesChanged);
+
+	// Format time elapsed since baseline (updates every second)
+	const timeElapsed = $derived.by(() => {
+		// This depends on 'now' which updates every second
+		/* eslint-disable-next-line @typescript-eslint/no-unused-expressions */
+		now;
+		return formatTimeAgo(baselineTimestamp);
+	});
+
+	// Update 'now' every second to trigger reactivity
+	$effect(() => {
+		const interval = setInterval(() => {
+			now = new Date();
+		}, 1000);
+
+		return () => clearInterval(interval);
 	});
 
 	// Create index form state
@@ -229,7 +261,9 @@
 		}
 
 		loadingMultiNodeStats = true;
-		multiNodeStats = {};
+
+		// Reset baseline if nodes changed or no baseline exists
+		const shouldResetBaseline = selectedNodesChanged || !hasBaseline;
 
 		try {
 			const result = await getIndexStatsFromNodes({
@@ -244,12 +278,22 @@
 			}
 
 			multiNodeStats = result.data as Record<string, { ops: number; since: Date; host: string }>;
+			lastFetchedNodes = [...selectedNodes];
+
+			// Set baseline on first fetch or when nodes change
+			if (shouldResetBaseline) {
+				baselineMultiNodeStats = { ...multiNodeStats };
+				baselineTimestamp = new Date();
+			}
 
 			const statsCount = Object.keys(multiNodeStats).length;
 			if (statsCount === 0) {
 				notificationStore.notifyError("No stats found", "No index stats found for selected nodes");
 			} else {
-				notificationStore.notifySuccess(`Fetched stats from ${statsCount} index/host combination(s)`);
+				const message = shouldResetBaseline
+					? `Fetched stats from ${statsCount} index/host combination(s)`
+					: `Updated stats from ${statsCount} index/host combination(s)`;
+				notificationStore.notifySuccess(message);
 			}
 
 			// Update URL with pushState
@@ -366,13 +410,20 @@
 			{#if showReplicaSetSelector}
 				<div class="mb-4">
 					<ReplicaSetSelector bind:availableNodes bind:selectedNodes loading={loadingNodes} />
-					<div class="mt-3 flex gap-3 items-center">
+					<div class="mt-3 flex gap-3 items-center flex-wrap">
 						<button
-							class="btn btn-primary btn-sm"
+							class="btn btn-sm"
+							class:btn-primary={!hasBaseline}
+							class:btn-outline-primary={hasBaseline}
 							onclick={() => fetchMultiNodeStats()}
 							disabled={loadingMultiNodeStats || selectedNodes.length === 0}
+							title={hasBaseline ? `Baseline from ${timeElapsed}` : "Fetch index usage statistics"}
 						>
-							{loadingMultiNodeStats ? "Fetching..." : "Fetch Usage"}
+							{#if loadingMultiNodeStats}
+								{hasBaseline ? "Checking Δ..." : "Fetching..."}
+							{:else}
+								{hasBaseline ? "Δ Usage" : "Fetch Usage"}
+							{/if}
 						</button>
 
 						{#if Object.keys(multiNodeStats).length > 0}
@@ -454,22 +505,37 @@
 										{#if index.stats}
 											{@const indexMultiNodeStats = Object.entries(multiNodeStats)
 												.filter(([key]) => key.startsWith(`${index.name}::`))
-												.map(([, stats]) => stats)}
+												.map(([key, stats]) => ({ key, stats }))}
+											{@const indexBaselineStats = Object.fromEntries(
+												Object.entries(baselineMultiNodeStats).filter(([key]) => key.startsWith(`${index.name}::`)),
+											)}
 											<div class="text-sm mt-1">
 												{#if indexMultiNodeStats.length > 0}
 													{#if aggregateUsage}
-														{@const totalOps = indexMultiNodeStats.reduce((sum, stats) => sum + stats.ops, 0)}
+														{@const totalOps = sum(indexMultiNodeStats.map((item) => item.stats.ops))}
+														{@const baselineTotalOps = sum(Object.values(indexBaselineStats).map((stats) => stats.ops))}
+														{@const increment = baselineTotalOps > 0 ? totalOps - baselineTotalOps : 0}
 														<div title="Aggregated across {indexMultiNodeStats.length} node(s)">
-															{totalOps.toLocaleString()}
+															{increment > 0 ? formatSignificantDigits(totalOps) : totalOps.toLocaleString()}
+															{#if increment > 0}
+																<span class="increment-badge">+{formatSignificantDigits(increment)}</span>
+															{/if}
 															<span class="text-xs" style="color: var(--text-darker)">
 																({indexMultiNodeStats.length} node{indexMultiNodeStats.length > 1 ? "s" : ""})
 															</span>
 														</div>
 													{:else}
-														{#each indexMultiNodeStats as stats, i (i)}
+														{#each indexMultiNodeStats as { key, stats }, i (i)}
+															{@const baselineOps = indexBaselineStats[key]?.ops || 0}
+															{@const increment = baselineOps > 0 ? stats.ops - baselineOps : 0}
 															<div class="separate-stat" title={stats.host}>
 																<span class="stat-host">{shortenedHostnames[stats.host] || stats.host}:</span>
-																<span class="stat-value">{stats.ops.toLocaleString()}</span>
+																<span class="stat-value">
+																	{increment > 0 ? formatSignificantDigits(stats.ops) : stats.ops.toLocaleString()}
+																	{#if increment > 0}
+																		<span class="increment-badge">+{formatSignificantDigits(increment)}</span>
+																	{/if}
+																</span>
 															</div>
 														{/each}
 													{/if}
@@ -747,6 +813,7 @@
 
 	.stat-value {
 		font-weight: 500;
+		white-space: nowrap;
 	}
 
 	.separate-stat {
@@ -764,5 +831,16 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		max-width: 150px;
+	}
+
+	.increment-badge {
+		display: inline-block;
+		margin-left: 6px;
+		padding: 2px 6px;
+		background-color: hsl(150, 60%, 45%);
+		color: white;
+		border-radius: 4px;
+		font-size: 11px;
+		font-weight: 600;
 	}
 </style>

@@ -267,6 +267,17 @@
 		background-color: var(--color-3);
 	}
 
+	.btn-outline-primary {
+		background: transparent;
+		color: var(--link);
+		border-color: var(--link);
+	}
+
+	.btn-outline-primary:hover:not(:disabled) {
+		background-color: var(--link);
+		color: white;
+	}
+
 	.btn:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
