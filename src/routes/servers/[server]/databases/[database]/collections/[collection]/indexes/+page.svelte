@@ -1,13 +1,14 @@
 <script lang="ts">
 	import {
 		createIndex as createIndexCommand,
+		detectPrimaryNode,
 		dropIndex as dropIndexCommand,
 		getIndexStatsFromNodes,
 		getServerNodes,
 		hideIndex as hideIndexCommand,
 		unhideIndex as unhideIndexCommand,
 	} from "$api/servers.remote";
-	import { invalidate } from "$app/navigation";
+	import { invalidate, pushState, replaceState } from "$app/navigation";
 	import { page } from "$app/state";
 	import { jsonTextarea } from "$lib/actions/jsonTextarea";
 	import JsonValue from "$lib/components/JsonValue.svelte";
@@ -35,6 +36,7 @@
 	let availableNodes = $state<string[]>([]);
 	let selectedNodes = $state<string[]>([]);
 	let loadingNodes = $state(false);
+	let primaryNode = $state<string | null>(null);
 	let multiNodeStats = $state<Record<string, { ops: number; since: Date; host: string }>>({});
 	let baselineMultiNodeStats = $state<Record<string, { ops: number; since: Date; host: string }>>({});
 	let baselineTimestamp = $state<Date | null>(null);
@@ -227,8 +229,8 @@
 	}
 
 	async function loadNodes() {
-		const { server } = page.params;
-		if (!server) return;
+		const { server, database, collection } = page.params;
+		if (!server || !database || !collection) return;
 
 		loadingNodes = true;
 		try {
@@ -241,6 +243,12 @@
 				availableNodes = result.data;
 				if (availableNodes.length > 0) {
 					notificationStore.notifySuccess(`Found ${availableNodes.length} node(s)`);
+
+					// Detect which node is the primary
+					const primaryResult = await detectPrimaryNode({ server, database, collection });
+					if (!primaryResult.error && primaryResult.data) {
+						primaryNode = primaryResult.data;
+					}
 				}
 			}
 		} catch (error) {
@@ -303,7 +311,8 @@
 				if (aggregateUsage) {
 					url.searchParams.set("aggregate", "true");
 				}
-				window.history.pushState({}, "", url.toString());
+				/* eslint-disable-next-line svelte/no-navigation-without-resolve */
+				pushState(url.toString(), {});
 			}
 		} catch (error) {
 			notificationStore.notifyError(error, "Failed to fetch multi-node usage");
@@ -360,7 +369,8 @@
 			} else {
 				url.searchParams.delete("aggregate");
 			}
-			window.history.replaceState({}, "", url.toString());
+			/* eslint-disable-next-line svelte/no-navigation-without-resolve */
+			replaceState(url.toString(), {});
 		}
 	});
 </script>
@@ -409,7 +419,7 @@
 			<!-- Replica Set Selector Section -->
 			{#if showReplicaSetSelector}
 				<div class="mb-4">
-					<ReplicaSetSelector bind:availableNodes bind:selectedNodes loading={loadingNodes} />
+					<ReplicaSetSelector bind:availableNodes bind:selectedNodes loading={loadingNodes} {primaryNode} />
 					<div class="mt-3 flex gap-3 items-center flex-wrap">
 						<button
 							class="btn btn-sm"

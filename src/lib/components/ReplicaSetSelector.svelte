@@ -1,16 +1,30 @@
 <script lang="ts">
+	import { findBestSuffixMatch } from "$lib/utils/longestCommonSuffix";
+
 	interface Props {
 		availableNodes?: string[];
 		selectedNodes?: string[];
 		loading?: boolean;
+		primaryNode?: string | null;
 	}
 
-	let { availableNodes = $bindable([]), selectedNodes = $bindable([]), loading = false }: Props = $props();
+	let {
+		availableNodes = $bindable([]),
+		selectedNodes = $bindable([]),
+		loading = false,
+		primaryNode = null,
+	}: Props = $props();
 
 	// Track which nodes are checked - sync with selectedNodes prop
 	let nodeCheckedState = $derived.by(() =>
 		Object.fromEntries(availableNodes.map((node) => [node, selectedNodes.includes(node)])),
 	);
+
+	// Find the actual primary node by matching the longest common suffix
+	const matchedPrimaryNode = $derived.by(() => {
+		if (!primaryNode || availableNodes.length === 0) return null;
+		return findBestSuffixMatch(primaryNode, availableNodes);
+	});
 
 	function refreshSelectedNodes() {
 		selectedNodes = Object.keys(nodeCheckedState).filter((node) => nodeCheckedState[node]);
@@ -32,7 +46,12 @@
 			{#each availableNodes as node (node)}
 				<label class="checkbox-label">
 					<input type="checkbox" bind:checked={nodeCheckedState[node]} onchange={refreshSelectedNodes} />
-					<span class="node-name" title={node}>{node}</span>
+					<span class="node-name" title={node}>
+						{node}
+						{#if node === matchedPrimaryNode}
+							<span class="primary-badge">PRIMARY</span>
+						{/if}
+					</span>
 				</label>
 			{/each}
 		</div>
@@ -106,5 +125,20 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.primary-badge {
+		display: inline-block;
+		padding: 2px 6px;
+		background-color: hsl(210, 100%, 50%);
+		color: white;
+		border-radius: 3px;
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.5px;
+		flex-shrink: 0;
 	}
 </style>

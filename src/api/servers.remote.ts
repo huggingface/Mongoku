@@ -652,6 +652,41 @@ export const getServerNodes = query(
 	},
 );
 
+// Detect which node is the primary
+export const detectPrimaryNode = query(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		collection: z.string(),
+	}),
+	async ({ server, database, collection }) => {
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+
+		try {
+			// Run indexStats with primary read preference
+			const coll = client.db(database).collection(collection);
+			const statsResult = await coll
+				.aggregate([{ $indexStats: {} }], { readPreference: new ReadPreference("primary") })
+				.toArray();
+
+			// Extract the host from the first result (will be the primary)
+			const primaryHost = statsResult.length > 0 ? statsResult[0].host : null;
+
+			return {
+				data: primaryHost,
+				error: null,
+			};
+		} catch (err) {
+			logger.error("Error detecting primary node:", err);
+			return {
+				data: null,
+				error: `Failed to detect primary: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
+	},
+);
+
 // Fetch index stats from specific nodes using direct connections
 export const getIndexStatsFromNodes = query(
 	z.object({
