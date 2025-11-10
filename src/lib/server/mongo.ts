@@ -1,5 +1,6 @@
 import { logger } from "$lib/server/logger";
 import type { CollectionJSON, CollectionMappings, Mappings } from "$lib/types";
+import { resolveSrv } from "dns/promises";
 import { MongoClient, type Collection } from "mongodb";
 import { URL } from "url";
 import { HostsManager } from "./HostsManager";
@@ -86,6 +87,40 @@ export async function getCollectionJson(
 		indexSizes: stats.indexSizes,
 		indexes,
 	};
+}
+
+/**
+ * Extract node hosts from a MongoDB connection string
+ * Handles both mongodb:// and mongodb+srv:// formats
+ */
+export async function extractNodesFromConnectionString(connectionString: string): Promise<string[]> {
+	const url = new URL(connectionString);
+
+	if (url.protocol === "mongodb+srv:") {
+		// For SRV, resolve DNS records
+		const hostname = url.hostname;
+		const srvRecords = await resolveSrv(`_mongodb._tcp.${hostname}`);
+		return srvRecords
+			.sort((a, b) => a.priority - b.priority || b.weight - a.weight)
+			.map((record) => `${record.name}:${record.port}`)
+			.sort();
+	}
+	if (url.protocol === "mongodb:") {
+		// For standard mongodb://, extract hosts from the connection string
+		// Format: mongodb://[username:password@]host1[:port1][,host2[:port2],...]/[database][?options]
+		const hostsString = url.host;
+		if (!hostsString) {
+			throw new Error("No hosts found in connection string");
+		}
+
+		// Split by comma to get all hosts and sort lexically
+		return hostsString
+			.split(",")
+			.map((host) => host.trim())
+			.filter((host) => host.length > 0)
+			.sort();
+	}
+	throw new TypeError(`Unsupported protocol: ${url.protocol}`);
 }
 
 class MongoClientWithMappings extends MongoClient {
@@ -245,6 +280,67 @@ class MongoConnections {
 
 		// Test the connection
 		await newClient.connect();
+	}
+
+	/**
+	 * Get the list of nodes from a server's connection string
+	 */
+	async getServerNodes(serverId: string): Promise<string[]> {
+		const client = this.getClient(serverId);
+		return extractNodesFromConnectionString(client.url);
+	}
+
+	/**
+	 * Fetch index stats from a specific node using directConnection
+	 */
+	async getIndexStatsFromNode(
+		serverId: string,
+		node: string,
+		database: string,
+		collection: string,
+	): Promise<Record<string, { ops: number; since: Date; host: string }>> {
+		const client = this.getClient(serverId);
+		const url = new URL(client.url);
+
+		// Build direct connection URL
+		// Keep credentials and other params, but set the host to the specific node
+		const directUrl = new URL(url.toString());
+		directUrl.protocol = "mongodb:";
+		directUrl.host = node;
+		directUrl.searchParams.set("directConnection", "true");
+
+		// Keep TLS if it was in the original URL
+		if (url.searchParams.has("tls") || url.searchParams.has("ssl") || url.protocol === "mongodb+srv:") {
+			directUrl.searchParams.set("tls", "true");
+		}
+
+		// Create a temporary client for this specific node
+		let nodeClient: MongoClient | null = null;
+		// todo: use await using when possible
+		try {
+			nodeClient = new MongoClient(directUrl.toString());
+			await nodeClient.connect();
+
+			const coll = nodeClient.db(database).collection(collection);
+			const statsResult = await coll.aggregate([{ $indexStats: {} }]).toArray();
+
+			const indexStats = Object.fromEntries(
+				statsResult.map((stat) => [
+					stat.name,
+					{
+						ops: stat.accesses?.ops || 0,
+						since: stat.accesses?.since || new Date(),
+						host: stat.host || node,
+					},
+				]),
+			);
+
+			return indexStats;
+		} finally {
+			if (nodeClient) {
+				await nodeClient.close();
+			}
+		}
 	}
 }
 

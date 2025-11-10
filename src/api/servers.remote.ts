@@ -627,3 +627,79 @@ export const getIndexStatsWithReadPreference = query(
 		}
 	},
 );
+
+// Get list of nodes from a server's connection string
+export const getServerNodes = query(
+	z.object({
+		server: z.string(),
+	}),
+	async ({ server }) => {
+		const mongo = await getMongo();
+
+		try {
+			const nodes = await mongo.getServerNodes(server);
+			return {
+				data: nodes,
+				error: null,
+			};
+		} catch (err) {
+			logger.error("Error getting server nodes:", err);
+			return {
+				data: [],
+				error: `Failed to get server nodes: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
+	},
+);
+
+// Fetch index stats from specific nodes using direct connections
+export const getIndexStatsFromNodes = query(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		collection: z.string(),
+		nodes: z.array(z.string()),
+	}),
+	async ({ server, database, collection, nodes }) => {
+		const mongo = await getMongo();
+
+		try {
+			const results = await Promise.allSettled(
+				nodes.map(async (node) => {
+					const stats = await mongo.getIndexStatsFromNode(server, node, database, collection);
+					return { node, stats };
+				}),
+			);
+
+			// Merge results from all nodes
+			const mergedStats: Record<string, { ops: number; since: Date; host: string }> = {};
+			const errors: string[] = [];
+
+			let i = 0;
+			for (const result of results) {
+				if (result.status === "fulfilled") {
+					const { stats } = result.value;
+					for (const [indexName, indexStats] of Object.entries(stats)) {
+						const key = `${indexName}::${indexStats.host}`;
+						mergedStats[key] = indexStats;
+					}
+				} else {
+					logger.error(`Error fetching index stats from node ${nodes[i]}:`, result.reason);
+					errors.push(result.reason?.message || String(result.reason));
+				}
+				i++;
+			}
+
+			return {
+				data: JsonEncoder.encode(mergedStats),
+				error: errors.length > 0 ? errors.join("; ") : null,
+			};
+		} catch (err) {
+			logger.error("Error fetching index stats from nodes:", err);
+			return {
+				data: {},
+				error: `Failed to fetch index stats: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
+	},
+);

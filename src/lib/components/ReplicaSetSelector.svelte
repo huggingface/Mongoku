@@ -1,67 +1,38 @@
 <script lang="ts">
 	interface Props {
+		availableNodes?: string[];
 		selectedNodes?: string[];
-		customTags?: string;
-		onchange?: (nodes: string[], tags: string) => void;
+		loading?: boolean;
 	}
 
-	let {
-		selectedNodes = $bindable([]),
-		customTags = $bindable('{ nodeType: "READ_ONLY" }'),
-		onchange,
-	}: Props = $props();
+	let { availableNodes = $bindable([]), selectedNodes = $bindable([]), loading = false }: Props = $props();
 
-	let primaryChecked = $state(selectedNodes.includes("primary"));
-	let secondaryChecked = $state(selectedNodes.includes("secondary"));
-	let showCustomTags = $state(false);
+	// Track which nodes are checked
+	let nodeCheckedState = $derived.by(() => Object.fromEntries(availableNodes.map((node) => [node, false])));
 
-	$effect(() => {
-		// Update selectedNodes based on checkboxes
-		const nodes: string[] = [];
-		if (primaryChecked) nodes.push("primary");
-		if (secondaryChecked) nodes.push("secondary");
-		if (showCustomTags) nodes.push("custom");
-		selectedNodes = nodes;
-
-		if (onchange) {
-			onchange(nodes, showCustomTags ? customTags : "");
-		}
-	});
+	function refreshSelectedNodes() {
+		selectedNodes = Object.keys(nodeCheckedState).filter((node) => nodeCheckedState[node]);
+	}
 </script>
 
 <div class="replica-set-selector">
 	<div class="selector-header">
 		<span class="selector-title">Replica Set Nodes</span>
-		<span class="selector-subtitle">Select nodes to fetch index stats from</span>
+		<span class="selector-subtitle">Select specific nodes to fetch index stats from</span>
 	</div>
 
-	<div class="selector-options">
-		<label class="checkbox-label">
-			<input type="checkbox" bind:checked={primaryChecked} />
-			<span>Primary</span>
-		</label>
-
-		<label class="checkbox-label">
-			<input type="checkbox" bind:checked={secondaryChecked} />
-			<span>Secondary</span>
-		</label>
-
-		<label class="checkbox-label">
-			<input type="checkbox" bind:checked={showCustomTags} />
-			<span>Custom Tags</span>
-		</label>
-	</div>
-
-	{#if showCustomTags}
-		<div class="custom-tags-input">
-			<label for="customTags" class="tags-label">Tag Filter (JSON):</label>
-			<input
-				id="customTags"
-				type="text"
-				bind:value={customTags}
-				placeholder={'{ nodeType: "READ_ONLY" }'}
-				class="tags-input"
-			/>
+	{#if loading}
+		<div class="loading-message">Loading nodes...</div>
+	{:else if availableNodes.length === 0}
+		<div class="no-nodes-message">No nodes found. Click "Fetch Usage" to load nodes.</div>
+	{:else}
+		<div class="selector-options">
+			{#each availableNodes as node (node)}
+				<label class="checkbox-label">
+					<input type="checkbox" bind:checked={nodeCheckedState[node]} onchange={refreshSelectedNodes} />
+					<span class="node-name" title={node}>{node}</span>
+				</label>
+			{/each}
 		</div>
 	{/if}
 </div>
@@ -96,8 +67,8 @@
 
 	.selector-options {
 		display: flex;
-		flex-wrap: wrap;
-		gap: 16px;
+		flex-direction: column;
+		gap: 8px;
 	}
 
 	.checkbox-label {
@@ -117,35 +88,21 @@
 		accent-color: var(--button-primary);
 	}
 
-	.custom-tags-input {
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-	}
-
-	.tags-label {
+	.loading-message,
+	.no-nodes-message {
+		padding: 12px;
 		font-size: 13px;
-		font-weight: 500;
-		color: var(--text);
+		color: var(--text-darker);
+		text-align: center;
+		background-color: var(--color-3);
+		border-radius: 4px;
 	}
 
-	.tags-input {
-		padding: 8px 12px;
-		border-radius: 6px;
-		border: 1px solid var(--border-color);
-		background-color: var(--color-3);
-		color: var(--text);
+	.node-name {
 		font-family: monospace;
 		font-size: 13px;
-		outline: none;
-	}
-
-	.tags-input:focus {
-		border-color: var(--button-primary);
-		background-color: var(--color-1);
-	}
-
-	.tags-input::placeholder {
-		color: var(--text-darker);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 </style>
