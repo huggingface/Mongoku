@@ -110,7 +110,7 @@ jobs:
           "
 
       - name: Reinstall dependencies with MongoDB override
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build compat version
         run: pnpm build
@@ -131,13 +131,13 @@ jobs:
       - name: Restore package.json
         run: git checkout package.json
 
-      - name: Update Docker Hub description
-        uses: peter-evans/dockerhub-description@v5
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_MONGOKU_PASSWORD }}
-          repository: huggingface/mongoku
-          readme-filepath: ./README.md
+      # - name: Update Docker Hub description
+      #   uses: peter-evans/dockerhub-description@v5
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_MONGOKU_PASSWORD }}
+      #     repository: huggingface/mongoku
+      #     readme-filepath: ./README.md
 
       # - name: Create GitHub Release
       #   uses: actions/create-release@v1
