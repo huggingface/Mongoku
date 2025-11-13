@@ -105,6 +105,7 @@ jobs:
           node -e "
           const fs = require('fs');
           const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+          pkg.version = pkg.version + '-compat';
           pkg.pnpm = { overrides: { mongodb: '5.9.2' } };
           fs.writeFileSync('./package.json', JSON.stringify(pkg, null, '\t'));
           "
