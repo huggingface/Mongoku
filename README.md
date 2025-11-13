@@ -65,7 +65,7 @@ For older MongoDB versions (< 4.2) or AWS DocumentDB (< 5.0), use the `compat` t
 docker run -d --name mongoku -p 3100:3100 huggingface/mongoku:compat
 
 # Or use a specific version
-docker run -d --name mongoku -p 3100:3100 huggingface/mongoku:2.3.0-compat
+docker run -d --name mongoku -p 3100:3100 huggingface/mongoku:2.4.1-compat
 ```
 
 ## Local Development
