@@ -37,6 +37,15 @@ mongoku --readonly
 mongoku stop
 ```
 
+#### Compatibility Version
+
+For older MongoDB versions (< 4.2) or AWS DocumentDB (< 5.0), use the `compat` tag which includes an older driver:
+
+```bash
+# Install compat version globally
+npm install -g mongoku@compat
+```
+
 ### Using the Docker HUB image
 
 ```bash
@@ -46,6 +55,17 @@ docker run -d --name mongoku -p 3100:3100 huggingface/mongoku
 docker run -d --name mongoku -p 3100:3100 \
   --env MONGOKU_DEFAULT_HOST="mongodb://user:password@myhost.com:8888" \
   huggingface/mongoku
+```
+
+#### Compatibility Docker Image
+
+For older MongoDB versions (< 4.2) or AWS DocumentDB (< 5.0), use the `compat` tag which includes an older driver:
+
+```bash
+docker run -d --name mongoku -p 3100:3100 huggingface/mongoku:compat
+
+# Or use a specific version
+docker run -d --name mongoku -p 3100:3100 huggingface/mongoku:2.3.0-compat
 ```
 
 ## Local Development
