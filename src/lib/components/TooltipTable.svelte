@@ -60,11 +60,13 @@
 				</thead>
 			{/if}
 			<tbody>
-				{#each rows as row, index (index)}
+				{#each rows as row, rowIndex (rowIndex)}
 					<tr>
 						{#each columns as column, index (index)}
 							<td
-								class="px-2 py-1 border-b border-[var(--color-3)]"
+								class="px-2 py-1"
+								class:border-b={rowIndex < rows.length - 1}
+								class:border-[var(--color-3)]={rowIndex < rows.length - 1}
 								class:text-left={column.align === "left" || !column.align}
 								class:text-right={column.align === "right"}
 								class:text-center={column.align === "center"}

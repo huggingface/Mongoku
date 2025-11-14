@@ -299,6 +299,11 @@
 		border-bottom: 1px solid var(--border-color);
 	}
 
+	/* So that the bottom of the table doesn't overflow from the bottom of the panel. If too generic, we can move this to the panel component maybe */
+	.table tbody tr:last-child td {
+		border-bottom: none;
+	}
+
 	.table th {
 		font-weight: 600;
 		color: var(--text);

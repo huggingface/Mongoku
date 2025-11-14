@@ -7,5 +7,6 @@
 	"bracketSpacing": true,
 	"semi": true,
 	"printWidth": 120,
-	"plugins": []
+	"plugins": ["prettier-plugin-svelte"],
+	"overrides": [{ "files": "*.svelte", "options": { "parser": "svelte" } }]
 }
