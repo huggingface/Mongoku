@@ -6,13 +6,24 @@
 	import OriginWarning from "$lib/components/OriginWarning.svelte";
 	import PageSwitcher from "$lib/components/PageSwitcher.svelte";
 	import ThemeSwitcher from "$lib/components/ThemeSwitcher.svelte";
+	import { breadcrumbs } from "$lib/stores/breadcrumbs.svelte";
 	import "../app.css";
 
 	let { children, data } = $props();
+
+	const pageTitle = $derived.by(() => {
+		const items = breadcrumbs.items.slice(-2).reverse();
+
+		if (items.length === 0) {
+			return "Mongoku";
+		}
+
+		return items.map((b) => b.label).join(" - ");
+	});
 </script>
 
 <svelte:head>
-	<title>Mongoku</title>
+	<title>{pageTitle}</title>
 </svelte:head>
 
 <div style="min-height: 100vh">
