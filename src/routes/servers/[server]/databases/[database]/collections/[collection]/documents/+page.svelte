@@ -127,8 +127,10 @@
 	}
 
 	async function removeDocument(_id: { $value?: string } | undefined, items: MongoDocument[]) {
-		const documentId = _id?.$value;
-		if (!documentId) return;
+		const documentId = _id?.$value ?? _id;
+		if (!documentId || typeof documentId !== "string") {
+			return;
+		}
 
 		try {
 			await deleteDocumentCommand({
@@ -139,7 +141,7 @@
 			});
 
 			notificationStore.notifySuccess("Document removed successfully");
-			modifiedItems = items.filter((item) => item._id?.$value !== documentId);
+			modifiedItems = items.filter((item) => (item._id?.$value ?? item._id) !== documentId);
 		} catch (error) {
 			notificationStore.notifyError(error, "Failed to remove document");
 		}
