@@ -14,6 +14,9 @@
 	import Panel from "$lib/components/Panel.svelte";
 	import PrettyJson from "$lib/components/PrettyJson.svelte";
 	import SearchBox from "$lib/components/SearchBox.svelte";
+	import IconCopy from "$lib/icons/IconCopy.svelte";
+	import IconPlus from "$lib/icons/IconPlus.svelte";
+	import IconSortReverse from "$lib/icons/IconSortReverse.svelte";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import type { MongoDocument, SearchParams } from "$lib/types";
 	import { formatNumber } from "$lib/utils/filters";
@@ -29,6 +32,7 @@
 	let updateQuery = $state("{}");
 	let isUpdating = $state(false);
 	let showInsertEditor = $state(false);
+
 	let deleteState = $state({
 		countChecked: false,
 		count: null as number | null,
@@ -170,6 +174,8 @@
 			project: params.project,
 			skip: params.skip,
 			limit: params.limit,
+			mode: params.mode,
+			field: params.field,
 		});
 	}
 
@@ -188,6 +194,8 @@
 			project: params.project,
 			skip: params.skip,
 			limit: params.limit,
+			mode: params.mode,
+			field: params.field,
 		});
 	}
 
@@ -381,7 +389,22 @@
 			project: params.project,
 			skip: 0,
 			limit: params.limit,
+			mode: params.mode,
+			field: params.field,
 		});
+	}
+
+	async function copyDistinctValues(items: MongoDocument[]) {
+		try {
+			// Extract the values from the {value: ...} wrapper
+			const values = items.map((item) => item.value);
+			const jsonString = serializeForEditing(values);
+			await navigator.clipboard.writeText(jsonString);
+			notificationStore.notifySuccess("Copied distinct values to clipboard");
+		} catch (error) {
+			console.error(error);
+			notificationStore.notifyError(error, "Failed to copy to clipboard");
+		}
 	}
 </script>
 
@@ -416,21 +439,18 @@
 		style="color: var(--text); cursor: pointer;"
 		title="Reverse sort order"
 	>
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-			stroke-linecap="round"
-			stroke-linejoin="round"
-			class="w-4 h-4"
-		>
-			<path d="M3 6h18" />
-			<path d="M7 12h10" />
-			<path d="M10 18h4" />
-			<path d="m7 16 3 3 3-3" />
-		</svg>
+		<IconSortReverse class="w-4 h-4" />
+	</button>
+{/snippet}
+
+{#snippet copyButton(items: MongoDocument[])}
+	<button
+		onclick={() => copyDistinctValues(items)}
+		class="px-3 py-1 rounded-lg border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] text-[13px] transition"
+		style="color: var(--text); cursor: pointer;"
+		title="Copy distinct values"
+	>
+		<IconCopy class="w-4 h-4" />
 	</button>
 {/snippet}
 
@@ -444,18 +464,7 @@
 				<h3 class="text-lg font-semibold mb-3" style="color: var(--text);">Insert New Document</h3>
 				{#if !showInsertEditor}
 					<button class="btn btn-success" onclick={handleInsertClick}>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							class="w-4 h-4 inline mr-2"
-						>
-							<path d="M12 5v14M5 12h14" />
-						</svg>
+						<IconPlus class="w-4 h-4 inline mr-2" />
 						Insert Document
 					</button>
 				{:else}
@@ -678,8 +687,12 @@
 {#await items}
 	<Panel
 		title={finalCount !== null
-			? `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + data.params.limit)} of ${formatNumber(finalCount)} documents...`
-			: "Loading documents..."}
+			? data.params.mode === "distinct"
+				? `${formatNumber(finalCount)} distinct value${finalCount === 1 ? "" : "s"}...`
+				: `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + data.params.limit)} of ${formatNumber(finalCount)} documents...`
+			: data.params.mode === "distinct"
+				? "Loading distinct values..."
+				: "Loading documents..."}
 		titleClass="py-1"
 	>
 		{#snippet actions()}
@@ -690,7 +703,6 @@
 				{#if data.params.skip + data.params.limit < finalCount}
 					{@render nextButton(nextUrl, navigateNext)}
 				{/if}
-				{@render sortButton()}
 			{/if}
 		{/snippet}
 	</Panel>
@@ -701,8 +713,12 @@
 		<Panel
 			titleClass="py-1"
 			title={items.length > 0
-				? `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} Documents (counting...)`
-				: "No documents"}
+				? data.params.mode === "distinct"
+					? `${formatNumber(items.length)} distinct value${items.length === 1 ? "" : "s"} (counting...)`
+					: `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} Documents (counting...)`
+				: data.params.mode === "distinct"
+					? "No distinct values"
+					: "No documents"}
 		>
 			{#snippet actions()}
 				{#if data.params.skip > 0}
@@ -711,7 +727,11 @@
 				{#if items.length >= data.params.limit}
 					{@render nextButton(nextUrl, navigateNext)}
 				{/if}
-				{@render sortButton()}
+				{#if data.params.mode === "distinct"}
+					{@render copyButton(items)}
+				{:else}
+					{@render sortButton()}
+				{/if}
 			{/snippet}
 		</Panel>
 	{:then countData}
@@ -723,10 +743,14 @@
 			{@const isTimeout = countData.error?.includes("operation exceeded time limit")}
 			<Panel
 				title={items.length > 0
-					? count > 0
-						? `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} of ${formatNumber(count)} documents`
-						: `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} documents (count ${isTimeout ? "timeout" : "unavailable"})`
-					: "No documents"}
+					? data.params.mode === "distinct"
+						? `${formatNumber(count)} distinct value${count === 1 ? "" : "s"}`
+						: count > 0
+							? `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} of ${formatNumber(count)} documents`
+							: `${formatNumber(data.params.skip + 1)} - ${formatNumber(data.params.skip + items.length)} documents (count ${isTimeout ? "timeout" : "unavailable"})`
+					: data.params.mode === "distinct"
+						? "No distinct values"
+						: "No documents"}
 				titleClass="py-1"
 			>
 				{#snippet actions()}
@@ -736,7 +760,11 @@
 					{#if hasNext}
 						{@render nextButton(nextUrl, navigateNext)}
 					{/if}
-					{@render sortButton()}
+					{#if data.params.mode === "distinct"}
+						{@render copyButton(items)}
+					{:else}
+						{@render sortButton()}
+					{/if}
 				{/snippet}
 			</Panel>
 		{/if}
@@ -746,8 +774,12 @@
 		<PrettyJson
 			json={item}
 			autoCollapse={true}
-			onedit={data.isAggregation || data.readOnly ? undefined : (json) => editDocument(item._id, json, items)}
-			onremove={data.isAggregation || data.readOnly ? undefined : () => removeDocument(item._id, items)}
+			onedit={data.params.mode === "aggregation" || data.params.mode === "distinct" || data.readOnly
+				? undefined
+				: (json) => editDocument(item._id, json, items)}
+			onremove={data.params.mode === "aggregation" || data.params.mode === "distinct" || data.readOnly
+				? undefined
+				: () => removeDocument(item._id, items)}
 			server={data.server}
 			database={data.database}
 			collection={data.collection}

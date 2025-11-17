@@ -2,7 +2,7 @@ import { validateAggregationPipeline } from "$lib/server/aggregation";
 import JsonEncoder from "$lib/server/JsonEncoder";
 import { logger } from "$lib/server/logger";
 import { getMongo } from "$lib/server/mongo";
-import { type MongoDocument } from "$lib/types";
+import { type MongoDocument, type SearchParams } from "$lib/types";
 import { isEmptyObject } from "$lib/utils/isEmptyObject";
 import { parseJSON } from "$lib/utils/jsonParser";
 import type { Document } from "mongodb";
@@ -14,6 +14,18 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	const project = url.searchParams.get("project") || "{}";
 	const skip = parseInt(url.searchParams.get("skip") || "0", 10);
 	const limit = parseInt(url.searchParams.get("limit") || "20", 10);
+	const mode = url.searchParams.get("mode") || "query";
+	const field = url.searchParams.get("field") || "";
+
+	const computedParams = {
+		query,
+		sort,
+		project,
+		skip,
+		limit,
+		mode: mode as "query" | "distinct" | "aggregation",
+		field,
+	} satisfies SearchParams;
 
 	// Parse JSON strings - return error state if invalid instead of throwing
 	let queryDoc: unknown;
@@ -52,14 +64,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 				data: 0,
 				error: null,
 			}),
-			params: {
-				query,
-				sort,
-				project,
-				skip,
-				limit,
-			},
-			isAggregation: false,
+			params: computedParams,
 		};
 	}
 
@@ -70,7 +75,55 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	const client = mongo.getClient(params.server);
 	const collection = client.db(params.database).collection(params.collection);
 
-	if (Array.isArray(queryDoc)) {
+	// Handle distinct mode
+	if (mode === "distinct") {
+		// Validate distinct field is provided
+		if (!field) {
+			return {
+				results: Promise.resolve({
+					data: [],
+					error: "Invalid distinct query: field name is required",
+				}),
+				count: Promise.resolve({
+					data: 0,
+					error: null,
+				}),
+				mappings: await client.getMappings(params.database, params.collection),
+				params: computedParams,
+			};
+		}
+
+		const resultsPromise = collection
+			.distinct(field, JsonEncoder.decode(queryDoc), {
+				maxTimeMS: mongo.getQueryTimeout(),
+			})
+			.then((results) => ({
+				data: results.map((value) => JsonEncoder.encode({ value })) as MongoDocument[],
+				error: null as string | null,
+			}))
+			.catch((err) => {
+				logger.error("Error executing distinct:", err);
+				return {
+					data: [] as MongoDocument[],
+					error: `Failed to execute distinct: ${err instanceof Error ? err.message : String(err)}`,
+				};
+			});
+
+		const countPromise = resultsPromise.then((result) => ({
+			data: result.error ? 0 : result.data.length,
+			error: null,
+		}));
+
+		return {
+			results: resultsPromise,
+			count: countPromise,
+			mappings: await client.getMappings(params.database, params.collection),
+			params: computedParams,
+		};
+	}
+
+	// Handle aggregation mode
+	if (mode === "aggregation" && Array.isArray(queryDoc)) {
 		// Validate aggregation pipeline
 		try {
 			validateAggregationPipeline(queryDoc);
@@ -85,14 +138,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 					data: 0,
 					error: null,
 				}),
-				params: {
-					query,
-					sort,
-					project,
-					skip,
-					limit,
-				},
-				isAggregation: true,
+				params: computedParams,
 			};
 		}
 		// Execute aggregation
@@ -144,14 +190,8 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		return {
 			results: resultsPromise,
 			count: countPromise,
-			params: {
-				query,
-				sort,
-				project,
-				skip,
-				limit,
-			},
-			isAggregation: true,
+			mappings: await client.getMappings(params.database, params.collection),
+			params: computedParams,
 		};
 	}
 
@@ -205,13 +245,6 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		results: resultsPromise,
 		count: countPromise,
 		mappings: await client.getMappings(params.database, params.collection),
-		params: {
-			query,
-			sort,
-			project,
-			skip,
-			limit,
-		},
-		isAggregation: false,
+		params: computedParams,
 	};
 };

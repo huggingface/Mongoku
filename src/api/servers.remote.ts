@@ -473,8 +473,10 @@ export const loadDocuments = query(
 		project: z.string().default("{}"),
 		skip: z.number().int().default(0),
 		limit: z.number().int().default(20),
+		mode: z.enum(["query", "distinct", "aggregation"]).default("query"),
+		field: z.string().optional(),
 	}),
-	async ({ server, database, collection, query: queryStr, sort, project, skip, limit }) => {
+	async ({ server, database, collection, query: queryStr, sort, project, skip, limit, mode, field }) => {
 		// Parse JSON strings - return error if invalid
 		let queryDoc: unknown;
 
@@ -503,7 +505,31 @@ export const loadDocuments = query(
 		const client = mongo.getClient(server);
 		const coll = client.db(database).collection(collection);
 
-		if (Array.isArray(queryDoc)) {
+		// Handle distinct mode
+		if (mode === "distinct") {
+			if (!field) {
+				error(400, "Invalid distinct query: field name is required");
+			}
+
+			try {
+				const results = await coll.distinct(field, JsonEncoder.decode(queryDoc), {
+					maxTimeMS: mongo.getQueryTimeout(),
+				});
+
+				return {
+					data: results.map((value) => JsonEncoder.encode({ value })),
+					error: null,
+					isAggregation: false,
+					isDistinct: true,
+				};
+			} catch (err) {
+				logger.error("Error executing distinct:", err);
+				error(500, `Failed to execute distinct: ${err instanceof Error ? err.message : String(err)}`);
+			}
+		}
+
+		// Handle aggregation mode
+		if (mode === "aggregation" && Array.isArray(queryDoc)) {
 			try {
 				validateAggregationPipeline(queryDoc);
 			} catch (err) {
@@ -534,6 +560,7 @@ export const loadDocuments = query(
 					data: results,
 					error: null,
 					isAggregation: true,
+					isDistinct: false,
 				};
 			} catch (err) {
 				logger.error("Error executing aggregation:", err);
@@ -556,6 +583,7 @@ export const loadDocuments = query(
 				data: results,
 				error: null,
 				isAggregation: false,
+				isDistinct: false,
 			};
 		} catch (err) {
 			logger.error("Error fetching query results:", err);

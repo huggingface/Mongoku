@@ -2,8 +2,13 @@
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { page } from "$app/state";
+	import { clickOutside } from "$lib/actions/clickOutside";
 	import { jsonTextarea } from "$lib/actions/jsonTextarea";
+	import { portal } from "$lib/actions/portal";
+	import IconChevronDown from "$lib/icons/IconChevronDown.svelte";
+	import IconEdit from "$lib/icons/IconEdit.svelte";
 	import type { SearchParams } from "$lib/types";
+	import { tick } from "svelte";
 
 	interface Props {
 		params: SearchParams;
@@ -22,12 +27,28 @@
 
 	let queryInput = $state<HTMLInputElement | HTMLTextAreaElement | undefined>(undefined);
 
-	// Detect if query is an aggregation (starts with [)
-	let isAggregation = $derived(params.query?.trimStart().startsWith("["));
+	let showModeDropdown = $state(false);
+	let modeButtonElement = $state<HTMLButtonElement>();
+	let dropdownPosition = $state({ left: "0px", top: "0px", minWidth: "140px" });
 
-	// Disable edit mode when switching to aggregation mode
+	// Calculate dropdown position when shown
 	$effect(() => {
-		if (isAggregation && editMode) {
+		if (showModeDropdown && modeButtonElement) {
+			tick().then(() => {
+				if (!modeButtonElement) return;
+				const rect = modeButtonElement.getBoundingClientRect();
+				dropdownPosition = {
+					left: `${rect.left}px`,
+					top: `${rect.bottom + 5}px`,
+					minWidth: `${rect.width}px`,
+				};
+			});
+		}
+	});
+
+	// Disable edit mode when switching to aggregation or distinct mode
+	$effect(() => {
+		if ((params.mode === "aggregation" || params.mode === "distinct") && editMode) {
 			editMode = false;
 		}
 	});
@@ -42,7 +63,9 @@
 	async function submit(event: SubmitEvent) {
 		event.preventDefault();
 		counter++;
+
 		const formData = new FormData(form);
+
 		await goto(
 			resolve(
 				(page.url.pathname +
@@ -58,6 +81,27 @@
 		);
 	}
 
+	function selectMode(newMode: "query" | "distinct" | "aggregation") {
+		params.mode = newMode;
+		showModeDropdown = false;
+
+		// Initialize appropriate default values
+		if (newMode === "aggregation" && !params.query?.trimStart().startsWith("[")) {
+			params.query = "[]";
+		} else if (newMode === "query" && params.query?.trimStart().startsWith("[")) {
+			params.query = "{}";
+		} else if (newMode === "distinct") {
+			// When switching to distinct mode, reset field and use current query as filter
+			params.field = undefined;
+			if (!params.query || params.query.trim() === "") {
+				params.query = "{}";
+			} else if (params.query.trim() !== "{}") {
+				// If there's a non-empty filter, show the optional fields
+				showOptionalFields = true;
+			}
+		}
+	}
+
 	let form = $state<HTMLFormElement | undefined>(undefined);
 </script>
 
@@ -68,13 +112,19 @@
 			<div
 				class="flex-1 flex items-stretch rounded-xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50"
 			>
-				<div
-					class="px-3 flex items-center text-[13px] border-r border-[var(--border-color)]"
+				<!-- Mode selector dropdown -->
+				<button
+					type="button"
+					bind:this={modeButtonElement}
+					class="h-full px-3 flex items-center gap-1 text-[13px] border-r border-[var(--border-color)] hover:bg-[var(--color-3)] transition cursor-pointer"
 					style="color: var(--text-secondary);"
+					onclick={() => (showModeDropdown = !showModeDropdown)}
 				>
-					{isAggregation ? "Aggregation" : "Query"}
-				</div>
-				{#if isAggregation}
+					<span class="capitalize">{params.mode}</span>
+					<IconChevronDown class="w-3 h-3" />
+				</button>
+
+				{#if params.mode === "aggregation"}
 					<textarea
 						bind:this={queryInput}
 						bind:value={params.query}
@@ -85,6 +135,15 @@
 						class="w-full px-3 py-2 bg-transparent outline-none font-mono text-[13px] resize-y"
 						style="color: var(--text);"
 					></textarea>
+				{:else if params.mode === "distinct"}
+					<input
+						type="text"
+						bind:value={params.field}
+						name="field"
+						placeholder="field name"
+						class="w-full h-9 px-3 bg-transparent outline-none font-mono text-[13px] border-0 !rounded-none"
+						style="color: var(--text);"
+					/>
 				{:else}
 					<input
 						type="text"
@@ -98,6 +157,7 @@
 				{/if}
 			</div>
 
+			<input type="hidden" value={params.mode} name="mode" />
 			<input type="hidden" value={counter} name="v" />
 
 			<div class="flex items-center gap-2">
@@ -117,26 +177,13 @@
 						type="button"
 						class="h-9 px-3 rounded-xl border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] transition disabled:opacity-50 cursor-pointer"
 						style="color: var(--text);"
-						title={isAggregation ? "Update not available in aggregation mode" : "Update multiple documents"}
-						disabled={isAggregation}
+						title={params.mode !== "query" ? "Update not available in this mode" : "Update multiple documents"}
+						disabled={params.mode !== "query"}
 						onclick={() => {
 							editMode = !editMode;
 						}}
 					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							width="16"
-							height="16"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						>
-							<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
-							<path d="m15 5 4 4"></path>
-						</svg>
+						<IconEdit class="w-4 h-4" />
 					</button>
 				{/if}
 				<button
@@ -151,41 +198,63 @@
 		<!-- Optional fields -->
 		{#if showOptionalFields}
 			<div class="grid gap-2 sm:grid-cols-2">
-				<!-- Sort -->
-				<div class="rounded-xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50">
+				{#if params.mode === "distinct"}
+					<!-- Distinct Filter -->
 					<div
-						class="px-3 py-1.5 text-[12px] border-b border-[var(--border-color)]"
-						style="color: var(--text-secondary);"
+						class="rounded-xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50 sm:col-span-2"
 					>
-						Sort
+						<div
+							class="px-3 py-1.5 text-[12px] border-b border-[var(--border-color)]"
+							style="color: var(--text-secondary);"
+						>
+							Filter (optional)
+						</div>
+						<input
+							type="text"
+							bind:value={params.query}
+							name="query"
+							placeholder={"{}"}
+							class="w-full h-9 px-3 bg-transparent outline-none font-mono text-[13px] border-0 !rounded-none"
+							style="color: var(--text);"
+						/>
 					</div>
-					<input
-						type="text"
-						bind:value={params.sort}
-						name="sort"
-						placeholder={"{}"}
-						class="w-full h-9 px-3 bg-transparent outline-none font-mono text-[13px] border-0 !rounded-none"
-						style="color: var(--text);"
-					/>
-				</div>
+				{:else}
+					<!-- Sort -->
+					<div class="rounded-xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50">
+						<div
+							class="px-3 py-1.5 text-[12px] border-b border-[var(--border-color)]"
+							style="color: var(--text-secondary);"
+						>
+							Sort
+						</div>
+						<input
+							type="text"
+							bind:value={params.sort}
+							name="sort"
+							placeholder={"{}"}
+							class="w-full h-9 px-3 bg-transparent outline-none font-mono text-[13px] border-0 !rounded-none"
+							style="color: var(--text);"
+						/>
+					</div>
 
-				<!-- Project -->
-				<div class="rounded-xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50">
-					<div
-						class="px-3 py-1.5 text-[12px] border-b border-[var(--border-color)]"
-						style="color: var(--text-secondary);"
-					>
-						Project
+					<!-- Project -->
+					<div class="rounded-xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50">
+						<div
+							class="px-3 py-1.5 text-[12px] border-b border-[var(--border-color)]"
+							style="color: var(--text-secondary);"
+						>
+							Project
+						</div>
+						<input
+							type="text"
+							bind:value={params.project}
+							name="project"
+							placeholder={"{}"}
+							class="w-full h-9 px-3 bg-transparent outline-none font-mono text-[13px] border-0 !rounded-none"
+							style="color: var(--text);"
+						/>
 					</div>
-					<input
-						type="text"
-						bind:value={params.project}
-						name="project"
-						placeholder={"{}"}
-						class="w-full h-9 px-3 bg-transparent outline-none font-mono text-[13px] border-0 !rounded-none"
-						style="color: var(--text);"
-					/>
-				</div>
+				{/if}
 
 				<!-- Skip -->
 				<div class="rounded-xl border border-[var(--border-color)] overflow-hidden bg-[var(--color-3)]/50">
@@ -226,15 +295,45 @@
 		{/if}
 
 		<!-- Help text -->
-		{#if !showOptionalFields && !isAggregation && params.query === "{}"}
-			<div class="text-xs" style="color: var(--text-secondary);">
-				Tip: Use <code class="px-1.5 py-0.5 rounded bg-[var(--color-3)] border border-[var(--border-color)] font-mono"
-					>[{"{...}"}]</code
-				> to switch to aggregation mode
-			</div>
-		{/if}
 	</form>
 </div>
+
+<!-- Mode dropdown (rendered via portal to avoid overflow issues) -->
+{#if showModeDropdown}
+	<div
+		use:portal
+		use:clickOutside={() => (showModeDropdown = false)}
+		class="fixed z-[1000] rounded-lg border border-[var(--border-color)] bg-[var(--light-background)] shadow-lg overflow-hidden"
+		style:left={dropdownPosition.left}
+		style:top={dropdownPosition.top}
+		style:min-width={dropdownPosition.minWidth}
+	>
+		<button
+			type="button"
+			class="w-full px-3 py-2 text-left text-[13px] hover:bg-[var(--color-3)] transition cursor-pointer"
+			style="color: var(--text);"
+			onclick={() => selectMode("query")}
+		>
+			Query
+		</button>
+		<button
+			type="button"
+			class="w-full px-3 py-2 text-left text-[13px] hover:bg-[var(--color-3)] transition cursor-pointer"
+			style="color: var(--text);"
+			onclick={() => selectMode("distinct")}
+		>
+			Distinct
+		</button>
+		<button
+			type="button"
+			class="w-full px-3 py-2 text-left text-[13px] hover:bg-[var(--color-3)] transition cursor-pointer"
+			style="color: var(--text);"
+			onclick={() => selectMode("aggregation")}
+		>
+			Aggregation
+		</button>
+	</div>
+{/if}
 
 <style lang="postcss">
 	input[type="text"],

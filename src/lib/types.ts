@@ -12,6 +12,8 @@ export interface SearchParams {
 	project: string;
 	limit: number;
 	skip: number;
+	mode: "query" | "distinct" | "aggregation";
+	field?: string;
 }
 
 /**
