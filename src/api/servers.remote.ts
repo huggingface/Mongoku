@@ -207,6 +207,67 @@ export const updateMany = command(
 	},
 );
 
+// Count documents matching a filter
+export const countDocuments = query(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		collection: z.string(),
+		filter: z.string(),
+	}),
+	async ({ server, database, collection, filter }) => {
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+		const coll = client.db(database).collection(collection);
+
+		const filterDoc = JsonEncoder.decode(parseJSON(filter));
+
+		try {
+			const count = await coll.countDocuments(filterDoc, {
+				maxTimeMS: mongo.getCountTimeout(),
+			});
+
+			return {
+				data: count,
+				error: null,
+			};
+		} catch (err) {
+			logger.error("Error counting documents:", err);
+			return {
+				data: 0,
+				error: `Failed to count documents: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
+	},
+);
+
+// Delete multiple documents with a filter query
+export const deleteMany = command(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		collection: z.string(),
+		filter: z.string(),
+	}),
+	async ({ server, database, collection, filter }) => {
+		logger.log("deleteMany called with payload:", { server, database, collection, filter });
+		checkReadOnly();
+
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+		const coll = client.db(database).collection(collection);
+
+		const filterDoc = JsonEncoder.decode(parseJSON(filter));
+
+		const result = await coll.deleteMany(filterDoc);
+
+		return {
+			ok: true,
+			deletedCount: result.deletedCount,
+		};
+	},
+);
+
 // Hide an index
 export const hideIndex = command(
 	z.object({

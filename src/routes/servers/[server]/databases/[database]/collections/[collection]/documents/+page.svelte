@@ -1,6 +1,8 @@
 <script lang="ts">
 	import {
+		countDocuments,
 		deleteDocument as deleteDocumentCommand,
+		deleteMany as deleteManyCommand,
 		insertDocument as insertDocumentCommand,
 		loadDocuments,
 		updateDocument as updateDocumentCommand,
@@ -21,19 +23,28 @@
 
 	let { data }: { data: PageData } = $props();
 
-	/* eslint-disable-next-line svelte/prefer-writable-derived */
 	let params = $state<SearchParams>({ ...data.params });
 	let dataPromise = $derived(data.results);
 	let editMode = $state(false);
 	let updateQuery = $state("{}");
 	let isUpdating = $state(false);
 	let showInsertEditor = $state(false);
+	let deleteState = $state({
+		countChecked: false,
+		count: null as number | null,
+		countError: null as string | null,
+		confirmText: "",
+		isCounting: false,
+		countQuery: null as string | null,
+	});
 
 	let finalCount = $state<number | null>(null);
 	let countCount = 0;
 
 	$effect(() => {
 		params = { ...data.params };
+		// Reset delete confirmation when params change
+		resetDeleteConfirmation();
 	});
 
 	$effect(() => {
@@ -200,6 +211,74 @@
 		} catch (error) {
 			console.error(error);
 			notificationStore.notifyError(error, "Failed to update documents");
+		} finally {
+			isUpdating = false;
+		}
+	}
+
+	async function checkDeleteCount() {
+		deleteState.isCounting = true;
+		deleteState.countError = null;
+		const currentQuery = params.query || "{}";
+
+		try {
+			const result = await countDocuments({
+				server: data.server,
+				database: data.database,
+				collection: data.collection,
+				filter: currentQuery,
+			});
+
+			deleteState.count = result.data;
+			deleteState.countError = result.error;
+			deleteState.countChecked = true;
+			deleteState.countQuery = currentQuery;
+		} catch (error) {
+			notificationStore.notifyError(error, "Failed to count documents");
+			deleteState.countError = error instanceof Error ? error.message : String(error);
+		} finally {
+			deleteState.isCounting = false;
+		}
+	}
+
+	function resetDeleteConfirmation() {
+		deleteState.countChecked = false;
+		deleteState.count = null;
+		deleteState.countError = null;
+		deleteState.confirmText = "";
+		deleteState.countQuery = null;
+	}
+
+	// Check if current query matches the query used for counting
+	let isQueryChanged = $derived(deleteState.countChecked && deleteState.countQuery !== (params.query || "{}"));
+
+	// Reset confirmation text when query changes
+	$effect(() => {
+		if (isQueryChanged) {
+			deleteState.confirmText = "";
+		}
+	});
+
+	async function executeDeleteMany() {
+		isUpdating = true;
+		try {
+			const result = await deleteManyCommand({
+				server: data.server,
+				database: data.database,
+				collection: data.collection,
+				filter: params.query || "{}",
+			});
+
+			if (result.ok) {
+				notificationStore.notifySuccess(`Deleted ${result.deletedCount} document(s)`);
+				// Reset the modified items to force a refresh
+				modifiedItems = null;
+				editMode = false;
+				resetDeleteConfirmation();
+			}
+		} catch (error) {
+			console.error(error);
+			notificationStore.notifyError(error, "Failed to delete documents");
 		} finally {
 			isUpdating = false;
 		}
@@ -452,6 +531,107 @@
 				</div>
 			</div>
 
+			<!-- Delete Multiple Documents Section -->
+			<div class="rounded-xl bg-[var(--color-3)]/30 p-4 border border-[var(--border-color)]">
+				<h3 class="text-lg font-semibold mb-3" style="color: var(--text);">Delete Multiple Documents</h3>
+				<div class="space-y-4">
+					<div>
+						<label for="delete-filter" class="block text-sm font-semibold mb-2" style="color: var(--text);">
+							Filter (which documents to delete):
+						</label>
+						<input
+							type="text"
+							id="delete-filter"
+							value={params.query || "{}"}
+							readonly
+							class="w-full p-3 rounded-xl border border-[var(--border-color)] bg-[var(--color-3)] font-mono text-sm opacity-75 cursor-not-allowed"
+							style="color: var(--text);"
+						/>
+						<p class="text-xs mt-2" style="color: var(--text-secondary);">
+							This filter is taken from the query above. Modify the query to change which documents will be deleted.
+						</p>
+					</div>
+
+					{#if !deleteState.countChecked}
+						<div class="flex gap-3">
+							<button class="btn btn-default" disabled={deleteState.isCounting} onclick={checkDeleteCount}>
+								{deleteState.isCounting ? "Counting..." : "Check Document Count"}
+							</button>
+						</div>
+					{:else if isQueryChanged}
+						<div
+							class="text-sm rounded-xl bg-yellow-500/10 p-4 border border-yellow-500/30"
+							style="color: var(--text-secondary);"
+						>
+							<p class="font-semibold text-yellow-600 mb-2">⚠️ Query Changed</p>
+							<p style="color: var(--text);">
+								The filter has changed since you last checked the count. Please check the document count again before
+								proceeding.
+							</p>
+						</div>
+
+						<div class="flex gap-3">
+							<button class="btn btn-default" disabled={deleteState.isCounting} onclick={checkDeleteCount}>
+								{deleteState.isCounting ? "Counting..." : "Check Count Again"}
+							</button>
+							<button class="btn btn-default" disabled={deleteState.isCounting} onclick={resetDeleteConfirmation}>
+								Cancel
+							</button>
+						</div>
+					{:else}
+						<div
+							class="text-sm rounded-xl bg-red-500/10 p-4 border border-red-500/30"
+							style="color: var(--text-secondary);"
+						>
+							<p class="font-semibold text-red-600 mb-2">⚠️ Warning</p>
+							{#if deleteState.countError}
+								<p class="mb-2" style="color: var(--text);">
+									Unable to count documents: {deleteState.countError}
+								</p>
+								<p>
+									You can still proceed with deletion, but please be cautious. This operation will permanently delete
+									all documents matching the filter. This action cannot be undone.
+								</p>
+							{:else}
+								<p class="mb-2" style="color: var(--text);">
+									This will delete <strong class="text-red-600">{deleteState.count}</strong>
+									document{deleteState.count === 1 ? "" : "s"}.
+								</p>
+								<p>This operation is permanent and cannot be undone.</p>
+							{/if}
+						</div>
+
+						<div>
+							<label for="delete-confirm" class="block text-sm font-semibold mb-2" style="color: var(--text);">
+								Type <code
+									class="bg-[var(--light-background)] px-2 py-1 rounded border border-[var(--border-color)] font-mono text-xs"
+									>confirm</code
+								> to proceed:
+							</label>
+							<input
+								type="text"
+								id="delete-confirm"
+								bind:value={deleteState.confirmText}
+								placeholder="Type 'confirm' to enable deletion"
+								class="w-full p-3 rounded-xl border border-[var(--border-color)] bg-[var(--color-3)] font-mono text-sm focus:outline-none focus:ring-2"
+								style="color: var(--text); --tw-ring-color: var(--link);"
+							/>
+						</div>
+
+						<div class="flex gap-3">
+							<button
+								class="btn btn-danger hover:bg-red-700"
+								disabled={isUpdating || deleteState.confirmText !== "confirm"}
+								onclick={executeDeleteMany}
+							>
+								{isUpdating ? "Deleting..." : "Execute Delete"}
+							</button>
+							<button class="btn btn-default" disabled={isUpdating} onclick={resetDeleteConfirmation}> Cancel </button>
+						</div>
+					{/if}
+				</div>
+			</div>
+
 			<!-- Close Edit Mode -->
 			<div class="flex justify-end">
 				<button
@@ -459,6 +639,7 @@
 					onclick={() => {
 						editMode = false;
 						showInsertEditor = false;
+						resetDeleteConfirmation();
 					}}
 				>
 					Close Edit Mode
