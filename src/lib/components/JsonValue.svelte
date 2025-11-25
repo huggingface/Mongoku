@@ -271,19 +271,19 @@
 				<span class="value array">[]</span>
 			{:else}
 				<span class="value array">
-					[<span class="collapsible-content" class:hidden={collapsed}>
-						{#each value as item, i (i)}
-							<br />{getIndent(depth + 1)}<JsonValue
-								value={item}
-								{autoCollapse}
-								collapsed={false}
-								depth={depth + 1}
-								keyPath={currentKeyPath}
-								{isKeyMapped}
-								{fetchMappedDocument}
-							/>{/each}
-						<br />{getIndent(depth)}
-					</span>{#if collapsed}
+					[{#if !collapsed}<span class="collapsible-content">
+							{#each value as item, i (i)}
+								<br />{getIndent(depth + 1)}<JsonValue
+									value={item}
+									{autoCollapse}
+									collapsed={false}
+									depth={depth + 1}
+									keyPath={currentKeyPath}
+									{isKeyMapped}
+									{fetchMappedDocument}
+								/>{/each}
+							<br />{getIndent(depth)}
+						</span>{:else}
 						<span class="collapsed-summary">... {value.length} item{value.length !== 1 ? "s" : ""}</span>
 					{/if}]
 				</span>
@@ -293,19 +293,19 @@
 				<span class="value object">{"{}"}</span>
 			{:else}
 				<span class="value object">
-					{"{"}<span class="collapsible-content" class:hidden={collapsed}
-						>{#each Object.keys(value) as objKey (objKey)}
-							<JsonValue
-								value={value[objKey]}
-								key={objKey}
-								{autoCollapse}
-								collapsed={autoCollapse}
-								{depth}
-								{isKeyMapped}
-								{fetchMappedDocument}
-								keyPath={currentKeyPath}
-							/>{/each}
-					</span>{#if collapsed}
+					{"{"}{#if !collapsed}<span class="collapsible-content"
+							>{#each Object.keys(value) as objKey (objKey)}
+								<JsonValue
+									value={value[objKey]}
+									key={objKey}
+									{autoCollapse}
+									collapsed={autoCollapse}
+									{depth}
+									{isKeyMapped}
+									{fetchMappedDocument}
+									keyPath={currentKeyPath}
+								/>{/each}
+						</span>{/if}{#if collapsed}
 						<span class="collapsed-summary"
 							>... {Object.keys(value).length} key{Object.keys(value).length !== 1 ? "s" : ""}</span
 						>
