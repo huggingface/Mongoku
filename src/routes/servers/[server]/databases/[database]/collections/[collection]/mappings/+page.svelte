@@ -165,9 +165,7 @@ Please analyze the codebase and database, then generate the appropriate mappings
 			🤖 AI Helper
 		</button>
 		{#if !data.readOnly}
-			<button class="btn btn-success btn-sm -my-2 hover:bg-[var(--button-success-l)]" onclick={saveMappings}
-				>Save</button
-			>
+			<button class="btn btn-success btn-sm -my-2" onclick={saveMappings}>Save</button>
 		{/if}
 	{/snippet}
 
@@ -299,9 +297,7 @@ Please analyze the codebase and database, then generate the appropriate mappings
 		{#if !data.readOnly}
 			<div class="mt-4">
 				{#if !isAdding}
-					<button class="btn btn-success hover:bg-[var(--button-success-l)]" onclick={() => (isAdding = true)}
-						>+ Add New Mapping</button
-					>
+					<button class="btn btn-success" onclick={() => (isAdding = true)}>+ Add New Mapping</button>
 				{:else}
 					<div class="border border-[var(--border-color)] rounded p-4 bg-[var(--light-background)]">
 						<h3 class="text-lg font-medium mb-3">New Mapping</h3>
@@ -337,7 +333,7 @@ Please analyze the codebase and database, then generate the appropriate mappings
 								/>
 							</label>
 							<div class="flex gap-2">
-								<button class="btn btn-success hover:bg-[var(--button-success-l)]" onclick={addNewMapping}>Add</button>
+								<button class="btn btn-success" onclick={addNewMapping}>Add</button>
 								<button class="btn btn-default hover:bg-[var(--color-3)]" onclick={cancelAdd}>Cancel</button>
 							</div>
 						</div>

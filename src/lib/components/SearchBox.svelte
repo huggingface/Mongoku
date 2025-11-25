@@ -186,10 +186,7 @@
 						<IconEdit class="w-4 h-4" />
 					</button>
 				{/if}
-				<button
-					type="submit"
-					class="h-9 px-4 rounded-xl bg-[var(--button-success)] text-white font-semibold transition cursor-pointer hover:bg-[var(--button-success-l)] active:brightness-95"
-				>
+				<button type="submit" class="h-9 px-4 py-0 rounded-xl btn btn-success text-lg font-semibold transition">
 					Go
 				</button>
 			</div>

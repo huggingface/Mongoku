@@ -26,8 +26,7 @@
 
 	--button-danger: #ff3b30;
 	--button-danger-l: #ff6961;
-	--button-success: #34c759;
-	--button-success-l: #5dd879;
+	--button-success: rgb(5 150 105);
 	--button-light: #1d1d1f;
 	--button-light-hover: #000000;
 
@@ -66,8 +65,7 @@
 
 	--button-danger: #ff453a;
 	--button-danger-l: #ff6961;
-	--button-success: #32d74b;
-	--button-success-l: #5dd879;
+	--button-success: #10b981;
 	--button-light: #f5f5f7;
 	--button-light-hover: #ffffff;
 
@@ -106,8 +104,7 @@
 
 	--button-danger: #ff3b30;
 	--button-danger-l: #ff6961;
-	--button-success: #34c759;
-	--button-success-l: #5dd879;
+	--button-success: rgb(5 150 105);
 	--button-light: #1d1d1f;
 	--button-light-hover: #000000;
 
