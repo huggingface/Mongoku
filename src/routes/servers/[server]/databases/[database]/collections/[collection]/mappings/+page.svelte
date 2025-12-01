@@ -6,6 +6,15 @@
 	import type { MappingTarget } from "$lib/types";
 	import type { PageData } from "./$types";
 	let { data }: { data: PageData } = $props();
+	// Helper to normalize mapping target to new format
+	function normalizeMappingTarget(target: MappingTarget): MappingTarget {
+		if ("type" in target) {
+			return target;
+		}
+		// Legacy format - add type: "document"
+		return { type: "document", collection: target.collection, on: target.on };
+	}
+
 	// Convert mappings to an editable array format
 	type MappingEntry = {
 		fieldPath: string;
@@ -14,13 +23,15 @@
 	let mappingsArray = $state<MappingEntry[]>(
 		Object.entries(data.mappings).map(([fieldPath, targets]) => ({
 			fieldPath,
-			targets: Array.isArray(targets) ? targets : [targets],
+			targets: (Array.isArray(targets) ? targets : [targets]).map(normalizeMappingTarget),
 		})),
 	);
 	// New mapping form state
 	let newFieldPath = $state("");
+	let newMappingType = $state<"document" | "url">("document");
 	let newTargetCollection = $state("");
 	let newTargetField = $state("_id");
+	let newUrlTemplate = $state("");
 	let isAdding = $state(false);
 	let showAiPrompt = $state(false);
 
@@ -50,8 +61,8 @@ Create a file named \`${data.collection}.mappings.json\` with the following stru
 {
   "_id": "${data.collection}",
   "mappings": {
-    "fieldPath": { "collection": "targetCollection", "on": "targetField" },
-    "nested.fieldPath": { "collection": "targetCollection", "on": "targetField" }
+    "fieldPath": { "type": "document", "collection": "targetCollection", "on": "targetField" },
+    "nested.fieldPath": { "type": "document", "collection": "targetCollection", "on": "targetField" }
   }
 }
 \`\`\`
@@ -73,8 +84,8 @@ The mappings would be:
 {
   "_id": "${data.collection}",
   "mappings": {
-    "authorId": { "collection": "users", "on": "_id" },
-    "comments.authorId": { "collection": "users", "on": "_id" }
+    "authorId": { "type": "document", "collection": "users", "on": "_id" },
+    "comments.authorId": { "type": "document", "collection": "users", "on": "_id" }
   }
 }
 \`\`\`
@@ -94,8 +105,12 @@ Please analyze the codebase and database, then generate the appropriate mappings
 			notificationStore.notifyError(err, "Failed to copy to clipboard");
 		}
 	}
-	function addTarget(entry: MappingEntry) {
-		entry.targets.push({ collection: "", on: "_id" });
+	function addTarget(entry: MappingEntry, type: "document" | "url" = "document") {
+		if (type === "document") {
+			entry.targets.push({ type: "document", collection: "", on: "_id" });
+		} else {
+			entry.targets.push({ type: "url", template: "" });
+		}
 	}
 	function removeTarget(entry: MappingEntry, index: number) {
 		entry.targets.splice(index, 1);
@@ -108,24 +123,44 @@ Please analyze the codebase and database, then generate the appropriate mappings
 			notificationStore.notifyError("Field path is required");
 			return;
 		}
-		if (!newTargetCollection.trim()) {
-			notificationStore.notifyError("Target collection is required");
-			return;
+
+		let newTarget: MappingTarget;
+		if (newMappingType === "document") {
+			if (!newTargetCollection.trim()) {
+				notificationStore.notifyError("Target collection is required");
+				return;
+			}
+			newTarget = {
+				type: "document",
+				collection: newTargetCollection.trim(),
+				on: newTargetField.trim() || "_id",
+			};
+		} else {
+			if (!newUrlTemplate.trim()) {
+				notificationStore.notifyError("URL template is required");
+				return;
+			}
+			newTarget = { type: "url", template: newUrlTemplate.trim() };
 		}
+
 		mappingsArray.push({
 			fieldPath: newFieldPath.trim(),
-			targets: [{ collection: newTargetCollection.trim(), on: newTargetField.trim() || "_id" }],
+			targets: [newTarget],
 		});
 		// Reset form
 		newFieldPath = "";
+		newMappingType = "document";
 		newTargetCollection = "";
 		newTargetField = "_id";
+		newUrlTemplate = "";
 		isAdding = false;
 	}
 	function cancelAdd() {
 		newFieldPath = "";
+		newMappingType = "document";
 		newTargetCollection = "";
 		newTargetField = "_id";
+		newUrlTemplate = "";
 		isAdding = false;
 	}
 	async function saveMappings() {
@@ -135,7 +170,19 @@ Please analyze the codebase and database, then generate the appropriate mappings
 			for (const entry of mappingsArray) {
 				if (entry.fieldPath.trim()) {
 					// Filter out empty targets
-					const validTargets = entry.targets.filter((t) => t.collection.trim() && t.on.trim());
+					const validTargets = entry.targets.filter((t) => {
+						if ("type" in t) {
+							if (t.type === "document") {
+								return t.collection.trim() && t.on.trim();
+							} else if (t.type === "url") {
+								return t.template.trim();
+							}
+						} else {
+							// Legacy format
+							return t.collection.trim() && t.on.trim();
+						}
+						return false;
+					});
 					if (validTargets.length > 0) {
 						mappingsObj[entry.fieldPath] = validTargets.length === 1 ? validTargets[0] : validTargets;
 					}
@@ -172,9 +219,9 @@ Please analyze the codebase and database, then generate the appropriate mappings
 	<div class="p-4">
 		<div class="mb-4">
 			<p class="mb-3">
-				Define relationships between collections to enable hover tooltips and navigation on foreign key fields. This
-				will be stored in the <code class="px-1 bg-[var(--light-background)] rounded">mongoku.mappings</code> collection
-				as a document with
+				Define relationships between collections or external URLs to enable hover tooltips, navigation on foreign key
+				fields, and clickable external links. This will be stored in the
+				<code class="px-1 bg-[var(--light-background)] rounded">mongoku.mappings</code> collection as a document with
 				<a
 					href={resolve(
 						`/servers/${data.server}/databases/${data.database}/collections/mongoku.mappings/documents/${data.collection}`,
@@ -183,26 +230,47 @@ Please analyze the codebase and database, then generate the appropriate mappings
 				>.
 			</p>
 			<details class="mb-2" style="color: var(--text-secondary);">
-				<summary class="cursor-pointer font-medium mb-2">Example</summary>
-				<div class="mt-2">
-					<div class="mb-1">
-						Document in collection <code class="px-1 bg-[var(--light-background)] rounded">posts</code>:
-					</div>
-					<code class="block px-2 py-1 bg-[var(--light-background)] rounded text-xs mb-2">
-						&#123; _id: "post1", title: "Hello", authorId: "user123", comments: [&#123;authorId: "user456", text:
-						"Nice!"&#125;] &#125;
-					</code>
-					<div class="text space-y-1">
-						<div>
-							→ Mapping 1: Field path <code class="px-1 bg-[var(--light-background)] rounded">authorId</code>, target
-							collection
-							<code class="px-1 bg-[var(--light-background)] rounded">users</code>, target field
-							<code class="px-1 bg-[var(--light-background)] rounded">_id</code>
+				<summary class="cursor-pointer font-medium mb-2">Examples</summary>
+				<div class="mt-2 space-y-3">
+					<div>
+						<div class="font-medium mb-1">Document Mapping Example:</div>
+						<div class="mb-1">
+							Document in collection <code class="px-1 bg-[var(--light-background)] rounded">posts</code>:
 						</div>
-						<div>
-							→ Mapping 2: Field path <code class="px-1 bg-[var(--light-background)] rounded">comments.authorId</code>,
-							target collection <code class="px-1 bg-[var(--light-background)] rounded">users</code>, target field
-							<code class="px-1 bg-[var(--light-background)] rounded">_id</code>
+						<code class="block px-2 py-1 bg-[var(--light-background)] rounded text-xs mb-2">
+							&#123; _id: "post1", title: "Hello", authorId: "user123", comments: [&#123;authorId: "user456", text:
+							"Nice!"&#125;] &#125;
+						</code>
+						<div class="text space-y-1">
+							<div>
+								→ Mapping 1: Field path <code class="px-1 bg-[var(--light-background)] rounded">authorId</code>, type
+								<strong>document</strong>, target collection
+								<code class="px-1 bg-[var(--light-background)] rounded">users</code>, target field
+								<code class="px-1 bg-[var(--light-background)] rounded">_id</code>
+							</div>
+							<div>
+								→ Mapping 2: Field path <code class="px-1 bg-[var(--light-background)] rounded">comments.authorId</code
+								>, type <strong>document</strong>, target collection
+								<code class="px-1 bg-[var(--light-background)] rounded">users</code>, target field
+								<code class="px-1 bg-[var(--light-background)] rounded">_id</code>
+							</div>
+						</div>
+					</div>
+					<div>
+						<div class="font-medium mb-1">URL Mapping Example:</div>
+						<div class="mb-1">
+							Document in collection <code class="px-1 bg-[var(--light-background)] rounded">dataset_info_cache</code>:
+						</div>
+						<code class="block px-2 py-1 bg-[var(--light-background)] rounded text-xs mb-2">
+							&#123; _id: "abc/glue", name: "GLUE Benchmark", ... &#125;
+						</code>
+						<div class="text space-y-1">
+							<div>
+								→ Mapping: Field path <code class="px-1 bg-[var(--light-background)] rounded">_id</code>, type
+								<strong>URL</strong>, template
+								<code class="px-1 bg-[var(--light-background)] rounded">https://hf.co/datasets/&#123;value&#125;</code>
+							</div>
+							<div class="ml-4">Result: Clicking the _id will open "https://hf.co/datasets/abc/glue" in a new tab</div>
 						</div>
 					</div>
 				</div>
@@ -238,34 +306,75 @@ Please analyze the codebase and database, then generate the appropriate mappings
 
 						<div class="space-y-2">
 							{#each entry.targets as target, targetIndex (targetIndex)}
+								{@const targetType = "type" in target ? target.type : "document"}
 								<div class="flex items-start gap-2 pl-4 border-l-2 border-[var(--color-3)]">
 									<div class="flex-1">
 										<label class="block text-xs mb-1">
-											Target Collection
+											Type
 											<select
-												bind:value={target.collection}
+												value={targetType}
+												onchange={(e) => {
+													const newType = e.currentTarget.value as "document" | "url";
+													if (newType === "document") {
+														entry.targets[targetIndex] = { type: "document", collection: "", on: "_id" };
+													} else {
+														entry.targets[targetIndex] = { type: "url", template: "" };
+													}
+												}}
 												class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded text-sm mt-1"
 												disabled={data.readOnly}
 											>
-												<option value="">Select collection...</option>
-												{#each data.availableCollections as col (col)}
-													<option value={col}>{col}</option>
-												{/each}
+												<option value="document">Document</option>
+												<option value="url">URL</option>
 											</select>
 										</label>
 									</div>
-									<div class="flex-1">
-										<label class="block text-xs mb-1">
-											Target Field
-											<input
-												type="text"
-												bind:value={target.on}
-												placeholder="_id"
-												class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded text-sm mt-1"
-												disabled={data.readOnly}
-											/>
-										</label>
-									</div>
+									{#if targetType === "document"}
+										{@const collectionTarget = target as
+											| { type: "document"; collection: string; on: string }
+											| { collection: string; on: string }}
+										<div class="flex-1">
+											<label class="block text-xs mb-1">
+												Target Collection
+												<select
+													bind:value={collectionTarget.collection}
+													class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded text-sm mt-1"
+													disabled={data.readOnly}
+												>
+													<option value="">Select collection...</option>
+													{#each data.availableCollections as col (col)}
+														<option value={col}>{col}</option>
+													{/each}
+												</select>
+											</label>
+										</div>
+										<div class="flex-1">
+											<label class="block text-xs mb-1">
+												Target Field
+												<input
+													type="text"
+													bind:value={collectionTarget.on}
+													placeholder="_id"
+													class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded text-sm mt-1"
+													disabled={data.readOnly}
+												/>
+											</label>
+										</div>
+									{:else}
+										{@const urlTarget = target as { type: "url"; template: string }}
+										<div class="flex-[2]">
+											<label class="block text-xs mb-1">
+												URL Template (use &#123;value&#125; for interpolation)
+												<input
+													type="text"
+													bind:value={urlTarget.template}
+													placeholder="https://example.com/&#123;value&#125;"
+													class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded text-sm mt-1"
+													disabled={data.readOnly}
+												/>
+											</label>
+										</div>
+									{/if}
 									{#if !data.readOnly}
 										<button
 											class="btn btn-outline-danger btn-sm mt-5 hover:bg-[rgba(255,59,48,0.1)]"
@@ -280,12 +389,20 @@ Please analyze the codebase and database, then generate the appropriate mappings
 						</div>
 
 						{#if !data.readOnly}
-							<button
-								class="btn btn-outline-light btn-sm mt-2 ml-4 hover:bg-[var(--color-3)]"
-								onclick={() => addTarget(entry)}
-							>
-								+ Add Alternative Target
-							</button>
+							<div class="flex gap-2 mt-2 ml-4">
+								<button
+									class="btn btn-outline-light btn-sm hover:bg-[var(--color-3)]"
+									onclick={() => addTarget(entry, "document")}
+								>
+									+ Add Document Target
+								</button>
+								<button
+									class="btn btn-outline-light btn-sm hover:bg-[var(--color-3)]"
+									onclick={() => addTarget(entry, "url")}
+								>
+									+ Add URL Target
+								</button>
+							</div>
 						{/if}
 					</div>
 				{/each}
@@ -312,26 +429,53 @@ Please analyze the codebase and database, then generate the appropriate mappings
 								/>
 							</label>
 							<label class="block text-sm font-medium mb-1">
-								Target Collection
+								Mapping Type
 								<select
-									bind:value={newTargetCollection}
+									bind:value={newMappingType}
 									class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded mt-1"
 								>
-									<option value="">Select collection...</option>
-									{#each data.availableCollections as col (col)}
-										<option value={col}>{col}</option>
-									{/each}
+									<option value="document">Document</option>
+									<option value="url">URL</option>
 								</select>
 							</label>
-							<label class="block text-sm font-medium mb-1">
-								Target Field
-								<input
-									type="text"
-									bind:value={newTargetField}
-									placeholder="_id"
-									class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded mt-1"
-								/>
-							</label>
+							{#if newMappingType === "document"}
+								<label class="block text-sm font-medium mb-1">
+									Target Collection
+									<select
+										bind:value={newTargetCollection}
+										class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded mt-1"
+									>
+										<option value="">Select collection...</option>
+										{#each data.availableCollections as col (col)}
+											<option value={col}>{col}</option>
+										{/each}
+									</select>
+								</label>
+								<label class="block text-sm font-medium mb-1">
+									Target Field
+									<input
+										type="text"
+										bind:value={newTargetField}
+										placeholder="_id"
+										class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded mt-1"
+									/>
+								</label>
+							{:else}
+								<label class="block text-sm font-medium mb-1">
+									URL Template
+									<input
+										type="text"
+										bind:value={newUrlTemplate}
+										placeholder="https://hf.co/datasets/&#123;value&#125;"
+										class="w-full px-3 py-2 bg-[var(--color-1)] border border-[var(--border-color)] rounded mt-1"
+									/>
+								</label>
+								<p class="text-xs" style="color: var(--text-secondary);">
+									Use <code class="px-1 bg-[var(--color-2)] rounded">&#123;value&#125;</code> as a placeholder for the field
+									value. Example: if the field is "abc/glue", and template is "https://hf.co/datasets/&#123;value&#125;",
+									the result will be "https://hf.co/datasets/abc/glue"
+								</p>
+							{/if}
 							<div class="flex gap-2">
 								<button class="btn btn-success" onclick={addNewMapping}>Add</button>
 								<button class="btn btn-default hover:bg-[var(--color-3)]" onclick={cancelAdd}>Cancel</button>

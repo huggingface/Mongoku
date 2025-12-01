@@ -594,15 +594,28 @@ export const loadDocuments = query(
 
 // Fetch a document by field value (for mappings)
 // Tries multiple mapping targets and returns the first one that finds a document
+// Only handles document mappings; URL mappings are handled client-side
 export const fetchMappedDocument = query(
 	z.object({
 		server: z.string(),
 		database: z.string(),
 		mappings: z.array(
-			z.object({
-				collection: z.string(),
-				on: z.string(),
-			}),
+			z.union([
+				z.object({
+					type: z.literal("document"),
+					collection: z.string(),
+					on: z.string(),
+				}),
+				z.object({
+					type: z.literal("url"),
+					template: z.string(),
+				}),
+				// Legacy format (backwards compatibility)
+				z.object({
+					collection: z.string(),
+					on: z.string(),
+				}),
+			]),
 		),
 		value: z.unknown(),
 	}),
@@ -611,23 +624,40 @@ export const fetchMappedDocument = query(
 		const client = mongo.getClient(server);
 		const decodedValue = JsonEncoder.decode(value);
 
-		// Try each mapping in order and return the first match
-		for (const mapping of mappings) {
+		// Filter to only document mappings (URL mappings are handled client-side)
+		const documentMappings = mappings.filter((m) => {
+			if ("type" in m) {
+				return m.type === "document";
+			}
+			// Legacy format without type field is a document mapping
+			return "collection" in m && "on" in m;
+		});
+
+		// Try each document mapping in order and return the first match
+		for (const mapping of documentMappings) {
 			try {
-				const coll = client.db(database).collection(mapping.collection);
-				const query = { [mapping.on]: decodedValue };
+				// Type guard for TypeScript
+				if ("type" in mapping && mapping.type !== "document") continue;
+
+				const collection = "collection" in mapping ? mapping.collection : "";
+				const on = "on" in mapping ? mapping.on : "_id";
+
+				const coll = client.db(database).collection(collection);
+				const query = { [on]: decodedValue };
 
 				const document = await coll.findOne(query, { maxTimeMS: mongo.getQueryTimeout() });
 
 				if (document) {
 					return {
 						data: JsonEncoder.encode(document),
-						collection: mapping.collection,
+						collection: collection,
 						error: null,
 					};
 				}
 			} catch (err) {
-				logger.error(`Error fetching mapped document from ${mapping.collection}.${mapping.on}:`, err);
+				const collection = "collection" in mapping ? mapping.collection : "unknown";
+				const on = "on" in mapping ? mapping.on : "_id";
+				logger.error(`Error fetching mapped document from ${collection}.${on}:`, err);
 				// Continue to next mapping on error
 				continue;
 			}

@@ -245,7 +245,7 @@
 <Panel class="group relative" title={json._id ? title : undefined} {actions} bind:ref={panelRef}>
 	<div bind:this={contentContainerRef} class="relative p-4 sm:p-6">
 		<div class="font-mono text-[13px] sm:text-[14px] leading-relaxed whitespace-pre-wrap break-words overflow-x-auto">
-			<JsonValue value={json} {autoCollapse} collapsed={false} {isKeyMapped} {fetchMappedDocument} />
+			<JsonValue value={json} {autoCollapse} collapsed={false} {isKeyMapped} {fetchMappedDocument} {mappings} />
 		</div>
 
 		{#if removing}

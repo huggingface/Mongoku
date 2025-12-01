@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
+	import IconExternalLink from "$lib/icons/IconExternalLink.svelte";
 	import type { MongoDocument } from "$lib/types";
 	import JsonValue from "./JsonValue.svelte";
 	import Tooltip from "./Tooltip.svelte";
 
 	const INDENT = "    ";
+
+	import type { Mappings } from "$lib/types";
 
 	interface Props {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -24,6 +27,8 @@
 		) => Promise<{ document: MongoDocument | null; url: string | null; collection: string | null }>;
 		/** full path to current key (e.g., "user.address.city") */
 		keyPath?: string;
+		/** The mappings object */
+		mappings?: Mappings;
 	}
 
 	let {
@@ -35,6 +40,7 @@
 		isKeyMapped,
 		fetchMappedDocument,
 		keyPath = "",
+		mappings,
 	}: Props = $props();
 
 	function getIndent(level: number): string {
@@ -56,6 +62,12 @@
 
 	// Check if current key has a mapping
 	const currentKeyPath = $derived([keyPath, key].filter(Boolean).join("."));
+
+	// Helper to interpolate URL template with value
+	function interpolateUrl(template: string, val: unknown): string {
+		const strValue = String(val);
+		return template.replace(/\{value\}/g, strValue);
+	}
 
 	async function handleMouseEnter() {
 		if (!hasMappings || !fetchMappedDocument) return;
@@ -146,7 +158,6 @@
 
 	const hasMappings = $derived(
 		!!isKeyMapped &&
-			!!fetchMappedDocument &&
 			key === undefined &&
 			isKeyMapped(currentKeyPath) &&
 			value !== null &&
@@ -154,6 +165,25 @@
 			valueType !== "array" &&
 			valueType !== "object",
 	);
+
+	const hasCollectionMappings = $derived(hasMappings && !!fetchMappedDocument);
+
+	// Get URL mappings for current path
+	const urlMappings = $derived.by(() => {
+		if (!hasMappings || !mappings || !mappings[currentKeyPath]) {
+			return [];
+		}
+		const pathMappings = mappings[currentKeyPath];
+		const mappingsArray = Array.isArray(pathMappings) ? pathMappings : [pathMappings];
+		return mappingsArray.filter((m): m is { type: "url"; template: string } => {
+			if ("type" in m) {
+				return m.type === "url";
+			}
+			return false;
+		});
+	});
+
+	const hasUrlMappings = $derived(urlMappings.length > 0);
 
 	let isCollapsible = $derived(valueType === "array" || valueType === "object");
 	let isEmpty = $derived(
@@ -189,6 +219,7 @@
 					{isKeyMapped}
 					{fetchMappedDocument}
 					keyPath={currentKeyPath}
+					{mappings}
 				/>
 			</span>
 		{:else}
@@ -218,6 +249,7 @@
 					{isKeyMapped}
 					{fetchMappedDocument}
 					keyPath={currentKeyPath}
+					{mappings}
 				/>
 			</span>
 		{/if}
@@ -231,6 +263,7 @@
 				{isKeyMapped}
 				{fetchMappedDocument}
 				keyPath={currentKeyPath}
+				{mappings}
 			/>
 		</span>
 	{/if}
@@ -281,6 +314,7 @@
 									keyPath={currentKeyPath}
 									{isKeyMapped}
 									{fetchMappedDocument}
+									{mappings}
 								/>{/each}
 							<br />{getIndent(depth)}
 						</span>{:else}
@@ -304,6 +338,7 @@
 									{isKeyMapped}
 									{fetchMappedDocument}
 									keyPath={currentKeyPath}
+									{mappings}
 								/>{/each}
 						</span>{/if}{#if collapsed}
 						<span class="collapsed-summary"
@@ -318,7 +353,21 @@
 			<span>{String(value)}</span>
 		{/if}
 	{/snippet}
-	{#if hasMappings}
+	{#if hasUrlMappings}
+		<!-- Render as external URL link(s) -->
+		<span class="string mapped url">
+			{#each urlMappings as urlMapping, i (i)}
+				{#if i > 0}
+					|
+				{/if}
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a href={interpolateUrl(urlMapping.template, value)} target="_blank" class="inline-flex items-center gap-1">
+					{@render valueSnippet?.()}
+					<IconExternalLink class="w-3 h-3 inline-block opacity-70" />
+				</a>
+			{/each}
+		</span>
+	{:else if hasCollectionMappings}
 		<Tooltip
 			show={showTooltip}
 			tooltipClass="max-w-[600px] max-h-[400px] overflow-auto whitespace-pre-wrap"
@@ -403,10 +452,6 @@
 
 	.collapsible-content {
 		white-space: pre;
-
-		&.hidden {
-			display: none;
-		}
 	}
 
 	.collapsed-summary {

@@ -100,12 +100,23 @@ export const ALLOWED_AGGREGATION_STAGES = new Set([
 ]);
 
 /**
- * A single mapping target - defines which collection and field to lookup
+ * A single mapping target - defines either a collection lookup or URL template
  */
-export interface MappingTarget {
-	collection: string;
-	on: string;
-}
+export type MappingTarget =
+	| {
+			type: "document";
+			collection: string;
+			on: string;
+	  }
+	| {
+			type: "url";
+			template: string;
+	  }
+	// Legacy format (backwards compatibility) - treated as type: "document"
+	| {
+			collection: string;
+			on: string;
+	  };
 
 export type Mappings = Record<string, MappingTarget[] | MappingTarget>;
 
