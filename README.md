@@ -113,6 +113,14 @@ docker run -d --name mongoku -p 3100:3100 \
 # the origin: MONGOKU_SERVER_HOST_HEADER, MONGOKU_SERVER_PROTOCOL_HEADER, ...
 ```
 
+### Git hooks
+
+You can run this command to set up pre-commit git hooks:
+
+```shell
+npx simple-git-hooks
+```
+
 ## Configuration
 
 You can configure Mongoku using environment variables:
