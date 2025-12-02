@@ -3,6 +3,7 @@
 		countDocuments,
 		deleteDocument as deleteDocumentCommand,
 		deleteMany as deleteManyCommand,
+		explainQuery,
 		insertDocument as insertDocumentCommand,
 		loadDocuments,
 		updateDocument as updateDocumentCommand,
@@ -11,6 +12,7 @@
 	import { pushState } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { jsonTextarea } from "$lib/actions/jsonTextarea";
+	import ExplainPanel from "$lib/components/ExplainPanel.svelte";
 	import Panel from "$lib/components/Panel.svelte";
 	import PrettyJson from "$lib/components/PrettyJson.svelte";
 	import SearchBox from "$lib/components/SearchBox.svelte";
@@ -32,6 +34,11 @@
 	let updateQuery = $state("{}");
 	let isUpdating = $state(false);
 	let showInsertEditor = $state(false);
+
+	// Explain state
+	let explainLoading = $state(false);
+	let explainData = $state<unknown>(null);
+	let showExplain = $state(false);
 
 	let deleteState = $state({
 		countChecked: false,
@@ -408,6 +415,36 @@
 			notificationStore.notifyError(error, "Failed to copy to clipboard");
 		}
 	}
+
+	async function handleExplain() {
+		explainLoading = true;
+		try {
+			const result = await explainQuery({
+				server: data.server,
+				database: data.database,
+				collection: data.collection,
+				query: params.query || "{}",
+				sort: params.sort || "{}",
+				project: params.project || "{}",
+				skip: params.skip,
+				limit: params.limit,
+				mode: params.mode === "aggregation" ? "aggregation" : "query",
+				verbosity: "executionStats",
+			});
+
+			if (result.error) {
+				notificationStore.notifyError(result.error);
+			} else {
+				explainData = result.data;
+				showExplain = true;
+			}
+		} catch (error) {
+			console.error(error);
+			notificationStore.notifyError(error, "Failed to explain query");
+		} finally {
+			explainLoading = false;
+		}
+	}
 </script>
 
 {#snippet previousButton(url: string, onClick: (e: MouseEvent) => void)}
@@ -456,7 +493,9 @@
 	</button>
 {/snippet}
 
-<SearchBox bind:params bind:editMode readonly={data.readOnly} />
+<SearchBox bind:params bind:editMode readonly={data.readOnly} {explainLoading} onexplain={handleExplain} />
+
+<ExplainPanel data={explainData} show={showExplain} onclose={() => (showExplain = false)} />
 
 {#if editMode}
 	<Panel title="Edit Mode">
