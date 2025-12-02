@@ -493,7 +493,16 @@
 	</button>
 {/snippet}
 
-<SearchBox bind:params bind:editMode readonly={data.readOnly} {explainLoading} onexplain={handleExplain} />
+<SearchBox
+	bind:params
+	bind:editMode
+	readonly={data.readOnly}
+	{explainLoading}
+	onexplain={handleExplain}
+	server={data.server}
+	database={data.database}
+	collection={data.collection}
+/>
 
 <ExplainPanel data={explainData} show={showExplain} onclose={() => (showExplain = false)} />
 

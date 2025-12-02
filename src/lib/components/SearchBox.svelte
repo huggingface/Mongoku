@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { countDocumentsByTimeRange } from "$api/servers.remote";
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { page } from "$app/state";
@@ -8,6 +9,7 @@
 	import IconChevronDown from "$lib/icons/IconChevronDown.svelte";
 	import IconEdit from "$lib/icons/IconEdit.svelte";
 	import type { SearchParams } from "$lib/types";
+	import { formatNumber } from "$lib/utils/filters";
 	import { tick } from "svelte";
 
 	interface Props {
@@ -16,6 +18,9 @@
 		readonly: boolean;
 		explainLoading?: boolean;
 		onexplain?: () => void;
+		server?: string;
+		database?: string;
+		collection?: string;
 	}
 
 	let {
@@ -24,6 +29,9 @@
 		readonly = $bindable(false),
 		explainLoading = false,
 		onexplain,
+		server,
+		database,
+		collection,
 	}: Props = $props();
 
 	// Show optional fields - start with all hidden
@@ -111,6 +119,81 @@
 	}
 
 	let form = $state<HTMLFormElement | undefined>(undefined);
+
+	// New Docs dropdown state
+	const TIME_RANGES = [
+		{ label: "Last 24 hours", days: 1 },
+		{ label: "Last 7 days", days: 7 },
+		{ label: "Last 30 days", days: 30 },
+		{ label: "Last 90 days", days: 90 },
+		{ label: "Last 180 days", days: 180 },
+	];
+
+	let showNewDocsDropdown = $state(false);
+	let newDocsButtonElement = $state<HTMLButtonElement>();
+	let newDocsDropdownPosition = $state({ left: "0px", top: "0px", minWidth: "200px" });
+	let isStatsLoading = $state(false);
+	let stats = $state<Array<{ label: string; days: number; count: number | null; error: string | null }> | null>(null);
+
+	// Calculate New Docs dropdown position when shown
+	$effect(() => {
+		if (showNewDocsDropdown && newDocsButtonElement) {
+			tick().then(() => {
+				if (!newDocsButtonElement) return;
+				const rect = newDocsButtonElement.getBoundingClientRect();
+				newDocsDropdownPosition = {
+					left: `${rect.right - 200}px`,
+					top: `${rect.bottom + 5}px`,
+					minWidth: "200px",
+				};
+			});
+		}
+	});
+
+	async function loadStats() {
+		if (!server || !database || !collection || isStatsLoading) return;
+
+		isStatsLoading = true;
+		try {
+			const result = await countDocumentsByTimeRange({
+				server,
+				database,
+				collection,
+				timeRanges: TIME_RANGES,
+			});
+
+			if (!result.error) {
+				stats = result.data;
+			}
+		} finally {
+			isStatsLoading = false;
+		}
+	}
+
+	function toggleNewDocsDropdown() {
+		showNewDocsDropdown = !showNewDocsDropdown;
+		if (showNewDocsDropdown && stats === null) {
+			loadStats();
+		}
+	}
+
+	function selectTimeRange(days: number) {
+		// Calculate the ObjectId for X days ago
+		const now = Date.now();
+		const daysInMs = days * 24 * 60 * 60 * 1000;
+		const timestamp = Math.floor((now - daysInMs) / 1000);
+
+		// Create ObjectId hex string from timestamp (first 4 bytes are timestamp)
+		const objectIdHex = timestamp.toString(16).padStart(8, "0") + "0000000000000000";
+
+		// Set the query with the ObjectId filter
+		params.query = `{_id: {$gte: ObjectId("${objectIdHex}")}}`;
+		params.mode = "query";
+		showNewDocsDropdown = false;
+
+		// Submit the form
+		form?.requestSubmit();
+	}
 </script>
 
 <div class="rounded-2xl border border-[var(--border-color)] bg-[var(--light-background)]/70 shadow-sm p-3 sm:p-4">
@@ -169,6 +252,19 @@
 			<input type="hidden" value={counter} name="v" />
 
 			<div class="flex items-center gap-2">
+				{#if server && database && collection}
+					<button
+						type="button"
+						bind:this={newDocsButtonElement}
+						class="h-9 px-3 rounded-xl border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] transition cursor-pointer text-[13px] font-medium flex items-center gap-1"
+						style="color: var(--text-secondary);"
+						title="Filter by document creation time"
+						onclick={toggleNewDocsDropdown}
+					>
+						<span>📊</span>
+						<IconChevronDown class="w-3 h-3" />
+					</button>
+				{/if}
 				<button
 					type="button"
 					class="h-9 px-3 rounded-xl border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] text-[15px] font-semibold leading-none transition cursor-pointer"
@@ -351,6 +447,44 @@
 		>
 			Aggregation
 		</button>
+	</div>
+{/if}
+
+<!-- New Docs dropdown (rendered via portal to avoid overflow issues) -->
+{#if showNewDocsDropdown}
+	<div
+		use:portal
+		use:clickOutside={() => (showNewDocsDropdown = false)}
+		class="fixed z-[1000] rounded-lg border border-[var(--border-color)] bg-[var(--light-background)] shadow-lg overflow-hidden"
+		style:left={newDocsDropdownPosition.left}
+		style:top={newDocsDropdownPosition.top}
+		style:min-width={newDocsDropdownPosition.minWidth}
+	>
+		{#if isStatsLoading}
+			<div class="px-3 py-2 text-[13px]" style="color: var(--text-secondary);">Loading...</div>
+		{:else if stats && stats.length > 0}
+			{#each stats as stat (stat.label)}
+				<button
+					type="button"
+					class="w-full px-3 py-2 text-left text-[13px] hover:bg-[var(--color-3)] transition cursor-pointer flex justify-between items-center"
+					style="color: var(--text);"
+					onclick={() => selectTimeRange(stat.days)}
+				>
+					<span>{stat.label}</span>
+					<span class="font-medium tabular-nums" style="color: var(--text-secondary);">
+						{#if stat.error}
+							⚠️
+						{:else if stat.count !== null}
+							{formatNumber(stat.count)}
+						{:else}
+							—
+						{/if}
+					</span>
+				</button>
+			{/each}
+		{:else}
+			<div class="px-3 py-2 text-[13px]" style="color: var(--text-secondary);">No data available</div>
+		{/if}
 	</div>
 {/if}
 
