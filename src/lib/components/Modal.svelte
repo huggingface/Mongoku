@@ -5,11 +5,12 @@
 		show: boolean;
 		onclose: () => void;
 		title?: string;
+		wide?: boolean;
 		children?: Snippet;
 		footer?: Snippet;
 	}
 
-	let { show = false, onclose, title, children, footer }: Props = $props();
+	let { show = false, onclose, title, wide = false, children, footer }: Props = $props();
 
 	function handleOverlayClick() {
 		onclose();
@@ -28,7 +29,7 @@
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="modal-overlay" onclick={handleOverlayClick}>
-		<div class="modal" onclick={(e) => e.stopPropagation()}>
+		<div class="modal" class:modal-wide={wide} onclick={(e) => e.stopPropagation()}>
 			{#if title}
 				<div class="modal-header">
 					<h3 style="color: var(--text);">{title}</h3>
@@ -55,5 +56,9 @@
 		margin: 0;
 		font-size: 1.375rem;
 		font-weight: 600;
+	}
+
+	.modal-wide {
+		max-width: 800px;
 	}
 </style>

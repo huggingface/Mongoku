@@ -14,9 +14,17 @@
 		params: SearchParams;
 		editMode?: boolean;
 		readonly: boolean;
+		explainLoading?: boolean;
+		onexplain?: () => void;
 	}
 
-	let { params = $bindable(), editMode = $bindable(false), readonly = $bindable(false) }: Props = $props();
+	let {
+		params = $bindable(),
+		editMode = $bindable(false),
+		readonly = $bindable(false),
+		explainLoading = false,
+		onexplain,
+	}: Props = $props();
 
 	// Show optional fields - start with all hidden
 	let showOptionalFields = $state(
@@ -184,6 +192,20 @@
 						}}
 					>
 						<IconEdit class="w-4 h-4" />
+					</button>
+				{/if}
+				{#if onexplain}
+					<button
+						type="button"
+						class="h-9 px-3 rounded-xl border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] transition disabled:opacity-50 cursor-pointer text-[13px] font-medium"
+						style="color: var(--link);"
+						title={params.mode === "distinct"
+							? "Explain not available for distinct queries"
+							: "Show query execution plan"}
+						disabled={params.mode === "distinct" || explainLoading}
+						onclick={onexplain}
+					>
+						{explainLoading ? "..." : "Explain"}
 					</button>
 				{/if}
 				<button type="submit" class="h-9 px-4 py-0 rounded-xl btn btn-success text-lg font-semibold transition">

@@ -857,3 +857,98 @@ export const getIndexStatsFromNodes = query(
 		}
 	},
 );
+
+// Explain a query and return execution statistics
+export const explainQuery = query(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		collection: z.string(),
+		query: z.string().default("{}"),
+		sort: z.string().default("{}"),
+		project: z.string().default("{}"),
+		skip: z.number().int().default(0),
+		limit: z.number().int().default(20),
+		mode: z.enum(["query", "aggregation"]).default("query"),
+		verbosity: z.enum(["queryPlanner", "executionStats", "allPlansExecution"]).default("executionStats"),
+	}),
+	async ({ server, database, collection, query: queryStr, sort, project, skip, limit, mode, verbosity }) => {
+		// Parse JSON strings
+		const queryDoc = (() => {
+			try {
+				return parseJSON(queryStr, { allowArray: true });
+			} catch (err) {
+				error(400, `Invalid query: ${err}`);
+			}
+		})();
+
+		try {
+			parseJSON(sort);
+		} catch (err) {
+			error(400, `Invalid sort: ${err}`);
+		}
+
+		try {
+			parseJSON(project);
+		} catch (err) {
+			error(400, `Invalid project: ${err}`);
+		}
+
+		const sortDoc = parseJSON(sort);
+		const projectDoc = parseJSON(project) as Document;
+
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+		const coll = client.db(database).collection(collection);
+
+		try {
+			let explainResult;
+
+			if (mode === "aggregation" && Array.isArray(queryDoc)) {
+				// Validate aggregation pipeline
+				try {
+					validateAggregationPipeline(queryDoc);
+				} catch (err) {
+					error(400, `Invalid aggregation pipeline: ${err instanceof Error ? err.message : String(err)}`);
+				}
+
+				// Build the full pipeline with project, sort, limit, skip
+				const pipeline = JsonEncoder.decode(queryDoc);
+				const fullPipeline = [
+					...pipeline,
+					...(isEmptyObject(projectDoc) ? [] : [{ $project: projectDoc }]),
+					...(isEmptyObject(sortDoc as object) ? [] : [{ $sort: sortDoc }]),
+					{ $skip: skip },
+					{ $limit: limit },
+				];
+
+				// Aggregation explain
+				explainResult = await coll.aggregate(fullPipeline).explain(verbosity);
+			} else {
+				// Find explain
+				explainResult = await coll
+					.find(JsonEncoder.decode(queryDoc))
+					.project(projectDoc)
+					.sort(JsonEncoder.decode(sortDoc))
+					.skip(skip)
+					.limit(limit)
+					.explain(verbosity);
+			}
+
+			// Convert to plain object to handle MongoDB special types (Long, Timestamp, etc.)
+			// that JsonEncoder doesn't support
+			const plainResult = JSON.parse(JSON.stringify(explainResult));
+
+			return {
+				data: plainResult,
+				error: null,
+			};
+		} catch (err) {
+			logger.error("Error explaining query:", err);
+			return {
+				data: null,
+				error: `Failed to explain query: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
+	},
+);
