@@ -985,7 +985,10 @@ export const countDocumentsByTimeRange = query(
 					try {
 						const count = await coll.countDocuments(
 							{ _id: { $gte: objectIdThreshold } },
-							{ maxTimeMS: mongo.getCountTimeout() },
+							{
+								maxTimeMS: mongo.getCountTimeout(),
+								readPreference: ReadPreference.secondaryPreferred,
+							},
 						);
 						return { label, days, count, error: null };
 					} catch (err) {
