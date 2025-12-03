@@ -145,6 +145,13 @@ MONGOKU_COUNT_TIMEOUT=5000
 # Timeout for find queries in ms (Default = undefined, no timeout)
 MONGOKU_QUERY_TIMEOUT=30000
 
+# Read preference for queries (primary, primaryPreferred, secondary, secondaryPreferred, nearest)
+MONGOKU_READ_PREFERENCE=secondaryPreferred
+
+# Read preference tags as JSON array (used with MONGOKU_READ_PREFERENCE)
+# Example: route to analytics nodes with fallback to any node
+MONGOKU_READ_PREFERENCE_TAGS='[{"nodeType":"ANALYTICS"},{}]'
+
 # Read-only mode (prevent write queries to mongodb)
 MONGOKU_READ_ONLY_MODE=true
 

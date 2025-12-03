@@ -1,7 +1,7 @@
 import { logger } from "$lib/server/logger";
 import type { CollectionJSON, CollectionMappings, Mappings } from "$lib/types";
 import { resolveSrv } from "dns/promises";
-import { MongoClient, type Collection } from "mongodb";
+import { MongoClient, ReadPreference, type Collection } from "mongodb";
 import { URL } from "url";
 import { HostsManager } from "./HostsManager";
 
@@ -129,8 +129,8 @@ class MongoClientWithMappings extends MongoClient {
 	_id: string;
 	name: string;
 
-	constructor(url: string, _id: string, name: string) {
-		super(url);
+	constructor(url: string, _id: string, name: string, readPreference?: ReadPreference) {
+		super(url, readPreference ? { readPreference } : {});
 		this.url = url;
 		this._id = _id;
 		this.name = name;
@@ -164,6 +164,7 @@ class MongoConnections {
 		? parseInt(process.env.MONGOKU_QUERY_TIMEOUT, 10)
 		: undefined;
 	private excludedDatabases: Set<string>;
+	private readPreference: ReadPreference | undefined;
 
 	constructor() {
 		this.hostsManager = new HostsManager();
@@ -175,6 +176,30 @@ class MongoConnections {
 				.map((db) => db.trim())
 				.filter((db) => db.length > 0),
 		);
+
+		// Parse read preference from env vars
+		// MONGOKU_READ_PREFERENCE: primary, primaryPreferred, secondary, secondaryPreferred, nearest
+		// MONGOKU_READ_PREFERENCE_TAGS: JSON array of tag sets, e.g. [{"nodeType":"ANALYTICS"},{}]
+		const readPrefMode = process.env.MONGOKU_READ_PREFERENCE as
+			| "primary"
+			| "primaryPreferred"
+			| "secondary"
+			| "secondaryPreferred"
+			| "nearest"
+			| undefined;
+
+		if (readPrefMode) {
+			let tags: Array<Record<string, string>> | undefined;
+			if (process.env.MONGOKU_READ_PREFERENCE_TAGS) {
+				try {
+					tags = JSON.parse(process.env.MONGOKU_READ_PREFERENCE_TAGS);
+				} catch (err) {
+					logger.error("Failed to parse MONGOKU_READ_PREFERENCE_TAGS:", err);
+				}
+			}
+			this.readPreference = tags ? new ReadPreference(readPrefMode, tags) : new ReadPreference(readPrefMode);
+			logger.log(`Read preference configured: ${readPrefMode}${tags ? ` with tags ${JSON.stringify(tags)}` : ""}`);
+		}
 	}
 
 	async initialize() {
@@ -189,7 +214,7 @@ class MongoConnections {
 				const hostname = url.host || host.path;
 
 				if (!this.clients.has(hostname)) {
-					const client = new MongoClientWithMappings(urlStr, host._id, hostname);
+					const client = new MongoClientWithMappings(urlStr, host._id, hostname, this.readPreference);
 					this.clients.set(host._id, client);
 					this.clientIds.set(hostname, host._id);
 				}
@@ -244,7 +269,7 @@ class MongoConnections {
 			const hostname = url.host || hostPath;
 
 			if (!this.clients.has(hostname)) {
-				const client = new MongoClientWithMappings(urlStr, id, hostname);
+				const client = new MongoClientWithMappings(urlStr, id, hostname, this.readPreference);
 				this.clients.set(id, client);
 				this.clientIds.set(hostname, id);
 			}
@@ -275,7 +300,7 @@ class MongoConnections {
 		oldClient.close().catch((err) => logger.error(`Error closing old client ${id}:`, err));
 
 		// Create a new client
-		const newClient = new MongoClientWithMappings(oldClient.url, id, oldClient.name);
+		const newClient = new MongoClientWithMappings(oldClient.url, id, oldClient.name, this.readPreference);
 		this.clients.set(id, newClient);
 
 		// Test the connection
