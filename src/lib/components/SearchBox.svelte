@@ -191,8 +191,10 @@
 		params.mode = "query";
 		showNewDocsDropdown = false;
 
-		// Submit the form
-		form?.requestSubmit();
+		tick().then(() => {
+			// Submit the form
+			form?.requestSubmit();
+		});
 	}
 </script>
 
