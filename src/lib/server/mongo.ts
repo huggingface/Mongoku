@@ -1,7 +1,7 @@
 import { logger } from "$lib/server/logger";
 import type { CollectionJSON, CollectionMappings, Mappings } from "$lib/types";
 import { resolveSrv } from "dns/promises";
-import { MongoClient, type Collection } from "mongodb";
+import { MongoClient, ReadPreference, type Collection } from "mongodb";
 import { URL } from "url";
 import { HostsManager } from "./HostsManager";
 
@@ -160,11 +160,11 @@ class MongoConnections {
 	private clientIds: Map<string, string> = new Map(); // hostname -> _id
 	private hostsManager: HostsManager;
 	private countTimeout = parseInt(process.env.MONGOKU_COUNT_TIMEOUT!, 10) || 30_000;
-	private analyticsCountTimeout = parseInt(process.env.MONGOKU_ANALYTICS_COUNT_TIMEOUT!, 10) || 60_000;
 	private queryTimeout = process.env.MONGOKU_QUERY_TIMEOUT
 		? parseInt(process.env.MONGOKU_QUERY_TIMEOUT, 10)
 		: undefined;
 	private excludedDatabases: Set<string>;
+	private readPreference: ReadPreference | undefined;
 
 	constructor() {
 		this.hostsManager = new HostsManager();
@@ -176,6 +176,30 @@ class MongoConnections {
 				.map((db) => db.trim())
 				.filter((db) => db.length > 0),
 		);
+
+		// Parse read preference from env vars
+		// MONGOKU_READ_PREFERENCE: primary, primaryPreferred, secondary, secondaryPreferred, nearest
+		// MONGOKU_READ_PREFERENCE_TAGS: JSON array of tag sets, e.g. [{"nodeType":"ANALYTICS"},{}]
+		const readPrefMode = process.env.MONGOKU_READ_PREFERENCE as
+			| "primary"
+			| "primaryPreferred"
+			| "secondary"
+			| "secondaryPreferred"
+			| "nearest"
+			| undefined;
+
+		if (readPrefMode) {
+			let tags: Array<Record<string, string>> | undefined;
+			if (process.env.MONGOKU_READ_PREFERENCE_TAGS) {
+				try {
+					tags = JSON.parse(process.env.MONGOKU_READ_PREFERENCE_TAGS);
+				} catch (err) {
+					logger.error("Failed to parse MONGOKU_READ_PREFERENCE_TAGS:", err);
+				}
+			}
+			this.readPreference = tags ? new ReadPreference(readPrefMode, tags) : new ReadPreference(readPrefMode);
+			logger.log(`Read preference configured: ${readPrefMode}${tags ? ` with tags ${JSON.stringify(tags)}` : ""}`);
+		}
 	}
 
 	async initialize() {
@@ -224,8 +248,8 @@ class MongoConnections {
 		return this.countTimeout;
 	}
 
-	getAnalyticsCountTimeout() {
-		return this.analyticsCountTimeout;
+	getReadPreference() {
+		return this.readPreference;
 	}
 
 	getQueryTimeout() {

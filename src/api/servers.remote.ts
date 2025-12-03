@@ -953,10 +953,6 @@ export const explainQuery = query(
 	},
 );
 
-// Analytics node read preference for time range count queries
-// Falls back to secondaryPreferred if no ANALYTICS node exists
-const analyticsReadPreference = new ReadPreference("secondaryPreferred", [{ nodeType: "ANALYTICS" }, {}]);
-
 // Count documents created within a time range (based on ObjectId timestamp)
 export const countDocumentsByTimeRange = query(
 	z.object({
@@ -975,6 +971,9 @@ export const countDocumentsByTimeRange = query(
 		const client = mongo.getClient(server);
 		const coll = client.db(database).collection(collection);
 
+		// Use configured read preference from env var (MONGOKU_READ_PREFERENCE)
+		const readPref = mongo.getReadPreference();
+
 		try {
 			const results = await Promise.all(
 				timeRanges.map(async ({ label, days }) => {
@@ -990,8 +989,8 @@ export const countDocumentsByTimeRange = query(
 						const count = await coll.countDocuments(
 							{ _id: { $gte: objectIdThreshold } },
 							{
-								maxTimeMS: mongo.getAnalyticsCountTimeout(),
-								readPreference: analyticsReadPreference,
+								maxTimeMS: mongo.getCountTimeout(),
+								readPreference: readPref,
 							},
 						);
 						return { label, days, count, error: null };
