@@ -207,6 +207,9 @@ export const updateMany = command(
 	},
 );
 
+// Analytics node read preference for count queries
+const analyticsReadPreference = new ReadPreference("nearest", [{ nodeType: "ANALYTICS" }]);
+
 // Count documents matching a filter
 export const countDocuments = query(
 	z.object({
@@ -225,6 +228,7 @@ export const countDocuments = query(
 		try {
 			const count = await coll.countDocuments(filterDoc, {
 				maxTimeMS: mongo.getCountTimeout(),
+				readPreference: analyticsReadPreference,
 			});
 
 			return {
@@ -987,7 +991,7 @@ export const countDocumentsByTimeRange = query(
 							{ _id: { $gte: objectIdThreshold } },
 							{
 								maxTimeMS: mongo.getCountTimeout(),
-								readPreference: ReadPreference.secondaryPreferred,
+								readPreference: analyticsReadPreference,
 							},
 						);
 						return { label, days, count, error: null };
