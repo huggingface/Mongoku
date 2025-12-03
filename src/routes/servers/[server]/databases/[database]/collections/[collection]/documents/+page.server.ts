@@ -9,7 +9,8 @@ import { type Document, ReadPreference } from "mongodb";
 import type { PageServerLoad } from "./$types";
 
 // Analytics node read preference for count queries
-const analyticsReadPreference = new ReadPreference("nearest", [{ nodeType: "ANALYTICS" }]);
+// Falls back to secondaryPreferred if no ANALYTICS node exists
+const analyticsReadPreference = new ReadPreference("secondaryPreferred", [{ nodeType: "ANALYTICS" }, {}]);
 
 export const load: PageServerLoad = async ({ params, url }) => {
 	const query = url.searchParams.get("query") || "{}";
@@ -177,7 +178,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		// For aggregations, we can't easily get a count, so we return the result count
 		const countPromise = collection
 			.aggregate([...pipeline, { $count: "count" }], {
-				maxTimeMS: mongo.getCountTimeout(),
+				maxTimeMS: mongo.getAnalyticsCountTimeout(),
 				readPreference: analyticsReadPreference,
 			})
 			.next()
@@ -226,7 +227,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 			if (queryDoc && Object.keys(queryDoc).length > 0) {
 				return {
 					data: await collection.countDocuments(JsonEncoder.decode(queryDoc), {
-						maxTimeMS: mongo.getCountTimeout(),
+						maxTimeMS: mongo.getAnalyticsCountTimeout(),
 						readPreference: analyticsReadPreference,
 					}),
 					error: null as string | null,

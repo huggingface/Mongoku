@@ -160,6 +160,7 @@ class MongoConnections {
 	private clientIds: Map<string, string> = new Map(); // hostname -> _id
 	private hostsManager: HostsManager;
 	private countTimeout = parseInt(process.env.MONGOKU_COUNT_TIMEOUT!, 10) || 30_000;
+	private analyticsCountTimeout = parseInt(process.env.MONGOKU_ANALYTICS_COUNT_TIMEOUT!, 10) || 60_000;
 	private queryTimeout = process.env.MONGOKU_QUERY_TIMEOUT
 		? parseInt(process.env.MONGOKU_QUERY_TIMEOUT, 10)
 		: undefined;
@@ -221,6 +222,10 @@ class MongoConnections {
 
 	getCountTimeout() {
 		return this.countTimeout;
+	}
+
+	getAnalyticsCountTimeout() {
+		return this.analyticsCountTimeout;
 	}
 
 	getQueryTimeout() {
