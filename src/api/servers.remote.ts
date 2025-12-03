@@ -952,3 +952,64 @@ export const explainQuery = query(
 		}
 	},
 );
+
+// Count documents created within a time range (based on ObjectId timestamp)
+export const countDocumentsByTimeRange = query(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		collection: z.string(),
+		timeRanges: z.array(
+			z.object({
+				label: z.string(),
+				days: z.number(),
+			}),
+		),
+	}),
+	async ({ server, database, collection, timeRanges }) => {
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+		const coll = client.db(database).collection(collection);
+
+		try {
+			const results = await Promise.all(
+				timeRanges.map(async ({ label, days }) => {
+					// Calculate the timestamp for X days ago
+					const dateThreshold = new Date();
+					dateThreshold.setDate(dateThreshold.getDate() - days);
+
+					// Create ObjectId from timestamp
+					// ObjectId's first 4 bytes are the Unix timestamp
+					const objectIdThreshold = ObjectId.createFromTime(Math.floor(dateThreshold.getTime() / 1000));
+
+					try {
+						const count = await coll.countDocuments(
+							{ _id: { $gte: objectIdThreshold } },
+							{ maxTimeMS: mongo.getCountTimeout() },
+						);
+						return { label, days, count, error: null };
+					} catch (err) {
+						logger.error(`Error counting documents for ${label}:`, err);
+						return {
+							label,
+							days,
+							count: null,
+							error: err instanceof Error ? err.message : String(err),
+						};
+					}
+				}),
+			);
+
+			return {
+				data: results,
+				error: null,
+			};
+		} catch (err) {
+			logger.error("Error counting documents by time range:", err);
+			return {
+				data: null,
+				error: `Failed to count documents: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
+	},
+);
