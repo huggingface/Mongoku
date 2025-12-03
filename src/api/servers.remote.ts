@@ -971,9 +971,6 @@ export const countDocumentsByTimeRange = query(
 		const client = mongo.getClient(server);
 		const coll = client.db(database).collection(collection);
 
-		// Use configured read preference from env var (MONGOKU_READ_PREFERENCE)
-		const readPref = mongo.getReadPreference();
-
 		try {
 			const results = await Promise.all(
 				timeRanges.map(async ({ label, days }) => {
@@ -988,10 +985,7 @@ export const countDocumentsByTimeRange = query(
 					try {
 						const count = await coll.countDocuments(
 							{ _id: { $gte: objectIdThreshold } },
-							{
-								maxTimeMS: mongo.getCountTimeout(),
-								readPreference: readPref,
-							},
+							{ maxTimeMS: mongo.getCountTimeout() },
 						);
 						return { label, days, count, error: null };
 					} catch (err) {

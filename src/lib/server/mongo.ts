@@ -129,8 +129,8 @@ class MongoClientWithMappings extends MongoClient {
 	_id: string;
 	name: string;
 
-	constructor(url: string, _id: string, name: string) {
-		super(url);
+	constructor(url: string, _id: string, name: string, readPreference?: ReadPreference) {
+		super(url, readPreference ? { readPreference } : {});
 		this.url = url;
 		this._id = _id;
 		this.name = name;
@@ -214,7 +214,7 @@ class MongoConnections {
 				const hostname = url.host || host.path;
 
 				if (!this.clients.has(hostname)) {
-					const client = new MongoClientWithMappings(urlStr, host._id, hostname);
+					const client = new MongoClientWithMappings(urlStr, host._id, hostname, this.readPreference);
 					this.clients.set(host._id, client);
 					this.clientIds.set(hostname, host._id);
 				}
@@ -248,10 +248,6 @@ class MongoConnections {
 		return this.countTimeout;
 	}
 
-	getReadPreference() {
-		return this.readPreference;
-	}
-
 	getQueryTimeout() {
 		return this.queryTimeout;
 	}
@@ -273,7 +269,7 @@ class MongoConnections {
 			const hostname = url.host || hostPath;
 
 			if (!this.clients.has(hostname)) {
-				const client = new MongoClientWithMappings(urlStr, id, hostname);
+				const client = new MongoClientWithMappings(urlStr, id, hostname, this.readPreference);
 				this.clients.set(id, client);
 				this.clientIds.set(hostname, id);
 			}
@@ -304,7 +300,7 @@ class MongoConnections {
 		oldClient.close().catch((err) => logger.error(`Error closing old client ${id}:`, err));
 
 		// Create a new client
-		const newClient = new MongoClientWithMappings(oldClient.url, id, oldClient.name);
+		const newClient = new MongoClientWithMappings(oldClient.url, id, oldClient.name, this.readPreference);
 		this.clients.set(id, newClient);
 
 		// Test the connection
