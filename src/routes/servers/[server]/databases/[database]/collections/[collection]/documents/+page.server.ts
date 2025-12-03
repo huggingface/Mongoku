@@ -5,12 +5,8 @@ import { getMongo } from "$lib/server/mongo";
 import { type MongoDocument, type SearchParams } from "$lib/types";
 import { isEmptyObject } from "$lib/utils/isEmptyObject";
 import { parseJSON } from "$lib/utils/jsonParser";
-import { type Document, ReadPreference } from "mongodb";
+import type { Document } from "mongodb";
 import type { PageServerLoad } from "./$types";
-
-// Analytics node read preference for count queries
-// Falls back to secondaryPreferred if no ANALYTICS node exists
-const analyticsReadPreference = new ReadPreference("secondaryPreferred", [{ nodeType: "ANALYTICS" }, {}]);
 
 export const load: PageServerLoad = async ({ params, url }) => {
 	const query = url.searchParams.get("query") || "{}";
@@ -177,10 +173,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 
 		// For aggregations, we can't easily get a count, so we return the result count
 		const countPromise = collection
-			.aggregate([...pipeline, { $count: "count" }], {
-				maxTimeMS: mongo.getAnalyticsCountTimeout(),
-				readPreference: analyticsReadPreference,
-			})
+			.aggregate([...pipeline, { $count: "count" }], { maxTimeMS: mongo.getCountTimeout() })
 			.next()
 			.then((result) => ({
 				data: result?.count ?? 0,
@@ -227,17 +220,14 @@ export const load: PageServerLoad = async ({ params, url }) => {
 			if (queryDoc && Object.keys(queryDoc).length > 0) {
 				return {
 					data: await collection.countDocuments(JsonEncoder.decode(queryDoc), {
-						maxTimeMS: mongo.getAnalyticsCountTimeout(),
-						readPreference: analyticsReadPreference,
+						maxTimeMS: mongo.getCountTimeout(),
 					}),
 					error: null as string | null,
 				};
 			} else {
 				// fast count
 				return {
-					data: await collection.estimatedDocumentCount({
-						readPreference: analyticsReadPreference,
-					}),
+					data: await collection.estimatedDocumentCount(),
 					error: null as string | null,
 				};
 			}

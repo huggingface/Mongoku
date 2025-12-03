@@ -207,10 +207,6 @@ export const updateMany = command(
 	},
 );
 
-// Analytics node read preference for count queries
-// Falls back to secondaryPreferred if no ANALYTICS node exists
-const analyticsReadPreference = new ReadPreference("secondaryPreferred", [{ nodeType: "ANALYTICS" }, {}]);
-
 // Count documents matching a filter
 export const countDocuments = query(
 	z.object({
@@ -228,8 +224,7 @@ export const countDocuments = query(
 
 		try {
 			const count = await coll.countDocuments(filterDoc, {
-				maxTimeMS: mongo.getAnalyticsCountTimeout(),
-				readPreference: analyticsReadPreference,
+				maxTimeMS: mongo.getCountTimeout(),
 			});
 
 			return {
@@ -957,6 +952,10 @@ export const explainQuery = query(
 		}
 	},
 );
+
+// Analytics node read preference for time range count queries
+// Falls back to secondaryPreferred if no ANALYTICS node exists
+const analyticsReadPreference = new ReadPreference("secondaryPreferred", [{ nodeType: "ANALYTICS" }, {}]);
 
 // Count documents created within a time range (based on ObjectId timestamp)
 export const countDocumentsByTimeRange = query(
