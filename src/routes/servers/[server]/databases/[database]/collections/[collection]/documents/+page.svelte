@@ -445,6 +445,37 @@
 			explainLoading = false;
 		}
 	}
+
+	function handleSearch(searchParams: SearchParams) {
+		// Ensure field is always a string (server expects it)
+		const normalizedParams = { ...searchParams, field: searchParams.field ?? "" };
+
+		// Update local state
+		data.params = normalizedParams;
+		params = normalizedParams;
+
+		// Load documents via remote function (avoids URL length limits)
+		dataPromise = loadDocuments({
+			server: data.server,
+			database: data.database,
+			collection: data.collection,
+			query: normalizedParams.query,
+			sort: normalizedParams.sort,
+			project: normalizedParams.project,
+			skip: normalizedParams.skip,
+			limit: normalizedParams.limit,
+			mode: normalizedParams.mode,
+			field: normalizedParams.field,
+		});
+
+		// Also update the count
+		data.count = countDocuments({
+			server: data.server,
+			database: data.database,
+			collection: data.collection,
+			filter: normalizedParams.query,
+		});
+	}
 </script>
 
 {#snippet previousButton(url: string, onClick: (e: MouseEvent) => void)}
@@ -499,6 +530,7 @@
 	readonly={data.readOnly}
 	{explainLoading}
 	onexplain={handleExplain}
+	onsearch={handleSearch}
 	server={data.server}
 	database={data.database}
 	collection={data.collection}

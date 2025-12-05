@@ -12,12 +12,17 @@
 	import { formatNumber } from "$lib/utils/filters";
 	import { tick } from "svelte";
 
+	// Threshold for URL length before switching to remote function call - see https://stackoverflow.com/questions/32763165/node-js-http-get-url-length-limitation
+	const URL_LENGTH_THRESHOLD = 20_000;
+
 	interface Props {
 		params: SearchParams;
 		editMode?: boolean;
 		readonly: boolean;
 		explainLoading?: boolean;
 		onexplain?: () => void;
+		/** Callback for when URL would be too long - called with params instead of navigating */
+		onsearch?: (params: SearchParams) => void;
 		server?: string;
 		database?: string;
 		collection?: string;
@@ -29,6 +34,7 @@
 		readonly = $bindable(false),
 		explainLoading = false,
 		onexplain,
+		onsearch,
 		server,
 		database,
 		collection,
@@ -127,6 +133,18 @@
 		counter++;
 
 		const formData = new FormData(form);
+
+		const queryString = [...formData.entries()]
+			.map((e) => encodeURIComponent(e[0]) + "=" + encodeURIComponent(e[1] as string))
+			.join("&");
+
+		const fullUrl = page.url.pathname + "?" + queryString;
+
+		// If URL is too long and we have a callback, use remote function instead
+		if (fullUrl.length > URL_LENGTH_THRESHOLD && onsearch) {
+			onsearch(params);
+			return;
+		}
 
 		await goto(
 			resolve(

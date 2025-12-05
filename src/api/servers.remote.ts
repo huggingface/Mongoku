@@ -207,8 +207,8 @@ export const updateMany = command(
 	},
 );
 
-// Count documents matching a filter
-export const countDocuments = query(
+// Count documents matching a filter - uses `command` to avoid URL length limits
+export const countDocuments = command(
 	z.object({
 		server: z.string(),
 		database: z.string(),
@@ -462,8 +462,8 @@ export const retryConnection = command(z.string(), async (serverId) => {
 	return { ok: true };
 });
 
-// Load documents from a collection
-export const loadDocuments = query(
+// Load documents from a collection - uses `command` to avoid URL length limits
+export const loadDocuments = command(
 	z.object({
 		server: z.string(),
 		database: z.string(),
