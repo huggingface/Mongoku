@@ -17,7 +17,7 @@
 	bind:this={ref}
 	class="rounded-2xl border border-[var(--border-color)] bg-[var(--light-background)]/70 shadow-sm {className}"
 >
-	{#if title}
+	{#if title || actions}
 		<div
 			class="px-3 sm:px-4 py-2 flex justify-between items-center {children
 				? 'border-b border-[var(--border-color)]'
@@ -26,8 +26,11 @@
 			<div class="text-sm font-medium {titleClass}" style="color: var(--text);">
 				{#if typeof title === "string"}
 					<span>{title}</span>
-				{:else}
+				{:else if title}
 					{@render title()}
+				{:else}
+					<!-- to maintain the height of the panel title, for actions -->
+					&nbsp;
 				{/if}
 			</div>
 			{#if actions}
