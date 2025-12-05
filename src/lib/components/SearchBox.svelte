@@ -47,6 +47,52 @@
 	let modeButtonElement = $state<HTMLButtonElement>();
 	let dropdownPosition = $state({ left: "0px", top: "0px", minWidth: "140px" });
 
+	// Track if query input should be multiline (textarea) vs single line (input)
+	let queryMultiline = $derived(params.query?.includes("\n") ?? false);
+
+	function handleQueryKeydown(event: KeyboardEvent) {
+		if (event.key === "Enter" && event.shiftKey) {
+			event.preventDefault();
+			const input = event.target as HTMLInputElement;
+			const cursorPos = input.selectionStart ?? 0;
+			const before = params.query.slice(0, cursorPos);
+			const after = params.query.slice(cursorPos);
+
+			// Insert newline - this will trigger queryMultiline to become true
+			params.query = before + "\n" + after;
+
+			// After textarea renders, set cursor after the newline
+			tick().then(() => {
+				tick().then(() => {
+					queryInput?.setSelectionRange(cursorPos + 1, cursorPos + 1);
+				});
+			});
+		}
+	}
+
+	function handleQueryPaste(event: ClipboardEvent) {
+		const pastedText = event.clipboardData?.getData("text");
+		if (pastedText && pastedText.includes("\n")) {
+			event.preventDefault();
+			const input = event.target as HTMLInputElement;
+			const cursorPos = input.selectionStart ?? 0;
+			const selectionEnd = input.selectionEnd ?? cursorPos;
+			const before = params.query.slice(0, cursorPos);
+			const after = params.query.slice(selectionEnd);
+
+			// Insert pasted text - this will trigger queryMultiline to become true
+			params.query = before + pastedText + after;
+
+			// After textarea renders, set cursor after pasted text
+			const newCursorPos = cursorPos + pastedText.length;
+			tick().then(() => {
+				tick().then(() => {
+					queryInput?.setSelectionRange(newCursorPos, newCursorPos);
+				});
+			});
+		}
+	}
+
 	// Calculate dropdown position when shown
 	$effect(() => {
 		if (showModeDropdown && modeButtonElement) {
@@ -237,6 +283,17 @@
 						class="w-full h-9 px-3 bg-transparent outline-none font-mono text-[13px] border-0 !rounded-none"
 						style="color: var(--text);"
 					/>
+				{:else if queryMultiline}
+					<textarea
+						bind:this={queryInput}
+						bind:value={params.query}
+						placeholder={"{}"}
+						name="query"
+						rows="5"
+						use:jsonTextarea={{ onsubmit: () => form?.requestSubmit() }}
+						class="w-full px-3 py-2 bg-transparent outline-none font-mono text-[13px] resize-y"
+						style="color: var(--text);"
+					></textarea>
 				{:else}
 					<input
 						type="text"
@@ -246,6 +303,8 @@
 						name="query"
 						class="w-full h-9 px-3 bg-transparent outline-none font-mono text-[13px] border-0 !rounded-none"
 						style="color: var(--text);"
+						onkeydown={handleQueryKeydown}
+						onpaste={handleQueryPaste}
 					/>
 				{/if}
 			</div>
