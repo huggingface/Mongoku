@@ -988,10 +988,7 @@ export const countDocumentsByTimeRange = query(
 						// - If _id is not ObjectId, fall back to createdAt field
 						const count = await coll.countDocuments(
 							{
-								$or: [
-									{ _id: { $gte: objectIdThreshold } },
-									{ createdAt: { $gte: dateThreshold } },
-								],
+								$or: [{ _id: { $gte: objectIdThreshold } }, { createdAt: { $gte: dateThreshold } }],
 							},
 							{ maxTimeMS: mongo.getCountTimeout() },
 						);
