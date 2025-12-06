@@ -197,7 +197,9 @@
 	let newDocsButtonElement = $state<HTMLButtonElement>();
 	let newDocsDropdownPosition = $state({ left: "0px", top: "0px", minWidth: "200px" });
 	let isStatsLoading = $state(false);
-	let stats = $state<Array<{ label: string; days: number; count: number | null; error: string | null }> | null>(null);
+	let stats = $state<Array<{ label: string; days: number; count: number | null; error: string | null; loading?: boolean }>>(
+		TIME_RANGES.map((r) => ({ ...r, count: null, error: null, loading: false })),
+	);
 
 	// Calculate New Docs dropdown position when shown
 	$effect(() => {
@@ -218,25 +220,36 @@
 		if (!server || !database || !collection || isStatsLoading) return;
 
 		isStatsLoading = true;
-		try {
-			const result = await countDocumentsByTimeRange({
-				server,
-				database,
-				collection,
-				timeRanges: TIME_RANGES,
-			});
+		// Reset all stats to loading state
+		stats = TIME_RANGES.map((r) => ({ ...r, count: null, error: null, loading: true }));
 
-			if (!result.error) {
-				stats = result.data;
+		// Load each time range separately (sequentially, shortest first)
+		for (let i = 0; i < TIME_RANGES.length; i++) {
+			const range = TIME_RANGES[i];
+			try {
+				const result = await countDocumentsByTimeRange({
+					server,
+					database,
+					collection,
+					timeRanges: [range],
+				});
+
+				if (result.error || !result.data?.[0]) {
+					stats[i] = { ...range, count: null, error: result.error ?? "Unknown error", loading: false };
+				} else {
+					stats[i] = { ...result.data[0], loading: false };
+				}
+			} catch (err) {
+				stats[i] = { ...range, count: null, error: err instanceof Error ? err.message : String(err), loading: false };
 			}
-		} finally {
-			isStatsLoading = false;
 		}
+
+		isStatsLoading = false;
 	}
 
 	function toggleNewDocsDropdown() {
 		showNewDocsDropdown = !showNewDocsDropdown;
-		if (showNewDocsDropdown && stats === null) {
+		if (showNewDocsDropdown && stats.every((s) => s.count === null && !s.error && !s.loading)) {
 			loadStats();
 		}
 	}
@@ -539,31 +552,28 @@
 		style:top={newDocsDropdownPosition.top}
 		style:min-width={newDocsDropdownPosition.minWidth}
 	>
-		{#if isStatsLoading}
-			<div class="px-3 py-2 text-[13px]" style="color: var(--text-secondary);">Loading...</div>
-		{:else if stats && stats.length > 0}
-			{#each stats as stat (stat.label)}
-				<button
-					type="button"
-					class="w-full px-3 py-2 text-left text-[13px] hover:bg-[var(--color-3)] transition cursor-pointer flex justify-between items-center"
-					style="color: var(--text);"
-					onclick={() => selectTimeRange(stat.days)}
-				>
-					<span>{stat.label}</span>
-					<span class="font-medium tabular-nums" style="color: var(--text-secondary);">
-						{#if stat.error}
-							⚠️
-						{:else if stat.count !== null}
-							{formatNumber(stat.count)}
-						{:else}
-							—
-						{/if}
-					</span>
-				</button>
-			{/each}
-		{:else}
-			<div class="px-3 py-2 text-[13px]" style="color: var(--text-secondary);">No data available</div>
-		{/if}
+		{#each stats as stat (stat.label)}
+			<button
+				type="button"
+				class="w-full px-3 py-2 text-left text-[13px] hover:bg-[var(--color-3)] transition cursor-pointer flex justify-between items-center"
+				style="color: var(--text);"
+				onclick={() => selectTimeRange(stat.days)}
+				disabled={stat.loading}
+			>
+				<span>{stat.label}</span>
+				<span class="font-medium tabular-nums" style="color: var(--text-secondary);">
+					{#if stat.loading}
+						<span class="inline-block w-3 h-3 border-2 border-[var(--border-color)] border-t-[var(--link)] rounded-full animate-spin"></span>
+					{:else if stat.error}
+						⚠️
+					{:else if stat.count !== null}
+						{formatNumber(stat.count)}
+					{:else}
+						—
+					{/if}
+				</span>
+			</button>
+		{/each}
 	</div>
 {/if}
 
