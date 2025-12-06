@@ -1048,23 +1048,6 @@ export const generateQueryFromNL = query(
 		}
 
 		try {
-            // ... existing code ...
-
-			const systemPrompt = `You are a MongoDB query generator. Convert natural language to MongoDB query filters.
-RULES:
-- Output ONLY valid JSON, nothing else
-- No explanation, no markdown, just the JSON object
-- Use MongoDB operators: $exists, $regex, $gt, $lt, $gte, $lte, $in, $ne, $and, $or
-Examples:
-- "all documents" → {}
-- "status is active" → {"status": "active"}
-- "field email exists" → {"email": {"$exists": true}}
-- "name contains john" → {"name": {"$regex": "john", "$options": "i"}}
-- "created in last 24 hours" → {"createdAt": {"$gte": {"$date": "${new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()}"}}}
-- "age > 18" → {"age": {"$gt": 18}}`;
-
-			const fullPrompt = `${systemPrompt}\n\nCollection: ${collection}\nQuery: ${prompt}\n\nJSON:`;
-
 			const response = await fetch("https://router.huggingface.co/v1/chat/completions", {
 				method: "POST",
 				headers: {
@@ -1076,18 +1059,48 @@ Examples:
 					messages: [
 						{
 							role: "system",
-							content: `You are a MongoDB query generator. Convert natural language to MongoDB query filters.
+							content: `You are a MongoDB query generator. Convert natural language to MongoDB queries.
+Current time: ${new Date().toISOString()}
+
 RULES:
-- Output ONLY valid JSON, nothing else
-- No explanation, no markdown, just the JSON object
-- Use MongoDB operators: $exists, $regex, $gt, $lt, $gte, $lte, $in, $ne, $and, $or
-Examples:
-- "all documents" → {}
-- "status is active" → {"status": "active"}
-- "field email exists" → {"email": {"$exists": true}}
-- "name contains john" → {"name": {"$regex": "john", "$options": "i"}}
-- "created in last 24 hours" → {"createdAt": {"$gte": {"$date": "${new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()}"}}}
-- "age > 18" → {"age": {"$gt": 18}}`,
+1. Output ONLY valid JSON (Object for filter, Array for aggregation).
+2. DO NOT INVENT operators or syntax. Use only standard MongoDB operators.
+3. If the user asks for something impossible or ambiguous, return: {"error": "Cannot generate query. Please check MongoDB documentation."}
+4. Do not guess field names unnecessarily, but assume reasonable defaults for common concepts (e.g., "created" -> "createdAt").
+
+OUTPUT FORMAT:
+- Filter: "{ ... }"
+- Aggregation: "[{ ... }, { ... }]"
+- Error: "{\"error\": \"...\"}"
+
+EXAMPLES:
+User: "active users"
+JSON: {"status": "active"}
+
+User: "users created last week"
+JSON: {"createdAt": {"$gte": {"$date": "..."}}}
+
+User: "how many users?"
+JSON: [{"$count": "total"}]
+
+User: "count users by status"
+JSON: [{"$group": {_id: "$status", count: {"$sum": 1}}}]
+
+User: "largest document (size)"
+JSON: [{"$addFields": {"bsonsize": {"$bsonSize": "$$ROOT"}}}, {"$sort": {"bsonsize": -1}}, {"$limit": 1}]
+
+User: "newest document"
+JSON: [{"$sort": {"_id": -1}}, {"$limit": 1}]
+
+User: "show indexes"
+JSON: [{"$indexStats": {}}]
+
+User: "sort by name desc"
+JSON: [{"$sort": {"name": -1}}]
+
+Use MongoDB operators: $exists, $regex, $gt, $lt, $gte, $lte, $in, $ne, $and, $or, $date.
+For "largest" or "biggest" document, assume size in bytes unless specified otherwise.
+For "newest" or "latest", sort by _id or createdAt.`,
 						},
 						{
 							role: "user",
@@ -1109,11 +1122,15 @@ Examples:
 			const generated = result.choices?.[0]?.message?.content ?? "";
 			logger.info("AI generated:", generated);
 
-			// Extract JSON from response
-			const jsonMatch = generated.match(/\{[\s\S]*\}/);
+			// Extract JSON from response (Object or Array)
+			const jsonMatch = generated.match(/(\{|\[)[\s\S]*(\}|\])/);
 			if (jsonMatch) {
 				try {
-					JSON.parse(jsonMatch[0]);
+					const parsed = JSON.parse(jsonMatch[0]);
+					// Handle AI explicit error response
+					if (!Array.isArray(parsed) && parsed.error) {
+						return { query: null, error: parsed.error };
+					}
 					return { query: jsonMatch[0], error: null };
 				} catch {
 					return { query: null, error: `Invalid JSON: ${generated.slice(0, 100)}` };

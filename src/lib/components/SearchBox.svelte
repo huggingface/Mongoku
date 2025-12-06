@@ -77,7 +77,30 @@
 			if (result.error) {
 				nlError = result.error;
 			} else if (result.query) {
-				params.query = result.query;
+				let query = result.query.trim();
+				
+				// Heuristic: If the query object contains aggregation stages like $count, $group, etc. but is not an array
+				// wrap it in an array and switch to aggregation mode
+				if (query.startsWith("{") && (
+					query.includes('"$count"') || 
+					query.includes('"$group"') || 
+					query.includes('"$project"') || 
+					query.includes('"$unwind"') || 
+					query.includes('"$lookup"') ||
+					query.includes('"$limit"') ||
+					query.includes('"$sort"')
+				)) {
+					query = `[${query}]`;
+				}
+
+				params.query = query;
+				
+				// Auto-switch mode based on result type (Array -> Aggregation, Object -> Query)
+				if (query.startsWith("[")) {
+					params.mode = "aggregation";
+				} else {
+					params.mode = "query";
+				}
 				showNLQuery = false;
 				nlInput = "";
 			}
@@ -397,15 +420,6 @@
 						<span>📊</span>
 						<IconChevronDown class="w-3 h-3" />
 					</button>
-					<button
-						type="button"
-						class="h-9 px-3 rounded-xl border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] transition cursor-pointer text-[13px] font-medium"
-						style="color: {showNLQuery ? 'var(--link)' : 'var(--text-secondary)'};"
-						title="Generate query with AI"
-						onclick={() => (showNLQuery = !showNLQuery)}
-					>
-						✨ AI
-					</button>
 				{/if}
 				<button
 					type="button"
@@ -432,6 +446,19 @@
 						<IconEdit class="w-4 h-4" />
 					</button>
 				{/if}
+
+				{#if server && database && collection}
+					<button
+						type="button"
+						class="h-9 px-3 rounded-xl border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] transition cursor-pointer text-[13px] font-medium"
+						style="color: {showNLQuery ? 'var(--link)' : 'var(--text-secondary)'};"
+						title="Generate query with AI"
+						onclick={() => (showNLQuery = !showNLQuery)}
+					>
+						✨ AI
+					</button>
+				{/if}
+
 				{#if onexplain}
 					<button
 						type="button"
