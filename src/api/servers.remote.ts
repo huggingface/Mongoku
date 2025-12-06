@@ -983,8 +983,16 @@ export const countDocumentsByTimeRange = query(
 					const objectIdThreshold = ObjectId.createFromTime(Math.floor(dateThreshold.getTime() / 1000));
 
 					try {
+						// Use $or to handle both ObjectId _id and createdAt field
+						// - If _id is ObjectId, use its embedded timestamp
+						// - If _id is not ObjectId, fall back to createdAt field
 						const count = await coll.countDocuments(
-							{ _id: { $gte: objectIdThreshold } },
+							{
+								$or: [
+									{ _id: { $gte: objectIdThreshold } },
+									{ createdAt: { $gte: dateThreshold } },
+								],
+							},
 							{ maxTimeMS: mongo.getCountTimeout() },
 						);
 						return { label, days, count, error: null };
