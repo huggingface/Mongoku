@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { countDocumentsByTimeRange } from "$api/servers.remote";
+	import { countDocumentsByTimeRange, generateQueryFromNL } from "$api/servers.remote";
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { page } from "$app/state";
@@ -55,6 +55,47 @@
 
 	// Track if query input should be multiline (textarea) vs single line (input)
 	let queryMultiline = $derived(params.query?.includes("\n") ?? false);
+
+	// NL Query (AI) state
+	let showNLQuery = $state(false);
+	let nlInput = $state("");
+	let nlLoading = $state(false);
+	let nlError = $state<string | null>(null);
+
+	async function handleNLGenerate() {
+		if (!nlInput.trim() || !collection) return;
+
+		nlLoading = true;
+		nlError = null;
+
+		try {
+			const result = await generateQueryFromNL({
+				prompt: nlInput,
+				collection,
+			});
+
+			if (result.error) {
+				nlError = result.error;
+			} else if (result.query) {
+				params.query = result.query;
+				showNLQuery = false;
+				nlInput = "";
+			}
+		} catch (err) {
+			nlError = err instanceof Error ? err.message : String(err);
+		} finally {
+			nlLoading = false;
+		}
+	}
+
+	function handleNLKeyDown(e: KeyboardEvent) {
+		if (e.key === "Enter" && !e.shiftKey) {
+			e.preventDefault();
+			handleNLGenerate();
+		} else if (e.key === "Escape") {
+			showNLQuery = false;
+		}
+	}
 
 	function handleQueryKeydown(event: KeyboardEvent) {
 		if (event.key === "Enter" && event.shiftKey) {
@@ -356,6 +397,15 @@
 						<span>📊</span>
 						<IconChevronDown class="w-3 h-3" />
 					</button>
+					<button
+						type="button"
+						class="h-9 px-3 rounded-xl border border-[var(--border-color)] bg-[var(--light-background)] hover:bg-[var(--color-3)] transition cursor-pointer text-[13px] font-medium"
+						style="color: {showNLQuery ? 'var(--link)' : 'var(--text-secondary)'};"
+						title="Generate query with AI"
+						onclick={() => (showNLQuery = !showNLQuery)}
+					>
+						✨ AI
+					</button>
 				{/if}
 				<button
 					type="button"
@@ -401,6 +451,38 @@
 				</button>
 			</div>
 		</div>
+
+		<!-- NL Query Panel (AI) -->
+		{#if showNLQuery}
+			<div class="rounded-xl border border-[var(--border-color)] bg-[var(--color-3)]/30 p-3">
+				<div class="flex gap-2">
+					<input
+						type="text"
+						bind:value={nlInput}
+						onkeydown={handleNLKeyDown}
+						placeholder="Describe what you want to find... (e.g., 'users created last week')"
+						disabled={nlLoading}
+						class="flex-1 h-9 px-3 rounded-lg border border-[var(--border-color)] bg-[var(--background)] text-[13px] outline-none focus:border-[var(--link)]"
+						style="color: var(--text);"
+					/>
+					<button
+						type="button"
+						onclick={handleNLGenerate}
+						disabled={nlLoading || !nlInput.trim()}
+						class="h-9 px-4 rounded-lg text-[13px] font-medium transition"
+						style="background: var(--link); color: white; opacity: {nlLoading || !nlInput.trim() ? '0.5' : '1'};"
+					>
+						{nlLoading ? "Generating..." : "Generate"}
+					</button>
+				</div>
+				{#if nlError}
+					<div class="mt-2 text-[12px]" style="color: var(--error);">⚠️ {nlError}</div>
+				{/if}
+				<div class="mt-2 text-[11px]" style="color: var(--text-secondary);">
+					💡 Examples: "status is active", "created in last 7 days", "name contains john"
+				</div>
+			</div>
+		{/if}
 
 		<!-- Optional fields -->
 		{#if showOptionalFields}

@@ -1031,3 +1031,203 @@ export const countDocumentsByTimeRange = query(
 		return { data: results, error: null };
 	},
 );
+
+/// Generate MongoDB query from natural language using HuggingFace Inference API
+export const generateQueryFromNL = query(
+	z.object({
+		prompt: z.string(),
+		collection: z.string(),
+	}),
+	async ({ prompt, collection }) => {
+		console.log("generateQueryFromNL called", { prompt, collection });
+		const hfToken = process.env.HF_TOKEN;
+		console.log("HF_TOKEN present:", !!hfToken);
+
+		if (!hfToken) {
+			return { query: null, error: "HF_TOKEN not configured. Start server with HF_TOKEN=your_token" };
+		}
+
+		try {
+            // ... existing code ...
+
+			const systemPrompt = `You are a MongoDB query generator. Convert natural language to MongoDB query filters.
+RULES:
+- Output ONLY valid JSON, nothing else
+- No explanation, no markdown, just the JSON object
+- Use MongoDB operators: $exists, $regex, $gt, $lt, $gte, $lte, $in, $ne, $and, $or
+Examples:
+- "all documents" → {}
+- "status is active" → {"status": "active"}
+- "field email exists" → {"email": {"$exists": true}}
+- "name contains john" → {"name": {"$regex": "john", "$options": "i"}}
+- "created in last 24 hours" → {"createdAt": {"$gte": {"$date": "${new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()}"}}}
+- "age > 18" → {"age": {"$gt": 18}}`;
+
+			const fullPrompt = `${systemPrompt}\n\nCollection: ${collection}\nQuery: ${prompt}\n\nJSON:`;
+
+			const response = await fetch("https://router.huggingface.co/v1/chat/completions", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${hfToken}`,
+				},
+				body: JSON.stringify({
+					model: "Qwen/Qwen2.5-72B-Instruct",
+					messages: [
+						{
+							role: "system",
+							content: `You are a MongoDB query generator. Convert natural language to MongoDB query filters.
+RULES:
+- Output ONLY valid JSON, nothing else
+- No explanation, no markdown, just the JSON object
+- Use MongoDB operators: $exists, $regex, $gt, $lt, $gte, $lte, $in, $ne, $and, $or
+Examples:
+- "all documents" → {}
+- "status is active" → {"status": "active"}
+- "field email exists" → {"email": {"$exists": true}}
+- "name contains john" → {"name": {"$regex": "john", "$options": "i"}}
+- "created in last 24 hours" → {"createdAt": {"$gte": {"$date": "${new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()}"}}}
+- "age > 18" → {"age": {"$gt": 18}}`,
+						},
+						{
+							role: "user",
+							content: `Collection: ${collection}\nQuery: ${prompt}`,
+						},
+					],
+					max_tokens: 200,
+					temperature: 0.1,
+				}),
+			});
+
+			if (!response.ok) {
+				const errorText = await response.text();
+				logger.error("HF API error:", response.status, errorText);
+				return { query: null, error: `API error ${response.status}: ${errorText.slice(0, 150)}` };
+			}
+
+			const result = await response.json();
+			const generated = result.choices?.[0]?.message?.content ?? "";
+			logger.info("AI generated:", generated);
+
+			// Extract JSON from response
+			const jsonMatch = generated.match(/\{[\s\S]*\}/);
+			if (jsonMatch) {
+				try {
+					JSON.parse(jsonMatch[0]);
+					return { query: jsonMatch[0], error: null };
+				} catch {
+					return { query: null, error: `Invalid JSON: ${generated.slice(0, 100)}` };
+				}
+			}
+
+			return { query: null, error: `No JSON found: ${generated.slice(0, 100)}` };
+		} catch (err) {
+			logger.error("Error generating query:", err);
+			return { query: null, error: `Error: ${err instanceof Error ? err.message : String(err)}` };
+		}
+	},
+);
+
+function patternMatch(prompt: string): { query: string | null; error: string | null } {
+	const input = prompt.toLowerCase().trim();
+
+	// All documents
+	if (input.includes("all") || input.includes("everything") || input.includes("every")) {
+		return { query: "{}", error: null };
+	}
+
+	// How many / count - return empty filter to count all
+	if (input.includes("how many") || input.includes("count")) {
+		return { query: "{}", error: null };
+	}
+
+	// Does collection have field X / does field X exist
+	const hasFieldPattern = input.match(/(?:have|has|contain)\s+(?:a\s+)?field\s+(?:called\s+|named\s+)?["']?(\w+)["']?/i);
+	if (hasFieldPattern) {
+		return { query: `{"${hasFieldPattern[1]}": {"$exists": true}}`, error: null };
+	}
+
+	// Does X exist / is there X / field X exists
+	const existsPattern = input.match(/(?:does|is)\s+(?:there\s+)?(?:a\s+)?(?:field\s+)?["']?(\w+)["']?\s+exist/i);
+	if (existsPattern && !["this", "the", "it", "collection"].includes(existsPattern[1].toLowerCase())) {
+		return { query: `{"${existsPattern[1]}": {"$exists": true}}`, error: null };
+	}
+
+	// X exists
+	const simpleExistsMatch = input.match(/^["']?(\w+)["']?\s+exists?$/i);
+	if (simpleExistsMatch) {
+		return { query: `{"${simpleExistsMatch[1]}": {"$exists": true}}`, error: null };
+	}
+
+	// Status patterns: "status is active", "status = published", "where status is X"
+	const statusMatch = input.match(/(?:where\s+)?status\s+(?:is|=|equals?)?\s*["']?(\w+)["']?/i);
+	if (statusMatch) {
+		return { query: `{"status": "${statusMatch[1]}"}`, error: null };
+	}
+
+	// Field equals value: "type is model", "name = john", "where X is Y"
+	const fieldEqualsMatch = input.match(/(?:where\s+)?(\w+)\s+(?:is|=|equals?)\s+["']?([^"'\s]+)["']?/i);
+	if (fieldEqualsMatch && !["how", "what", "where", "this", "the", "there", "it", "collection"].includes(fieldEqualsMatch[1].toLowerCase())) {
+		const value = fieldEqualsMatch[2];
+		// Check if value is a number
+		if (/^\d+$/.test(value)) {
+			return { query: `{"${fieldEqualsMatch[1]}": ${value}}`, error: null };
+		}
+		return { query: `{"${fieldEqualsMatch[1]}": "${value}"}`, error: null };
+	}
+
+	// Contains/regex: "name contains john", "X includes Y"
+	const containsMatch = input.match(/(\w+)\s+(?:contains?|includes?|like)\s+["']?(\w+)["']?/i);
+	if (containsMatch) {
+		return { query: `{"${containsMatch[1]}": {"$regex": "${containsMatch[2]}", "$options": "i"}}`, error: null };
+	}
+
+	// Greater than: "age > 18", "downloads greater than 1000", "X more than Y"
+	const gtMatch = input.match(/(\w+)\s*(?:>|>=|greater\s+than|more\s+than|above|over)\s*(\d+)/i);
+	if (gtMatch) {
+		return { query: `{"${gtMatch[1]}": {"$gt": ${gtMatch[2]}}}`, error: null };
+	}
+
+	// Less than: "age < 18", "X less than Y", "X below Y"
+	const ltMatch = input.match(/(\w+)\s*(?:<|<=|less\s+than|below|under)\s*(\d+)/i);
+	if (ltMatch) {
+		return { query: `{"${ltMatch[1]}": {"$lt": ${ltMatch[2]}}}`, error: null };
+	}
+
+	// Last X days/hours/weeks: "created in last 7 days", "last 30 days"
+	const timeMatch = input.match(/last\s+(\d+)\s+(day|hour|week|month)s?/i);
+	if (timeMatch) {
+		const amount = parseInt(timeMatch[1]);
+		const unit = timeMatch[2].toLowerCase();
+		const date = new Date();
+		if (unit === "hour") date.setHours(date.getHours() - amount);
+		else if (unit === "day") date.setDate(date.getDate() - amount);
+		else if (unit === "week") date.setDate(date.getDate() - amount * 7);
+		else if (unit === "month") date.setMonth(date.getMonth() - amount);
+		return { query: `{createdAt: {$gte: Date("${date.toISOString()}")}}`, error: null };
+	}
+
+	// Not equal: "status not X", "X != Y", "X is not Y"
+	const neMatch = input.match(/(\w+)\s+(?:!=|is\s+not|not)\s+["']?(\w+)["']?/i);
+	if (neMatch && !["this", "the", "it"].includes(neMatch[1].toLowerCase())) {
+		return { query: `{"${neMatch[1]}": {"$ne": "${neMatch[2]}"}}`, error: null };
+	}
+
+	// In array: "status in [active, pending]" or "status is active or pending"
+	const inMatch = input.match(/(\w+)\s+(?:in|is)\s+\[?["']?(\w+)["']?(?:\s*,\s*|\s+or\s+)["']?(\w+)["']?\]?/i);
+	if (inMatch) {
+		return { query: `{"${inMatch[1]}": {"$in": ["${inMatch[2]}", "${inMatch[3]}"]}}`, error: null };
+	}
+
+	// Simple has X (for fields)
+	const hasMatch = input.match(/(?:has|have)\s+(?:a\s+)?["']?(\w+)["']?/i);
+	if (hasMatch && !["field", "this", "the", "it", "a", "an", "collection"].includes(hasMatch[1].toLowerCase())) {
+		return { query: `{"${hasMatch[1]}": {"$exists": true}}`, error: null };
+	}
+
+	// Not found
+	return {
+		query: null,
+		error: `Could not understand: "${prompt}". Try: "field X exists", "status is active", "name contains john", "last 7 days", "downloads > 1000"`,
+	};
+}

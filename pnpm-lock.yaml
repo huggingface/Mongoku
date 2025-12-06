@@ -26,6 +26,9 @@ importers:
       '@codemirror/view':
         specifier: ^6.23.0
         version: 6.38.6
+      '@huggingface/inference':
+        specifier: ^4.13.4
+        version: 4.13.4
       aws4:
         specifier: ^1.13.2
         version: 1.13.2
@@ -482,6 +485,17 @@ packages:
 
   '@fontsource/rajdhani@5.2.7':
     resolution: {integrity: sha512-7Gy10U688fCdeFfYKebUF2TZotdgH/ghKyMsseXPmB60lpaUHC8aoCSJl5/OpZ+KHKSU2TqBfKfteVkcIXxTAQ==}
+
+  '@huggingface/inference@4.13.4':
+    resolution: {integrity: sha512-1G6jBDYLAZw7oNrJdMp+0/CafeoNaCLzrDd9fYSX3nhjzMuyWIPZ/MtP5EwXdC0htlFPx+R6JGqPhctAalQO+w==}
+    engines: {node: '>=18'}
+
+  '@huggingface/jinja@0.5.3':
+    resolution: {integrity: sha512-asqfZ4GQS0hD876Uw4qiUb7Tr/V5Q+JZuo2L+BtdrD4U40QU58nIRq3ZSgAzJgT874VLjhGVacaYfrdpXtEvtA==}
+    engines: {node: '>=18'}
+
+  '@huggingface/tasks@0.19.66':
+    resolution: {integrity: sha512-cj3+pAxyMWRZXepxdgVUUrlbLVhSD7+G6lt/HI7GKUo8pOdsre4CWVcu+4AXptY9btaCqyBGzTOCD7Ve2OtTfw==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -2930,6 +2944,15 @@ snapshots:
   '@fontsource/cuprum@5.2.8': {}
 
   '@fontsource/rajdhani@5.2.7': {}
+
+  '@huggingface/inference@4.13.4':
+    dependencies:
+      '@huggingface/jinja': 0.5.3
+      '@huggingface/tasks': 0.19.66
+
+  '@huggingface/jinja@0.5.3': {}
+
+  '@huggingface/tasks@0.19.66': {}
 
   '@humanfs/core@0.19.1': {}
 
