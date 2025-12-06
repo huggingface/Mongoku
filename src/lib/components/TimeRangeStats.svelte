@@ -20,9 +20,9 @@
 
 	let isOpen = $state(false);
 	let isLoading = $state(false);
-	let stats = $state<Array<{ label: string; days: number; count: number | null; error: string | null; loading?: boolean }>>(
-		TIME_RANGES.map((r) => ({ ...r, count: null, error: null, loading: false })),
-	);
+	let stats = $state<
+		Array<{ label: string; days: number; count: number | null; error: string | null; loading?: boolean }>
+	>(TIME_RANGES.map((r) => ({ ...r, count: null, error: null, loading: false })));
 
 	async function loadStats() {
 		if (isLoading) return;

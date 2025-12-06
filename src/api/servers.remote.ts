@@ -975,10 +975,7 @@ export const countDocumentsByTimeRange = query(
 		// Use createdAt field ONLY if _id doesn't have a date
 		let useCreatedAt = false;
 		try {
-			const sample = await coll.findOne(
-				{},
-				{ projection: { _id: 1, createdAt: 1 }, maxTimeMS: 5000 },
-			);
+			const sample = await coll.findOne({}, { projection: { _id: 1, createdAt: 1 }, maxTimeMS: 5000 });
 			if (sample) {
 				const idIsObjectId = sample._id instanceof ObjectId;
 				if (!idIsObjectId && sample.createdAt !== undefined) {

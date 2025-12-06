@@ -197,9 +197,9 @@
 	let newDocsButtonElement = $state<HTMLButtonElement>();
 	let newDocsDropdownPosition = $state({ left: "0px", top: "0px", minWidth: "200px" });
 	let isStatsLoading = $state(false);
-	let stats = $state<Array<{ label: string; days: number; count: number | null; error: string | null; loading?: boolean }>>(
-		TIME_RANGES.map((r) => ({ ...r, count: null, error: null, loading: false })),
-	);
+	let stats = $state<
+		Array<{ label: string; days: number; count: number | null; error: string | null; loading?: boolean }>
+	>(TIME_RANGES.map((r) => ({ ...r, count: null, error: null, loading: false })));
 
 	// Calculate New Docs dropdown position when shown
 	$effect(() => {
@@ -563,7 +563,9 @@
 				<span>{stat.label}</span>
 				<span class="font-medium tabular-nums" style="color: var(--text-secondary);">
 					{#if stat.loading}
-						<span class="inline-block w-3 h-3 border-2 border-[var(--border-color)] border-t-[var(--link)] rounded-full animate-spin"></span>
+						<span
+							class="inline-block w-3 h-3 border-2 border-[var(--border-color)] border-t-[var(--link)] rounded-full animate-spin"
+						></span>
 					{:else if stat.error}
 						⚠️
 					{:else if stat.count !== null}
