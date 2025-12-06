@@ -20,44 +20,49 @@
 
 	let isOpen = $state(false);
 	let isLoading = $state(false);
-	let stats = $state<Array<{ label: string; days: number; count: number | null; error: string | null }> | null>(null);
-	let loadError = $state<string | null>(null);
+	let stats = $state<
+		Array<{ label: string; days: number; count: number | null; error: string | null; loading?: boolean }>
+	>(TIME_RANGES.map((r) => ({ ...r, count: null, error: null, loading: false })));
 
 	async function loadStats() {
-		if (stats !== null || isLoading) return;
-
+		if (isLoading) return;
 		isLoading = true;
-		loadError = null;
 
-		try {
-			const result = await countDocumentsByTimeRange({
-				server,
-				database,
-				collection,
-				timeRanges: TIME_RANGES,
-			});
+		// Reset all stats to loading state
+		stats = TIME_RANGES.map((r) => ({ ...r, count: null, error: null, loading: true }));
 
-			if (result.error) {
-				loadError = result.error;
-			} else {
-				stats = result.data;
+		// Load each time range separately (sequentially, shortest first)
+		for (let i = 0; i < TIME_RANGES.length; i++) {
+			const range = TIME_RANGES[i];
+			try {
+				const result = await countDocumentsByTimeRange({
+					server,
+					database,
+					collection,
+					timeRanges: [range],
+				});
+
+				if (result.error || !result.data?.[0]) {
+					stats[i] = { ...range, count: null, error: result.error ?? "Unknown error", loading: false };
+				} else {
+					stats[i] = { ...result.data[0], loading: false };
+				}
+			} catch (err) {
+				stats[i] = { ...range, count: null, error: err instanceof Error ? err.message : String(err), loading: false };
 			}
-		} catch (err) {
-			loadError = err instanceof Error ? err.message : String(err);
-		} finally {
-			isLoading = false;
 		}
+
+		isLoading = false;
 	}
 
 	function toggle() {
 		isOpen = !isOpen;
-		if (isOpen && stats === null) {
+		if (isOpen && stats.every((s) => s.count === null && !s.error)) {
 			loadStats();
 		}
 	}
 
 	function refresh() {
-		stats = null;
 		loadStats();
 	}
 </script>
@@ -71,36 +76,26 @@
 
 	{#if isOpen}
 		<div class="stats-panel">
-			{#if isLoading}
-				<div class="loading">
-					<span class="spinner"></span>
-					<span>Loading statistics...</span>
-				</div>
-			{:else if loadError}
-				<div class="error">
-					<span>⚠️ {loadError}</span>
-					<button class="retry-btn" onclick={refresh}>Retry</button>
-				</div>
-			{:else if stats}
-				<div class="stats-grid">
-					{#each stats as stat (stat.label)}
-						<div class="stat-item">
-							<div class="stat-label">{stat.label}</div>
-							<div class="stat-value">
-								{#if stat.error}
-									<span class="stat-error" title={stat.error}>⚠️</span>
-								{:else if stat.count !== null}
-									<span class="count">{formatNumber(stat.count)}</span>
-									<span class="docs">docs</span>
-								{:else}
-									<span class="stat-error">—</span>
-								{/if}
-							</div>
+			<div class="stats-grid">
+				{#each stats as stat (stat.label)}
+					<div class="stat-item">
+						<div class="stat-label">{stat.label}</div>
+						<div class="stat-value">
+							{#if stat.loading}
+								<span class="spinner-small"></span>
+							{:else if stat.error}
+								<span class="stat-error" title={stat.error}>⚠️</span>
+							{:else if stat.count !== null}
+								<span class="count">{formatNumber(stat.count)}</span>
+								<span class="docs">docs</span>
+							{:else}
+								<span class="stat-error">—</span>
+							{/if}
 						</div>
-					{/each}
-				</div>
-				<button class="refresh-btn" onclick={refresh} title="Refresh statistics"> 🔄 </button>
-			{/if}
+					</div>
+				{/each}
+			</div>
+			<button class="refresh-btn" onclick={refresh} title="Refresh statistics" disabled={isLoading}> 🔄 </button>
 		</div>
 	{/if}
 </div>
@@ -174,6 +169,15 @@
 	.spinner {
 		width: 1rem;
 		height: 1rem;
+		border: 2px solid var(--border-color);
+		border-top-color: var(--link);
+		border-radius: 50%;
+		animation: spin 0.8s linear infinite;
+	}
+
+	.spinner-small {
+		width: 0.875rem;
+		height: 0.875rem;
 		border: 2px solid var(--border-color);
 		border-top-color: var(--link);
 		border-radius: 50%;
