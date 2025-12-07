@@ -489,7 +489,7 @@
 						onkeydown={handleNLKeyDown}
 						placeholder="Describe what you want to find... (e.g., 'users created last week')"
 						disabled={nlLoading}
-						class="flex-1 h-9 px-3 rounded-lg border border-[var(--border-color)] bg-[var(--background)] text-[13px] outline-none focus:border-[var(--link)]"
+						class="flex-1 h-9 px-3 rounded-lg border border-[var(--border-color)] bg-[var(--background)] text-[13px] outline-none focus:border-[var(--link)] placeholder:text-[var(--text)] placeholder:opacity-70"
 						style="color: var(--text);"
 					/>
 					<button
@@ -503,9 +503,11 @@
 					</button>
 				</div>
 				{#if nlError}
-					<div class="mt-2 text-[12px]" style="color: var(--error);">⚠️ {nlError}</div>
+					<div class="mt-2 text-[12px]" style="color: var(--error);">
+						⚠️ {@html nlError}
+					</div>
 				{/if}
-				<div class="mt-2 text-[11px]" style="color: var(--text-secondary);">
+				<div class="mt-2 text-[11px]" style="color: var(--text);">
 					💡 Examples: "status is active", "created in last 7 days", "name contains john"
 				</div>
 			</div>

@@ -174,6 +174,14 @@ MONGOKU_SERVER_ADDRESS_HEADER=X-Forwarded-For
 MONGOKU_SERVER_XFF_DEPTH=1
 MONGOKU_SERVER_SHUTDOWN_TIMEOUT=30
 MONGOKU_SERVER_SOCKET_PATH=/tmp/socket
+
+# Enable AI Query Generation (using Hugging Face Inference API)
+# You need a User Access Token from https://huggingface.co/settings/tokens
+HF_TOKEN="hf_..."
+
+# Select the LLM model to use (Default: Qwen/Qwen2.5-72B-Instruct)
+# Must be compatible with Hugging Face Router API (OpenAI-compatible endpoint)
+HF_MODEL="meta-llama/Meta-Llama-3-8B-Instruct"
 ```
 
 ## License

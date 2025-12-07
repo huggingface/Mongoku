@@ -1039,9 +1039,8 @@ export const generateQueryFromNL = query(
 		collection: z.string(),
 	}),
 	async ({ prompt, collection }) => {
-		console.log("generateQueryFromNL called", { prompt, collection });
 		const hfToken = process.env.HF_TOKEN;
-		console.log("HF_TOKEN present:", !!hfToken);
+		const hfModel = process.env.HF_MODEL || "Qwen/Qwen2.5-72B-Instruct";
 
 		if (!hfToken) {
 			return { query: null, error: "HF_TOKEN not configured. Start server with HF_TOKEN=your_token" };
@@ -1055,7 +1054,7 @@ export const generateQueryFromNL = query(
 					Authorization: `Bearer ${hfToken}`,
 				},
 				body: JSON.stringify({
-					model: "Qwen/Qwen2.5-72B-Instruct",
+					model: hfModel,
 					messages: [
 						{
 							role: "system",
@@ -1065,8 +1064,15 @@ Current time: ${new Date().toISOString()}
 RULES:
 1. Output ONLY valid JSON (Object for filter, Array for aggregation).
 2. DO NOT INVENT operators or syntax. Use only standard MongoDB operators.
-3. If the user asks for something impossible or ambiguous, return: {"error": "Cannot generate query. Please check MongoDB documentation."}
-4. Do not guess field names unnecessarily, but assume reasonable defaults for common concepts (e.g., "created" -> "createdAt").
+3. If the user asks for something impossible or ambiguous, return: {"error": "Cannot generate query. Please check <a href='https://www.mongodb.com/docs/manual/tutorial/query-documents/' target='_blank' style='color: var(--link); text-decoration: underline;'>MongoDB documentation</a>."}
+4. If the user asks about INDEXES (creating, dropping, listing, optimizing), return: {"error": "Index management is not supported via query generator. Please check <a href='https://www.mongodb.com/docs/manual/indexes/' target='_blank' style='color: var(--link); text-decoration: underline;'>MongoDB Indexes documentation</a>."}
+5. Do not guess field names unnecessarily, but assume reasonable defaults for common concepts (e.g., "created" -> "createdAt").
+6. DO NOT include conversational text, markdown formatting (e.g. code blocks), or explanations. Just the raw JSON string.
+
+BEST PRACTICES:
+- Always use "$match" as early as possible in aggregation pipeline to filter documents.
+- Avoid "$unwind" if not necessary, as it can be expensive.
+- Prefer "$project" to limit fields returned.
 
 OUTPUT FORMAT:
 - Filter: "{ ... }"
@@ -1091,9 +1097,6 @@ JSON: [{"$addFields": {"bsonsize": {"$bsonSize": "$$ROOT"}}}, {"$sort": {"bsonsi
 
 User: "newest document"
 JSON: [{"$sort": {"_id": -1}}, {"$limit": 1}]
-
-User: "show indexes"
-JSON: [{"$indexStats": {}}]
 
 User: "sort by name desc"
 JSON: [{"$sort": {"name": -1}}]
