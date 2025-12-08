@@ -967,14 +967,14 @@ export const countDocumentsByTimeRange = query(
 		const coll = client.db(database).collection(collection);
 
 		// Check if _id has a creation timestamp (is ObjectId with embedded date)
-		// Use createdAt field ONLY if _id doesn't have a date
+		// Use createdAt field ONLY if _id doesn't have a date AND there's an index on createdAt
 		let useCreatedAt = false;
 		try {
 			const sample = await coll.findOne({}, { projection: { _id: 1, createdAt: 1 }, maxTimeMS: 5000 });
 			if (sample) {
 				const idIsObjectId = sample._id instanceof ObjectId;
 				if (!idIsObjectId) {
-					if (sample.createdAt instanceof Date) {
+					if (sample.createdAt instanceof Date && (await client.hasIndexOnField(database, collection, "createdAt"))) {
 						useCreatedAt = true;
 					} else {
 						return { count: null, error: "Cannot determine document age (no ObjectId or createdAt field)" };
