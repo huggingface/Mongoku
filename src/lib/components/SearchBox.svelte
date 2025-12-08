@@ -231,14 +231,10 @@
 					server,
 					database,
 					collection,
-					timeRanges: [range],
+					days: range.days,
 				});
 
-				if (result.error || !result.data?.[0]) {
-					stats[i] = { ...range, count: null, error: result.error ?? "Unknown error", loading: false };
-				} else {
-					stats[i] = { ...result.data[0], loading: false };
-				}
+				stats[i] = { ...range, count: result.count, error: result.error, loading: false };
 			} catch (err) {
 				stats[i] = { ...range, count: null, error: err instanceof Error ? err.message : String(err), loading: false };
 			}

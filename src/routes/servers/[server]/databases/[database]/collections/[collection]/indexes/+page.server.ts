@@ -1,6 +1,6 @@
 import JsonEncoder from "$lib/server/JsonEncoder";
 import { logger } from "$lib/server/logger";
-import { getMongo } from "$lib/server/mongo";
+import { getMongo, type IndexKey } from "$lib/server/mongo";
 import type { IndexDescription } from "mongodb";
 import type { PageServerLoad } from "./$types";
 
@@ -15,6 +15,13 @@ export const load: PageServerLoad = async ({ params, depends }) => {
 		try {
 			// Get index definitions
 			const indexList = (await collection.listIndexes().toArray()) as IndexDescription[];
+
+			// Update index cache
+			client.setIndexes(
+				params.database,
+				params.collection,
+				indexList.map((index) => ({ name: index.name!, key: index.key as IndexKey })),
+			);
 
 			// Get index usage statistics
 			let indexStats: Record<string, { ops: number; since: Date; building: boolean }> = {};

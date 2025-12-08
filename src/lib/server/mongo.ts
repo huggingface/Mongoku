@@ -123,9 +123,17 @@ export async function extractNodesFromConnectionString(connectionString: string)
 	throw new TypeError(`Unsupported protocol: ${url.protocol}`);
 }
 
+export type IndexKey = Record<string, 1 | -1 | string>;
+
+export interface CachedIndex {
+	name: string;
+	key: IndexKey;
+}
+
 class MongoClientWithMappings extends MongoClient {
 	url: string;
 	mappings: Record<string, Record<string, Mappings>> = {};
+	indexes: Record<string, Record<string, CachedIndex[]>> = {};
 	_id: string;
 	name: string;
 
@@ -146,8 +154,41 @@ class MongoClientWithMappings extends MongoClient {
 		}
 		return this.mappings[dbName][collectionName];
 	}
+
 	clearMappingsCache(dbName: string, collectionName: string) {
 		delete this.mappings[dbName][collectionName];
+	}
+
+	async getIndexes(dbName: string, collectionName: string, opts?: { forceRefresh?: boolean }): Promise<CachedIndex[]> {
+		if (opts?.forceRefresh || !this.indexes[dbName]?.[collectionName]) {
+			const indexList = await this.db(dbName).collection(collectionName).listIndexes().toArray();
+			this.indexes[dbName] ??= {};
+			this.indexes[dbName][collectionName] = indexList.map((index) => ({
+				name: index.name,
+				key: index.key as IndexKey,
+			}));
+		}
+		return this.indexes[dbName][collectionName];
+	}
+
+	setIndexes(dbName: string, collectionName: string, indexes: CachedIndex[]) {
+		this.indexes[dbName] ??= {};
+		this.indexes[dbName][collectionName] = indexes;
+	}
+
+	clearIndexesCache(dbName: string, collectionName: string) {
+		delete this.indexes[dbName]?.[collectionName];
+	}
+
+	/**
+	 * Check if a field has an index (as the first key in the index)
+	 */
+	async hasIndexOnField(dbName: string, collectionName: string, field: string): Promise<boolean> {
+		const indexes = await this.getIndexes(dbName, collectionName);
+		return indexes.some((index) => {
+			const keys = Object.keys(index.key);
+			return keys[0] === field;
+		});
 	}
 }
 
