@@ -959,14 +959,9 @@ export const countDocumentsByTimeRange = query(
 		server: z.string(),
 		database: z.string(),
 		collection: z.string(),
-		timeRanges: z.array(
-			z.object({
-				label: z.string(),
-				days: z.number(),
-			}),
-		),
+		days: z.number(),
 	}),
-	async ({ server, database, collection, timeRanges }) => {
+	async ({ server, database, collection, days }): Promise<{ count: number | null; error: string | null }> => {
 		const mongo = await getMongo();
 		const client = mongo.getClient(server);
 		const coll = client.db(database).collection(collection);
@@ -986,48 +981,25 @@ export const countDocumentsByTimeRange = query(
 			// If sampling fails, default to ObjectId
 		}
 
-		// Sort by days ascending so shorter ranges (faster queries) run first
-		const sortedRanges = [...timeRanges].sort((a, b) => a.days - b.days);
+		const dateThreshold = new Date();
+		dateThreshold.setDate(dateThreshold.getDate() - days);
 
-		const results: Array<{ label: string; days: number; count: number | null; error: string | null }> = [];
-
-		// Run queries sequentially - shorter ranges complete even if longer ones timeout
-		let hitTimeout = false;
-		for (const { label, days } of sortedRanges) {
-			if (hitTimeout) {
-				results.push({ label, days, count: null, error: "Skipped (previous range timed out)" });
-				continue;
-			}
-
-			const dateThreshold = new Date();
-			dateThreshold.setDate(dateThreshold.getDate() - days);
-
-			// Build filter based on _id type
-			let filter;
-			if (useCreatedAt) {
-				filter = { createdAt: { $gte: dateThreshold } };
-			} else {
-				const objectIdThreshold = ObjectId.createFromTime(Math.floor(dateThreshold.getTime() / 1000));
-				filter = { _id: { $gte: objectIdThreshold } };
-			}
-
-			try {
-				const count = await coll.countDocuments(filter, { maxTimeMS: mongo.getCountTimeout() });
-				results.push({ label, days, count, error: null });
-			} catch (err) {
-				logger.error(`Error counting documents for ${label}:`, err);
-				const errorMsg = err instanceof Error ? err.message : String(err);
-				if (errorMsg.includes("time limit") || errorMsg.includes("timed out")) {
-					hitTimeout = true;
-				}
-				results.push({ label, days, count: null, error: errorMsg });
-			}
+		// Build filter based on _id type
+		let filter;
+		if (useCreatedAt) {
+			filter = { createdAt: { $gte: dateThreshold } };
+		} else {
+			const objectIdThreshold = ObjectId.createFromTime(Math.floor(dateThreshold.getTime() / 1000));
+			filter = { _id: { $gte: objectIdThreshold } };
 		}
 
-		// Re-sort results to match original order
-		const originalOrder = new Map(timeRanges.map((r, i) => [r.label, i]));
-		results.sort((a, b) => (originalOrder.get(a.label) ?? 0) - (originalOrder.get(b.label) ?? 0));
-
-		return { data: results, error: null };
+		try {
+			const count = await coll.countDocuments(filter, { maxTimeMS: mongo.getCountTimeout() });
+			return { count, error: null };
+		} catch (err) {
+			logger.error(`Error counting documents for ${days} days:`, err);
+			const errorMsg = err instanceof Error ? err.message : String(err);
+			return { count: null, error: errorMsg };
+		}
 	},
 );
