@@ -973,8 +973,12 @@ export const countDocumentsByTimeRange = query(
 			const sample = await coll.findOne({}, { projection: { _id: 1, createdAt: 1 }, maxTimeMS: 5000 });
 			if (sample) {
 				const idIsObjectId = sample._id instanceof ObjectId;
-				if (!idIsObjectId && sample.createdAt !== undefined) {
-					useCreatedAt = true;
+				if (!idIsObjectId) {
+					if (sample.createdAt instanceof Date) {
+						useCreatedAt = true;
+					} else {
+						return { count: null, error: "Cannot determine document age (no ObjectId or createdAt field)" };
+					}
 				}
 			}
 		} catch {
