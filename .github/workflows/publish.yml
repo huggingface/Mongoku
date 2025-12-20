@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -32,7 +32,7 @@ jobs:
         run: npm install -g corepack@latest && corepack enable
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
           cache: "pnpm"
@@ -150,8 +150,8 @@ jobs:
       #     draft: false
       #     prerelease: false
 
-      # hack - reuse actions/setup-node@v4 just to set a new registry
-      # - uses: actions/setup-node@v4
+      # hack - reuse actions/setup-node@v6 just to set a new registry
+      # - uses: actions/setup-node@v6
       #   with:
       #     node-version: "24"
       #     registry-url: "https://npm.pkg.github.com"
