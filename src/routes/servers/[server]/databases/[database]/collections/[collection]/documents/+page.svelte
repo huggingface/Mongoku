@@ -685,7 +685,7 @@
 								</p>
 							{:else}
 								<p class="mb-2" style="color: var(--text);">
-									This will delete <strong class="text-red-600">{deleteState.count}</strong>
+									This will delete <strong class="text-red-600">{deleteState.count?.toLocaleString()}</strong>
 									document{deleteState.count === 1 ? "" : "s"}.
 								</p>
 								<p>This operation is permanent and cannot be undone.</p>
