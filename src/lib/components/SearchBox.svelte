@@ -10,6 +10,7 @@
 	import IconEdit from "$lib/icons/IconEdit.svelte";
 	import type { SearchParams } from "$lib/types";
 	import { formatNumber } from "$lib/utils/filters";
+	import { parseJSON, serializeForEditing } from "$lib/utils/jsonParser";
 	import { tick } from "svelte";
 
 	// Threshold for URL length before switching to remote function call - see https://stackoverflow.com/questions/32763165/node-js-http-get-url-length-limitation
@@ -197,6 +198,7 @@
 	let newDocsButtonElement = $state<HTMLButtonElement>();
 	let newDocsDropdownPosition = $state({ left: "0px", top: "0px", minWidth: "200px" });
 	let isStatsLoading = $state(false);
+	let lastStatsQuery = $state<string | undefined>(undefined);
 	let stats = $state<
 		Array<{ label: string; days: number; count: number | null; error: string | null; loading?: boolean }>
 	>(TIME_RANGES.map((r) => ({ ...r, count: null, error: null, loading: false })));
@@ -223,6 +225,10 @@
 		// Reset all stats to loading state
 		stats = TIME_RANGES.map((r) => ({ ...r, count: null, error: null, loading: true }));
 
+		// Get current query to merge with time filter (only for query mode, not aggregation)
+		const currentQuery = params.mode === "query" ? params.query : undefined;
+		lastStatsQuery = currentQuery;
+
 		// Load each time range separately (sequentially, shortest first)
 		for (let i = 0; i < TIME_RANGES.length; i++) {
 			const range = TIME_RANGES[i];
@@ -232,6 +238,7 @@
 					database,
 					collection,
 					days: range.days,
+					query: currentQuery,
 				});
 
 				stats[i] = { ...range, count: result.count, error: result.error, loading: false };
@@ -245,7 +252,14 @@
 
 	function toggleNewDocsDropdown() {
 		showNewDocsDropdown = !showNewDocsDropdown;
-		if (showNewDocsDropdown && stats.every((s) => s.count === null && !s.error && !s.loading)) {
+		if (!showNewDocsDropdown) return;
+
+		// Reload stats if never loaded, or if the query has changed
+		const currentQuery = params.mode === "query" ? params.query : undefined;
+		const needsReload =
+			stats.every((s) => s.count === null && !s.error && !s.loading) || lastStatsQuery !== currentQuery;
+
+		if (needsReload) {
 			loadStats();
 		}
 	}
@@ -258,9 +272,22 @@
 
 		// Create ObjectId hex string from timestamp (first 4 bytes are timestamp)
 		const objectIdHex = timestamp.toString(16).padStart(8, "0") + "0000000000000000";
+		const idFilter = { $gte: { $type: "ObjectId", $value: objectIdHex } };
 
-		// Set the query with the ObjectId filter
-		params.query = `{_id: {$gte: ObjectId("${objectIdHex}")}}`;
+		// Try to merge with existing query, overwriting _id
+		let newQuery = `{_id: {$gte: ObjectId("${objectIdHex}")}}`;
+
+		try {
+			const currentQuery = parseJSON(params.query);
+			if (currentQuery && typeof currentQuery === "object" && !Array.isArray(currentQuery)) {
+				const merged = { ...(currentQuery as Record<string, unknown>), _id: idFilter };
+				newQuery = serializeForEditing(merged);
+			}
+		} catch {
+			// If parsing fails, just use the simple _id filter
+		}
+
+		params.query = newQuery;
 		params.mode = "query";
 		showNewDocsDropdown = false;
 

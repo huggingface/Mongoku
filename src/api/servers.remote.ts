@@ -960,11 +960,31 @@ export const countDocumentsByTimeRange = query(
 		database: z.string(),
 		collection: z.string(),
 		days: z.number(),
+		query: z.string().optional(),
 	}),
-	async ({ server, database, collection, days }): Promise<{ count: number | null; error: string | null }> => {
+	async ({
+		server,
+		database,
+		collection,
+		days,
+		query: queryStr,
+	}): Promise<{ count: number | null; error: string | null }> => {
 		const mongo = await getMongo();
 		const client = mongo.getClient(server);
 		const coll = client.db(database).collection(collection);
+
+		// Parse the base query if provided
+		let baseQuery: Document = {};
+		if (queryStr) {
+			try {
+				const parsed = parseJSON(queryStr);
+				if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+					baseQuery = JsonEncoder.encode(parsed) as Document;
+				}
+			} catch {
+				// If parsing fails, ignore the query
+			}
+		}
 
 		// Check if _id has a creation timestamp (is ObjectId with embedded date)
 		// Use createdAt field ONLY if _id doesn't have a date AND there's an index on createdAt
@@ -988,13 +1008,13 @@ export const countDocumentsByTimeRange = query(
 		const dateThreshold = new Date();
 		dateThreshold.setDate(dateThreshold.getDate() - days);
 
-		// Build filter based on _id type
-		let filter;
+		// Build filter based on _id type, merged with base query
+		let filter: Document;
 		if (useCreatedAt) {
-			filter = { createdAt: { $gte: dateThreshold } };
+			filter = { ...baseQuery, createdAt: { $gte: dateThreshold } };
 		} else {
 			const objectIdThreshold = ObjectId.createFromTime(Math.floor(dateThreshold.getTime() / 1000));
-			filter = { _id: { $gte: objectIdThreshold } };
+			filter = { ...baseQuery, _id: { $gte: objectIdThreshold } };
 		}
 
 		try {
