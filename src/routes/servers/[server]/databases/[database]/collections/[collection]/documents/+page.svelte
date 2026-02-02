@@ -755,10 +755,16 @@
 						>{'{"$inc": {"count": 1}}'}</code
 					>
 				</p>
-				<p>
+				<p class="mb-2">
 					• Unset a field: <code
 						class="bg-[var(--light-background)] px-2 py-1 rounded border border-[var(--border-color)] font-mono text-xs"
 						>{'{"$unset": {"oldField": ""}}'}</code
+					>
+				</p>
+				<p>
+					• Pipeline (compute from existing fields): <code
+						class="bg-[var(--light-background)] px-2 py-1 rounded border border-[var(--border-color)] font-mono text-xs"
+						>{'[{"$set": {"fullName": {"$concat": ["$firstName", " ", "$lastName"]}}}]'}</code
 					>
 				</p>
 			</div>
