@@ -195,7 +195,7 @@ export const updateMany = command(
 		const coll = client.db(database).collection(collection);
 
 		const filterDoc = JsonEncoder.decode(parseJSON(filter));
-		const updateDoc = JsonEncoder.decode(parseJSON(update));
+		const updateDoc = JsonEncoder.decode(parseJSON(update, { allowArray: true }));
 
 		const result = await coll.updateMany(filterDoc, updateDoc);
 
