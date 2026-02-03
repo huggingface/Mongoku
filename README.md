@@ -8,9 +8,11 @@ or anywhere else, for you and your team.
 It scales with your data (at Hugging Face we use it on a 1TB+ cluster) and is blazing fast for all
 operations, including sort/skip/limit. Built on TypeScript/Node.js/SvelteKit.
 
+You can even have mappings between documents to navigate your DB easily.
+
 ### Demo
 
-![mongoku](https://huggingface.co/landing/assets/mongoku/mongoku-demo.gif)
+https://github.com/user-attachments/assets/f37bee71-64f2-454a-a5d6-1697ba8aa070
 
 ## Installation & Usage
 
@@ -24,7 +26,6 @@ npm install -g mongoku
 
 # Start the server
 mongoku
-mongoku start
 
 # Start with PM2
 mongoku --pm2
