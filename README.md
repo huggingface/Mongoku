@@ -101,6 +101,9 @@ If you want to build your own docker image, just clone this repository and run t
 # Build
 docker build -t yournamehere/mongoku .
 
+# Build with a custom base path (e.g. to serve at /mongoku)
+docker build --build-arg BASE_PATH=/mongoku -t yournamehere/mongoku .
+
 # Run
 docker run -d --name mongoku -p 3100:3100 yournamehere/mongoku
 
@@ -123,7 +126,17 @@ npx simple-git-hooks
 
 ## Configuration
 
-You can configure Mongoku using environment variables:
+You can configure Mongoku using environment variables.
+
+### Build-time
+
+```bash
+# Serve Mongoku under a sub-path (e.g. behind a reverse proxy at /mongoku)
+# Must be set at build time: BASE_PATH=/mongoku pnpm build
+BASE_PATH=/mongoku
+```
+
+### Runtime
 
 ```bash
 # Use customized default hosts (Default = localhost:27017)
