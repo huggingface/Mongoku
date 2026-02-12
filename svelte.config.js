@@ -10,6 +10,9 @@ const config = {
 			out: "build",
 			envPrefix: "MONGOKU_SERVER_",
 		}),
+		paths: {
+			base: process.env.BASE_PATH || "",
+		},
 		experimental: {
 			remoteFunctions: true,
 		},
