@@ -66,6 +66,10 @@ async function startAction(options: { pm2?: boolean; port?: string; readonly?: b
 	// Suppress the default "Listening on..." log since we show our own message
 	process.env.MONGOKU_SUPPRESS_STARTUP_LOG = "true";
 
+	if (!process.env.MONGOKU_SERVER_BODY_SIZE_LIMIT) {
+		process.env.MONGOKU_SERVER_BODY_SIZE_LIMIT = "Infinity";
+	}
+
 	// Set read-only mode if specified
 	if (options.readonly) {
 		process.env.MONGOKU_READ_ONLY_MODE = "true";
