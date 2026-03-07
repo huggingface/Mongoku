@@ -1,3 +1,4 @@
+import { env } from "$env/dynamic/private";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -7,10 +8,8 @@ export interface Host {
 	_id: string;
 }
 
-const DEFAULT_HOSTS = process.env.MONGOKU_DEFAULT_HOST
-	? process.env.MONGOKU_DEFAULT_HOST.split(";")
-	: ["localhost:27017"];
-const DATABASE_FILE = process.env.MONGOKU_DATABASE_FILE || path.join(os.homedir(), ".mongoku.db");
+const DEFAULT_HOSTS = env.MONGOKU_DEFAULT_HOST ? env.MONGOKU_DEFAULT_HOST.split(";") : ["localhost:27017"];
+const DATABASE_FILE = env.MONGOKU_DATABASE_FILE || path.join(os.homedir(), ".mongoku.db");
 
 export class HostsManager {
 	private _hosts: Map<string, string> = new Map(); // path -> _id
@@ -89,20 +88,12 @@ export class HostsManager {
 		return id;
 	}
 
-	async remove(hostPath: string): Promise<void> {
-		// Remove exact matches and regex pattern matches
-		const toRemove = Array.from(this._hosts.keys()).filter((existingPath) => {
-			try {
-				const regex = new RegExp(hostPath);
-				return existingPath === hostPath || regex.test(existingPath);
-			} catch {
-				// If hostPath is not a valid regex, just do exact match
-				return existingPath === hostPath;
+	async removeById(id: string): Promise<void> {
+		for (const [hostPath, hostId] of this._hosts) {
+			if (hostId === id) {
+				this._hosts.delete(hostPath);
+				break;
 			}
-		});
-
-		for (const host of toRemove) {
-			this._hosts.delete(host);
 		}
 		await this._saveToFile();
 	}

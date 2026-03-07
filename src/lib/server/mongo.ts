@@ -1,3 +1,4 @@
+import { env } from "$env/dynamic/private";
 import { logger } from "$lib/server/logger";
 import type { CollectionJSON, CollectionMappings, Mappings } from "$lib/types";
 import { resolveSrv } from "dns/promises";
@@ -200,17 +201,15 @@ class MongoConnections {
 	private clients: Map<string, MongoClientWithMappings> = new Map(); // _id -> MongoClientWithMappings
 	private clientIds: Map<string, string> = new Map(); // hostname -> _id
 	private hostsManager: HostsManager;
-	private countTimeout = parseInt(process.env.MONGOKU_COUNT_TIMEOUT!, 10) || 30_000;
-	private queryTimeout = process.env.MONGOKU_QUERY_TIMEOUT
-		? parseInt(process.env.MONGOKU_QUERY_TIMEOUT, 10)
-		: undefined;
+	private countTimeout = parseInt(env.MONGOKU_COUNT_TIMEOUT!, 10) || 30_000;
+	private queryTimeout = env.MONGOKU_QUERY_TIMEOUT ? parseInt(env.MONGOKU_QUERY_TIMEOUT, 10) : undefined;
 	private excludedDatabases: Set<string>;
 	private readPreference: ReadPreference | undefined;
 
 	constructor() {
 		this.hostsManager = new HostsManager();
 		// Parse MONGOKU_EXCLUDE_DATABASES env var (comma-separated list)
-		const excludeEnv = process.env.MONGOKU_EXCLUDE_DATABASES || "";
+		const excludeEnv = env.MONGOKU_EXCLUDE_DATABASES || "";
 		this.excludedDatabases = new Set(
 			excludeEnv
 				.split(",")
@@ -221,7 +220,7 @@ class MongoConnections {
 		// Parse read preference from env vars
 		// MONGOKU_READ_PREFERENCE: primary, primaryPreferred, secondary, secondaryPreferred, nearest
 		// MONGOKU_READ_PREFERENCE_TAGS: JSON array of tag sets, e.g. [{"nodeType":"ANALYTICS"},{}]
-		const readPrefMode = process.env.MONGOKU_READ_PREFERENCE as
+		const readPrefMode = env.MONGOKU_READ_PREFERENCE as
 			| "primary"
 			| "primaryPreferred"
 			| "secondary"
@@ -231,9 +230,9 @@ class MongoConnections {
 
 		if (readPrefMode) {
 			let tags: Array<Record<string, string>> | undefined;
-			if (process.env.MONGOKU_READ_PREFERENCE_TAGS) {
+			if (env.MONGOKU_READ_PREFERENCE_TAGS) {
 				try {
-					tags = JSON.parse(process.env.MONGOKU_READ_PREFERENCE_TAGS);
+					tags = JSON.parse(env.MONGOKU_READ_PREFERENCE_TAGS);
 				} catch (err) {
 					logger.error("Failed to parse MONGOKU_READ_PREFERENCE_TAGS:", err);
 				}
@@ -321,14 +320,20 @@ class MongoConnections {
 	}
 
 	async removeServer(name: string) {
-		await this.hostsManager.remove(name);
+		const clientKey = this.clientIds.has(name) ? name : `${name}:27017`;
+		const clientId = this.clientIds.get(clientKey);
+		if (!clientId) {
+			throw new Error(`Server not found: ${name}`);
+		}
+
+		await this.hostsManager.removeById(clientId);
 
 		this.clients
-			.get(name)
+			.get(clientId)
 			?.close()
 			.catch((err) => logger.error(`Error closing client ${name}:`, err));
-		this.clients.delete(name);
-		this.clientIds.delete(name);
+		this.clients.delete(clientId);
+		this.clientIds.delete(clientKey);
 	}
 
 	async reconnectClient(id: string) {

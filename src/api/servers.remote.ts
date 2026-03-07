@@ -1,4 +1,5 @@
 import { command, query } from "$app/server";
+import { env } from "$env/dynamic/private";
 import { validateAggregationPipeline } from "$lib/server/aggregation";
 import JsonEncoder from "$lib/server/JsonEncoder";
 import { logger } from "$lib/server/logger";
@@ -9,9 +10,8 @@ import { error } from "@sveltejs/kit";
 import { ObjectId, ReadPreference, type Document } from "mongodb";
 import { z } from "zod";
 
-// Check if read-only mode is enabled
 function checkReadOnly() {
-	if (process.env.MONGOKU_READ_ONLY_MODE === "true") {
+	if (env.MONGOKU_READ_ONLY_MODE === "true") {
 		error(403, "Read-only mode is enabled");
 	}
 }

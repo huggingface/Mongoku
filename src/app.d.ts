@@ -8,6 +8,11 @@ declare global {
 		}
 		interface Locals {
 			requestId: string;
+			user?: {
+				sub?: string;
+				name?: string;
+				email?: string;
+			};
 		}
 		// interface PageData {}
 		// interface PageState {}

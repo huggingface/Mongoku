@@ -172,6 +172,31 @@ MONGOKU_READ_ONLY_MODE=true
 # Enable basic auth
 MONGOKU_AUTH_BASIC=user:password
 
+# --- OAuth2 PKCE authentication ---
+# When MONGOKU_OAUTH_CLIENT_ID is set, OAuth is enabled and all users must
+# authenticate through the configured OAuth provider. The application state
+# (DB connections, etc.) is shared between all authenticated users.
+# The callback URL to register with your provider is: {origin}{base_path}/auth/callback
+
+# OAuth2 client ID (setting this enables OAuth)
+MONGOKU_OAUTH_CLIENT_ID=my-client-id
+# Use "__CIMD__" for automatic client ID discovery.
+# In that mode, Mongoku serves the metadata document at:
+#   {origin}{base_path}/.well-known/cimd.json
+# and uses that URL as the OAuth client_id.
+# MONGOKU_OAUTH_CLIENT_ID=__CIMD__
+# OpenID Connect issuer URL (endpoints are discovered via .well-known/openid-configuration)
+MONGOKU_OAUTH_ISSUER_URL=https://idp.example.com
+# Secret for signing session cookies (any random string, keep it secret)
+MONGOKU_OAUTH_SESSION_SECRET=change-me-to-a-random-string
+# Scopes to request (Default = "openid profile email")
+MONGOKU_OAUTH_SCOPES="openid profile email"
+# Session duration in seconds (Default = 86400 = 24h)
+MONGOKU_OAUTH_SESSION_DURATION=86400
+# Restrict access to specific users by their "sub" claim (comma-separated)
+# When set, only users whose sub is in this list can log in
+MONGOKU_OAUTH_ALLOWED_SUBS=user-id-1,user-id-2
+
 # Enable structured logging (JSON output)
 # When enabled, all logs are output as JSON with timestamp, level, and request context
 # HTTP requests are logged in both modes (simple text format when false, JSON when true)

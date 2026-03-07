@@ -1,3 +1,4 @@
+import { env } from "$env/dynamic/private";
 import { contextStore } from "$lib/server/contextStore";
 import { inspect } from "node:util";
 
@@ -11,10 +12,9 @@ class Logger {
 	private logHeaders: string[];
 
 	constructor() {
-		this.structuredLogging = process.env.MONGOKU_STRUCTURED_LOG === "true";
-		// Parse comma-delimited list of headers to log
-		this.logHeaders = process.env.MONGOKU_LOG_HEADERS
-			? process.env.MONGOKU_LOG_HEADERS.split(",")
+		this.structuredLogging = env.MONGOKU_STRUCTURED_LOG === "true";
+		this.logHeaders = env.MONGOKU_LOG_HEADERS
+			? env.MONGOKU_LOG_HEADERS.split(",")
 					.map((h) => h.trim().toLowerCase())
 					.filter(Boolean)
 			: [];

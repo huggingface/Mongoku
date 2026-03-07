@@ -47,9 +47,24 @@
 				<Breadcrumbs />
 
 				<div class="ml-auto flex items-center gap-2">
-					<!-- View tabs -->
 					<PageSwitcher class="" />
 					<ThemeSwitcher />
+					{#if data.oauthEnabled && data.user}
+						<div class="hidden md:block w-px h-5 bg-[var(--border-color)]"></div>
+						<div class="flex items-center gap-1.5">
+							<span class="text-xs text-[var(--text-muted)] max-w-32 truncate" title={data.user.email}>
+								{data.user.name || data.user.email || "User"}
+							</span>
+							<form method="POST" action={resolve("/auth/logout")}>
+								<button
+									type="submit"
+									class="inline-flex items-center justify-center rounded-md px-2 py-1 text-xs text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--hover-background)] transition-colors cursor-pointer"
+								>
+									Log out
+								</button>
+							</form>
+						</div>
+					{/if}
 				</div>
 			</div>
 		</div>
