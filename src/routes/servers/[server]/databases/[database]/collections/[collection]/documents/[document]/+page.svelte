@@ -69,7 +69,8 @@
 			notificationStore.notifySuccess("Document removed successfully");
 			// Navigate back to the collection explore page
 			goto(
-				`${base}/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}?query=${encodeURIComponent("{}")}&sort=&project=&skip=0&limit=20` as unknown as "/servers/[server]/databases/[database]/collections/[collection]",
+				/* eslint-disable-next-line svelte/no-navigation-without-resolve */
+				`${base}/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}?query=${encodeURIComponent("{}")}&sort=&project=&skip=0&limit=20`,
 			);
 		} catch (error) {
 			notificationStore.notifyError(error, "Failed to remove document");
