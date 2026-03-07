@@ -202,9 +202,7 @@ class MongoConnections {
 	private clientIds: Map<string, string> = new Map(); // hostname -> _id
 	private hostsManager: HostsManager;
 	private countTimeout = parseInt(env.MONGOKU_COUNT_TIMEOUT!, 10) || 30_000;
-	private queryTimeout = env.MONGOKU_QUERY_TIMEOUT
-		? parseInt(env.MONGOKU_QUERY_TIMEOUT, 10)
-		: undefined;
+	private queryTimeout = env.MONGOKU_QUERY_TIMEOUT ? parseInt(env.MONGOKU_QUERY_TIMEOUT, 10) : undefined;
 	private excludedDatabases: Set<string>;
 	private readPreference: ReadPreference | undefined;
 

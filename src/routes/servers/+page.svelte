@@ -215,7 +215,8 @@
 		<div class="modal" onclick={(e) => e.stopPropagation()}>
 			<div class="modal-body">
 				<p>
-					Are you sure you want to remove <strong>{serverToRemove?.name}</strong>? This will only remove it from this list. You can add it back.
+					Are you sure you want to remove <strong>{serverToRemove?.name}</strong>? This will only remove it from this
+					list. You can add it back.
 				</p>
 			</div>
 			<div class="modal-footer">
