@@ -1,4 +1,5 @@
-import { resolve as resolvePath } from "$app/paths";
+import { base } from "$app/paths";
+import { env } from "$env/dynamic/private";
 import { contextStore } from "$lib/server/contextStore";
 import { logger } from "$lib/server/logger";
 import { getOAuthConfig, verifySession } from "$lib/server/oauth";
@@ -9,7 +10,7 @@ Error.stackTraceLimit = 100;
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const oauthConfig = await getOAuthConfig();
-	const authBasic = process.env.MONGOKU_AUTH_BASIC;
+	const authBasic = env.MONGOKU_AUTH_BASIC;
 
 	event.locals.requestId = event.request.headers.get("X-Request-ID") || crypto.randomUUID();
 
@@ -21,8 +22,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const startTime = performance.now();
 
 		if (oauthConfig) {
-			const isAuthRoute = event.url.pathname.startsWith(resolvePath("/auth/" as unknown as "/auth/login"));
-			const isCimdRoute = event.url.pathname === resolvePath("/.well-known/cimd.json");
+			const isAuthRoute = event.url.pathname.startsWith(`${base}/auth/`);
+			const isCimdRoute = event.url.pathname === `${base}/.well-known/cimd.json`;
 
 			if (!isAuthRoute && !isCimdRoute) {
 				const sessionCookie = event.cookies.get("mongoku_session");
@@ -35,7 +36,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 					if (acceptsHtml) {
 						return new Response(null, {
 							status: 302,
-							headers: { Location: resolvePath("/auth/login") },
+							headers: { Location: `${base}/auth/login` },
 						});
 					}
 

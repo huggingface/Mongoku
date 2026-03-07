@@ -1,3 +1,4 @@
+import { env } from "$env/dynamic/private";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -7,10 +8,10 @@ export interface Host {
 	_id: string;
 }
 
-const DEFAULT_HOSTS = process.env.MONGOKU_DEFAULT_HOST
-	? process.env.MONGOKU_DEFAULT_HOST.split(";")
+const DEFAULT_HOSTS = env.MONGOKU_DEFAULT_HOST
+	? env.MONGOKU_DEFAULT_HOST.split(";")
 	: ["localhost:27017"];
-const DATABASE_FILE = process.env.MONGOKU_DATABASE_FILE || path.join(os.homedir(), ".mongoku.db");
+const DATABASE_FILE = env.MONGOKU_DATABASE_FILE || path.join(os.homedir(), ".mongoku.db");
 
 export class HostsManager {
 	private _hosts: Map<string, string> = new Map(); // path -> _id

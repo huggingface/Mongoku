@@ -1,4 +1,5 @@
-import { base, resolve } from "$app/paths";
+import { base } from "$app/paths";
+import { env } from "$env/dynamic/private";
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
 export interface OAuthConfig {
@@ -77,14 +78,14 @@ export async function getOAuthConfig(): Promise<OAuthConfig | null> {
 		return cachedConfig;
 	}
 
-	const clientId = process.env.MONGOKU_OAUTH_CLIENT_ID;
+	const clientId = env.MONGOKU_OAUTH_CLIENT_ID;
 	if (!clientId) {
 		cachedConfig = null;
 		return null;
 	}
 
-	const issuerUrl = process.env.MONGOKU_OAUTH_ISSUER_URL;
-	const sessionSecret = process.env.MONGOKU_OAUTH_SESSION_SECRET;
+	const issuerUrl = env.MONGOKU_OAUTH_ISSUER_URL;
+	const sessionSecret = env.MONGOKU_OAUTH_SESSION_SECRET;
 
 	if (!issuerUrl || !sessionSecret) {
 		throw new Error(
@@ -95,7 +96,7 @@ export async function getOAuthConfig(): Promise<OAuthConfig | null> {
 
 	const oidc = await fetchOpenIDConfiguration(issuerUrl);
 
-	const allowedSubsRaw = process.env.MONGOKU_OAUTH_ALLOWED_SUBS;
+	const allowedSubsRaw = env.MONGOKU_OAUTH_ALLOWED_SUBS;
 	const allowedSubs = allowedSubsRaw
 		? new Set(
 				allowedSubsRaw
@@ -110,9 +111,9 @@ export async function getOAuthConfig(): Promise<OAuthConfig | null> {
 		issuerUrl,
 		authorizationUrl: oidc.authorization_endpoint,
 		tokenUrl: oidc.token_endpoint,
-		scopes: process.env.MONGOKU_OAUTH_SCOPES ?? "openid profile email",
+		scopes: env.MONGOKU_OAUTH_SCOPES ?? "openid profile email",
 		sessionSecret,
-		sessionDuration: parseSessionDuration(process.env.MONGOKU_OAUTH_SESSION_DURATION),
+		sessionDuration: parseSessionDuration(env.MONGOKU_OAUTH_SESSION_DURATION),
 		allowedSubs,
 	};
 
@@ -124,7 +125,7 @@ function resolveOAuthClientId(config: OAuthConfig, origin: string): string {
 		return config.clientId;
 	}
 
-	return new URL(resolve("/.well-known/cimd.json"), origin).toString();
+	return new URL(`${base}/.well-known/cimd.json`, origin).toString();
 }
 
 function base64url(buffer: Buffer): string {
@@ -261,7 +262,7 @@ export function verifySession(config: OAuthConfig, cookie: string): SessionPaylo
 }
 
 export function getCallbackUrl(origin: string): string {
-	return `${origin}${resolve("/auth/callback")}`;
+	return `${origin}${base}/auth/callback`;
 }
 
 export function cookieOptions(url: URL, maxAge?: number) {
