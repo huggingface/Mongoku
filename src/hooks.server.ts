@@ -21,7 +21,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const startTime = performance.now();
 
 		if (oauthConfig) {
-			const isAuthRoute = event.url.pathname.startsWith(resolvePath("/auth/" as any));
+			const isAuthRoute = event.url.pathname.startsWith(resolvePath("/auth/" as unknown as "/auth/login"));
 
 			if (!isAuthRoute) {
 				const sessionCookie = event.cookies.get("mongoku_session");
