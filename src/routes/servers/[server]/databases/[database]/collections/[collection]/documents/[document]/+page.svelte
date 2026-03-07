@@ -5,7 +5,7 @@
 		updateDocument as updateDocumentCommand,
 	} from "$api/servers.remote";
 	import { goto } from "$app/navigation";
-	import { resolve } from "$app/paths";
+	import { base } from "$app/paths";
 	import PrettyJson from "$lib/components/PrettyJson.svelte";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import type { MongoDocument } from "$lib/types";
@@ -69,9 +69,7 @@
 			notificationStore.notifySuccess("Document removed successfully");
 			// Navigate back to the collection explore page
 			goto(
-				resolve(
-					`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}?query=${encodeURIComponent("{}")}&sort=&project=&skip=0&limit=20`,
-				),
+				`${base}/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(data.database)}/collections/${encodeURIComponent(data.collection)}?query=${encodeURIComponent("{}")}&sort=&project=&skip=0&limit=20` as unknown as "/servers/[server]/databases/[database]/collections/[collection]",
 			);
 		} catch (error) {
 			notificationStore.notifyError(error, "Failed to remove document");
