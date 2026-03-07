@@ -89,20 +89,12 @@ export class HostsManager {
 		return id;
 	}
 
-	async remove(hostPath: string): Promise<void> {
-		// Remove exact matches and regex pattern matches
-		const toRemove = Array.from(this._hosts.keys()).filter((existingPath) => {
-			try {
-				const regex = new RegExp(hostPath);
-				return existingPath === hostPath || regex.test(existingPath);
-			} catch {
-				// If hostPath is not a valid regex, just do exact match
-				return existingPath === hostPath;
+	async removeById(id: string): Promise<void> {
+		for (const [hostPath, hostId] of this._hosts) {
+			if (hostId === id) {
+				this._hosts.delete(hostPath);
+				break;
 			}
-		});
-
-		for (const host of toRemove) {
-			this._hosts.delete(host);
 		}
 		await this._saveToFile();
 	}

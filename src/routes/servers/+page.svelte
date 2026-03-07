@@ -21,7 +21,7 @@
 	let newServer = $state("");
 	let loading = $state(false);
 	let showRemoveModal = $state(false);
-	let serverToRemove: Server | null = null;
+	let serverToRemove = $state<Server | null>(null);
 	const retryingServers = new SvelteSet<string>();
 
 	async function addServer() {
@@ -215,7 +215,7 @@
 		<div class="modal" onclick={(e) => e.stopPropagation()}>
 			<div class="modal-body">
 				<p>
-					Are you sure you want to remove this server? This will only remove it from this list. You can add it back.
+					Are you sure you want to remove <strong>{serverToRemove?.name}</strong>? This will only remove it from this list. You can add it back.
 				</p>
 			</div>
 			<div class="modal-footer">

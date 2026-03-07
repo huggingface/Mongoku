@@ -321,13 +321,18 @@ class MongoConnections {
 	}
 
 	async removeServer(name: string) {
-		await this.hostsManager.remove(name);
+		const clientId = this.clientIds.get(name) || this.clientIds.get(`${name}:27017`);
+		if (!clientId) {
+			throw new Error(`Server not found: ${name}`);
+		}
+
+		await this.hostsManager.removeById(clientId);
 
 		this.clients
-			.get(name)
+			.get(clientId)
 			?.close()
 			.catch((err) => logger.error(`Error closing client ${name}:`, err));
-		this.clients.delete(name);
+		this.clients.delete(clientId);
 		this.clientIds.delete(name);
 	}
 
