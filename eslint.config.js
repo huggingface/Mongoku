@@ -27,6 +27,7 @@ export default defineConfig(
 			"no-undef": "off",
 			// Forbid console methods - use the logger utility instead
 			"no-console": "error",
+			curly: "error",
 		},
 	},
 	{

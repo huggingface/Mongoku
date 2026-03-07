@@ -106,7 +106,9 @@
 			return;
 		}
 
-		if (!oldId) return;
+		if (!oldId) {
+			return;
+		}
 
 		try {
 			const result = await updateDocumentCommand({

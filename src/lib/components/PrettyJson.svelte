@@ -36,9 +36,15 @@
 
 	// Helper to get ID value from any type
 	function getIdValue(val: any): string | null {
-		if (val === null || val === undefined) return null;
-		if (typeof val === "string" || typeof val === "number") return String(val);
-		if (val.$type === "ObjectId" && val.$value) return val.$value;
+		if (val === null || val === undefined) {
+			return null;
+		}
+		if (typeof val === "string" || typeof val === "number") {
+			return String(val);
+		}
+		if (val.$type === "ObjectId" && val.$value) {
+			return val.$value;
+		}
 		return null;
 	}
 
@@ -119,7 +125,9 @@
 
 	// Watch for textarea resize and update panel height
 	$effect(() => {
-		if (!textareaRef || !panelRef || !editorVisible) return;
+		if (!textareaRef || !panelRef || !editorVisible) {
+			return;
+		}
 
 		const resizeObserver = new ResizeObserver((entries) => {
 			for (const entry of entries) {

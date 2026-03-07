@@ -2,14 +2,20 @@
  * Find the common prefix of an array of strings
  */
 export function findCommonPrefix(strings: string[]): string {
-	if (strings.length === 0) return "";
-	if (strings.length === 1) return "";
+	if (strings.length === 0) {
+		return "";
+	}
+	if (strings.length === 1) {
+		return "";
+	}
 
 	let prefix = strings[0];
 	for (let i = 1; i < strings.length; i++) {
 		while (strings[i].indexOf(prefix) !== 0) {
 			prefix = prefix.substring(0, prefix.length - 1);
-			if (prefix === "") return "";
+			if (prefix === "") {
+				return "";
+			}
 		}
 	}
 	return prefix;
@@ -19,8 +25,12 @@ export function findCommonPrefix(strings: string[]): string {
  * Find the common suffix of an array of strings
  */
 export function findCommonSuffix(strings: string[]): string {
-	if (strings.length === 0) return "";
-	if (strings.length === 1) return "";
+	if (strings.length === 0) {
+		return "";
+	}
+	if (strings.length === 1) {
+		return "";
+	}
 
 	// Reverse all strings, find common prefix, then reverse back
 	const reversed = strings.map((s) => s.split("").reverse().join(""));

@@ -5,7 +5,9 @@
  * @returns Formatted string with appropriate suffix (k, M, B)
  */
 export function formatSignificantDigits(value: number, digits = 3): string {
-	if (value === 0) return "0";
+	if (value === 0) {
+		return "0";
+	}
 
 	const absValue = Math.abs(value);
 	const sign = value < 0 ? "-" : "";

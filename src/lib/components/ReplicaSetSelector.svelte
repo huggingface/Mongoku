@@ -22,7 +22,9 @@
 
 	// Find the actual primary node by matching the longest common suffix
 	const matchedPrimaryNode = $derived.by(() => {
-		if (!primaryNode || availableNodes.length === 0) return null;
+		if (!primaryNode || availableNodes.length === 0) {
+			return null;
+		}
 		return findBestSuffixMatch(primaryNode, availableNodes);
 	});
 

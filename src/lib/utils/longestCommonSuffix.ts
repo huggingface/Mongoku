@@ -28,7 +28,9 @@ export function longestCommonSuffix(str1: string, str2: string): string {
  * Returns the matching string or null if no good match is found
  */
 export function findBestSuffixMatch(target: string, candidates: string[]): string | null {
-	if (!target || candidates.length === 0) return null;
+	if (!target || candidates.length === 0) {
+		return null;
+	}
 
 	let bestMatch: string | null = null;
 	let longestSuffixLength = 0;

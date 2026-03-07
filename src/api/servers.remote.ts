@@ -364,14 +364,24 @@ export const createIndex = command(
 
 		// Build options object
 		const options: Record<string, unknown> = {};
-		if (name) options.name = name;
-		if (unique) options.unique = unique;
-		if (sparse) options.sparse = sparse;
+		if (name) {
+			options.name = name;
+		}
+		if (unique) {
+			options.unique = unique;
+		}
+		if (sparse) {
+			options.sparse = sparse;
+		}
 		if (partialFilterExpression) {
 			options.partialFilterExpression = JsonEncoder.decode(parseJSON(partialFilterExpression));
 		}
-		if (expireAfterSeconds !== undefined) options.expireAfterSeconds = expireAfterSeconds;
-		if (background) options.background = background;
+		if (expireAfterSeconds !== undefined) {
+			options.expireAfterSeconds = expireAfterSeconds;
+		}
+		if (background) {
+			options.background = background;
+		}
 
 		await coll.createIndex(keysDoc, options);
 
@@ -637,7 +647,9 @@ export const fetchMappedDocument = query(
 		for (const mapping of documentMappings) {
 			try {
 				// Type guard for TypeScript
-				if ("type" in mapping && mapping.type !== "document") continue;
+				if ("type" in mapping && mapping.type !== "document") {
+					continue;
+				}
 
 				const collection = "collection" in mapping ? mapping.collection : "";
 				const on = "on" in mapping ? mapping.on : "_id";

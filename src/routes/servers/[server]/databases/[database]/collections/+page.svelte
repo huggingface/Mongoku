@@ -29,7 +29,9 @@
 	}
 
 	async function confirmDrop() {
-		if (!collectionToDrop || isDropping) return;
+		if (!collectionToDrop || isDropping) {
+			return;
+		}
 
 		isDropping = true;
 		try {

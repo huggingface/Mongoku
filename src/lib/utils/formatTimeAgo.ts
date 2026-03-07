@@ -2,7 +2,9 @@
  * Format a timestamp as relative time ago (e.g., "5m 30s ago", "2h 15m ago")
  */
 export function formatTimeAgo(timestamp: Date | null): string {
-	if (!timestamp) return "";
+	if (!timestamp) {
+		return "";
+	}
 
 	const now = new Date();
 	const elapsed = now.getTime() - timestamp.getTime();

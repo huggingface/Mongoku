@@ -25,7 +25,9 @@
 	const retryingServers = new SvelteSet<string>();
 
 	async function addServer() {
-		if (!newServer) return;
+		if (!newServer) {
+			return;
+		}
 
 		loading = true;
 		try {
@@ -53,7 +55,9 @@
 	}
 
 	async function confirmRemove() {
-		if (!serverToRemove) return;
+		if (!serverToRemove) {
+			return;
+		}
 
 		try {
 			await removeServerCommand(serverToRemove.name);

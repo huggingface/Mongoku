@@ -104,7 +104,9 @@
 	$effect(() => {
 		if (showModeDropdown && modeButtonElement) {
 			tick().then(() => {
-				if (!modeButtonElement) return;
+				if (!modeButtonElement) {
+					return;
+				}
 				const rect = modeButtonElement.getBoundingClientRect();
 				dropdownPosition = {
 					left: `${rect.left}px`,
@@ -207,7 +209,9 @@
 	$effect(() => {
 		if (showNewDocsDropdown && newDocsButtonElement) {
 			tick().then(() => {
-				if (!newDocsButtonElement) return;
+				if (!newDocsButtonElement) {
+					return;
+				}
 				const rect = newDocsButtonElement.getBoundingClientRect();
 				newDocsDropdownPosition = {
 					left: `${rect.right - 200}px`,
@@ -219,7 +223,9 @@
 	});
 
 	async function loadStats() {
-		if (!server || !database || !collection || isStatsLoading) return;
+		if (!server || !database || !collection || isStatsLoading) {
+			return;
+		}
 
 		isStatsLoading = true;
 		// Reset all stats to loading state
@@ -252,7 +258,9 @@
 
 	function toggleNewDocsDropdown() {
 		showNewDocsDropdown = !showNewDocsDropdown;
-		if (!showNewDocsDropdown) return;
+		if (!showNewDocsDropdown) {
+			return;
+		}
 
 		// Reload stats if never loaded, or if the query has changed
 		const currentQuery = params.mode === "query" ? params.query : undefined;

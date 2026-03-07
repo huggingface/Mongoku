@@ -31,7 +31,7 @@
 	$effect(() => {
 		if (show && tooltipElement && containerElement) {
 			tick().then(() => {
-				if (!containerElement || !tooltipElement) return;
+				if (!containerElement || !tooltipElement) {return;}
 
 				const containerRect = containerElement.getBoundingClientRect();
 				const tooltipRect = tooltipElement.getBoundingClientRect();

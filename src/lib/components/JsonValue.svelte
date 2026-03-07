@@ -70,7 +70,9 @@
 	}
 
 	async function handleMouseEnter() {
-		if (!hasMappings || !fetchMappedDocument) return;
+		if (!hasMappings || !fetchMappedDocument) {
+			return;
+		}
 
 		// Clear any pending hide timeout
 		if (hideTooltipTimeout) {
@@ -81,7 +83,9 @@
 		showTooltip = true;
 
 		// If already fetched, don't fetch again
-		if (fetchedDocument || isFetching) return;
+		if (fetchedDocument || isFetching) {
+			return;
+		}
 
 		isFetching = true;
 		fetchError = null;
@@ -126,8 +130,12 @@
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	function getValueType(val: any): string {
-		if (val === null) return "null";
-		if (Array.isArray(val)) return "array";
+		if (val === null) {
+			return "null";
+		}
+		if (Array.isArray(val)) {
+			return "array";
+		}
 
 		switch (typeof val) {
 			case "boolean":
