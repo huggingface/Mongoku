@@ -26,7 +26,9 @@
 			return;
 		}
 
-		if (!oldId) return;
+		if (!oldId) {
+			return;
+		}
 
 		loading = true;
 		try {
@@ -52,7 +54,9 @@
 
 	async function removeDocument() {
 		const documentId = item?._id?.$value ?? item?._id;
-		if (!documentId) return;
+		if (!documentId) {
+			return;
+		}
 
 		try {
 			await deleteDocumentCommand({

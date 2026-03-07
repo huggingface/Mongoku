@@ -12,7 +12,9 @@
 
 	// Recursively find index name in the execution plan tree
 	function findIndexInPlan(plan: Record<string, unknown> | undefined): string | null {
-		if (!plan) return null;
+		if (!plan) {
+			return null;
+		}
 
 		// Check if this stage has an index
 		if (plan.indexName) {
@@ -27,21 +29,27 @@
 		// Recursively check inputStage
 		if (plan.inputStage) {
 			const result = findIndexInPlan(plan.inputStage as Record<string, unknown>);
-			if (result) return result;
+			if (result) {
+				return result;
+			}
 		}
 
 		// Check inputStages array (for some aggregation plans)
 		if (Array.isArray(plan.inputStages)) {
 			for (const stage of plan.inputStages) {
 				const result = findIndexInPlan(stage as Record<string, unknown>);
-				if (result) return result;
+				if (result) {
+					return result;
+				}
 			}
 		}
 
 		// Check queryPlan (for some MongoDB versions)
 		if (plan.queryPlan) {
 			const result = findIndexInPlan(plan.queryPlan as Record<string, unknown>);
-			if (result) return result;
+			if (result) {
+				return result;
+			}
 		}
 
 		return null;
@@ -49,22 +57,32 @@
 
 	// Check if plan contains COLLSCAN (no index used)
 	function hasCollScan(plan: Record<string, unknown> | undefined): boolean {
-		if (!plan) return false;
+		if (!plan) {
+			return false;
+		}
 
-		if (plan.stage === "COLLSCAN") return true;
+		if (plan.stage === "COLLSCAN") {
+			return true;
+		}
 
 		if (plan.inputStage) {
-			if (hasCollScan(plan.inputStage as Record<string, unknown>)) return true;
+			if (hasCollScan(plan.inputStage as Record<string, unknown>)) {
+				return true;
+			}
 		}
 
 		if (Array.isArray(plan.inputStages)) {
 			for (const stage of plan.inputStages) {
-				if (hasCollScan(stage as Record<string, unknown>)) return true;
+				if (hasCollScan(stage as Record<string, unknown>)) {
+					return true;
+				}
 			}
 		}
 
 		if (plan.queryPlan) {
-			if (hasCollScan(plan.queryPlan as Record<string, unknown>)) return true;
+			if (hasCollScan(plan.queryPlan as Record<string, unknown>)) {
+				return true;
+			}
 		}
 
 		return false;
@@ -72,7 +90,9 @@
 
 	// Extract key metrics from explain output
 	const metrics = $derived.by(() => {
-		if (!data || typeof data !== "object") return null;
+		if (!data || typeof data !== "object") {
+			return null;
+		}
 
 		const d = data as Record<string, unknown>;
 		const execStats = d.executionStats as Record<string, unknown> | undefined;
@@ -112,7 +132,9 @@
 	// When index used: nReturned / keysExamined
 	// When COLLSCAN (keysExamined = 0): 0% efficiency
 	const efficiency = $derived.by(() => {
-		if (!metrics) return null;
+		if (!metrics) {
+			return null;
+		}
 		const keysExamined = Number(metrics.keysExamined);
 		const returned = Number(metrics.nReturned);
 
@@ -126,7 +148,9 @@
 
 	// For display
 	const efficiencyLabel = $derived.by(() => {
-		if (!metrics) return "";
+		if (!metrics) {
+			return "";
+		}
 		const keysExamined = Number(metrics.keysExamined);
 		const docsExamined = Number(metrics.docsExamined);
 		const returned = Number(metrics.nReturned);
@@ -139,9 +163,13 @@
 
 	// Determine if the query is efficient
 	const isEfficient = $derived.by(() => {
-		if (!metrics) return null;
+		if (!metrics) {
+			return null;
+		}
 		// COLLSCAN is generally inefficient for large collections
-		if (metrics.indexUsed === "COLLSCAN" || metrics.indexUsed === "N/A") return false;
+		if (metrics.indexUsed === "COLLSCAN" || metrics.indexUsed === "N/A") {
+			return false;
+		}
 		// Has an index - that's good
 		return true;
 	});

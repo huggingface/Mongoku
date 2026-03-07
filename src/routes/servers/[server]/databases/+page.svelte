@@ -29,7 +29,9 @@
 	}
 
 	async function confirmDrop() {
-		if (!databaseToDrop || isDropping) return;
+		if (!databaseToDrop || isDropping) {
+			return;
+		}
 
 		isDropping = true;
 		try {

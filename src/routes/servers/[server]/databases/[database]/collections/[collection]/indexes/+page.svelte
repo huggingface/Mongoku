@@ -100,7 +100,9 @@
 
 	async function toggleHidden(indexName: string, currentlyHidden: boolean) {
 		const { server, database, collection } = page.params;
-		if (!server || !database || !collection) return;
+		if (!server || !database || !collection) {
+			return;
+		}
 
 		loadingIndexes.add(indexName);
 		loadingIndexes = loadingIndexes;
@@ -154,7 +156,9 @@
 
 	async function confirmCreate() {
 		const { server, database, collection } = page.params;
-		if (!server || !database || !collection) return;
+		if (!server || !database || !collection) {
+			return;
+		}
 
 		creatingIndex = true;
 
@@ -195,10 +199,14 @@
 	}
 
 	async function confirmDrop() {
-		if (!indexToDrop) return;
+		if (!indexToDrop) {
+			return;
+		}
 
 		const { server, database, collection } = page.params;
-		if (!server || !database || !collection) return;
+		if (!server || !database || !collection) {
+			return;
+		}
 
 		loadingIndexes.add(indexToDrop);
 		loadingIndexes = loadingIndexes;
@@ -230,7 +238,9 @@
 
 	async function loadNodes() {
 		const { server, database, collection } = page.params;
-		if (!server || !database || !collection) return;
+		if (!server || !database || !collection) {
+			return;
+		}
 
 		loadingNodes = true;
 		try {
@@ -261,7 +271,9 @@
 
 	async function fetchMultiNodeStats(updateUrl = true) {
 		const { server, database, collection } = page.params;
-		if (!server || !database || !collection) return;
+		if (!server || !database || !collection) {
+			return;
+		}
 
 		if (selectedNodes.length === 0) {
 			notificationStore.notifyError("No nodes selected", "Please select at least one node");

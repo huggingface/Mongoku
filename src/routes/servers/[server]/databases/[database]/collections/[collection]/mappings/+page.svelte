@@ -494,7 +494,9 @@ Please analyze the codebase and database, then generate the appropriate mappings
 		class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
 		onclick={() => (showAiPrompt = false)}
 		onkeydown={(e) => {
-			if (e.key === "Escape") showAiPrompt = false;
+			if (e.key === "Escape") {
+				showAiPrompt = false;
+			}
 		}}
 		role="button"
 		tabindex="0"

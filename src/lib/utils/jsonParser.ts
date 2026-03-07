@@ -151,14 +151,26 @@ export function serializeForEditing(obj: any, depth = 0): string {
 	const indent = "\t".repeat(depth);
 	const nextIndent = "\t".repeat(depth + 1);
 
-	if (obj === null) return "null";
-	if (obj === undefined) return "undefined";
-	if (typeof obj === "string") return JSON.stringify(obj);
-	if (typeof obj === "number") return obj.toString();
-	if (typeof obj === "boolean") return obj.toString();
+	if (obj === null) {
+		return "null";
+	}
+	if (obj === undefined) {
+		return "undefined";
+	}
+	if (typeof obj === "string") {
+		return JSON.stringify(obj);
+	}
+	if (typeof obj === "number") {
+		return obj.toString();
+	}
+	if (typeof obj === "boolean") {
+		return obj.toString();
+	}
 
 	if (Array.isArray(obj)) {
-		if (obj.length === 0) return "[]";
+		if (obj.length === 0) {
+			return "[]";
+		}
 		const items = obj.map((item) => `${nextIndent}${serializeForEditing(item, depth + 1)}`).join(",\n");
 		return `[\n${items}\n${indent}]`;
 	}
@@ -177,7 +189,9 @@ export function serializeForEditing(obj: any, depth = 0): string {
 
 		// Handle regular objects
 		const keys = Object.keys(obj);
-		if (keys.length === 0) return "{}";
+		if (keys.length === 0) {
+			return "{}";
+		}
 
 		const pairs = keys
 			.map((key) => {

@@ -18,14 +18,20 @@ function handleSkipClosing(
 	selectionEnd: number,
 ): boolean {
 	// Skip if any modifier keys or there's a selection
-	if (event.ctrlKey || event.altKey || event.metaKey || selectionStart !== selectionEnd) return false;
+	if (event.ctrlKey || event.altKey || event.metaKey || selectionStart !== selectionEnd) {
+		return false;
+	}
 
 	const closingChars = ["}", "]", ")", '"', "'", "`"];
-	if (!closingChars.includes(event.key)) return false;
+	if (!closingChars.includes(event.key)) {
+		return false;
+	}
 
 	// Check if next character is the same as what we're typing
 	const nextChar = textValue[selectionStart];
-	if (nextChar !== event.key) return false;
+	if (nextChar !== event.key) {
+		return false;
+	}
 
 	event.preventDefault();
 
@@ -44,7 +50,9 @@ function handleAutoPairing(
 	selectionEnd: number,
 ): boolean {
 	// Skip if any modifier keys (except shift for shift+2 = @, etc.)
-	if (event.ctrlKey || event.altKey || event.metaKey) return false;
+	if (event.ctrlKey || event.altKey || event.metaKey) {
+		return false;
+	}
 
 	const pairs: Record<string, string> = {
 		"{": "}",
@@ -56,7 +64,9 @@ function handleAutoPairing(
 	};
 
 	const closingChar = pairs[event.key];
-	if (!closingChar) return false;
+	if (!closingChar) {
+		return false;
+	}
 
 	event.preventDefault();
 
@@ -98,7 +108,9 @@ function handleDeindent(target: HTMLTextAreaElement, textValue: string, selectio
 		const lineText = textValue.substring(lineStart, selectionStart);
 		const leadingWhitespace = lineText.match(/^(\s*)/)?.[1] || "";
 
-		if (leadingWhitespace.length === 0) return;
+		if (leadingWhitespace.length === 0) {
+			return;
+		}
 
 		// Remove one tab or up to 2 spaces
 		let charsToRemove = 1;
@@ -131,7 +143,9 @@ function handleDeindent(target: HTMLTextAreaElement, textValue: string, selectio
 
 	const deindentedLines = fullLines.map((line) => {
 		const leadingWhitespace = line.match(/^(\s*)/)?.[1] || "";
-		if (leadingWhitespace.length === 0) return line;
+		if (leadingWhitespace.length === 0) {
+			return line;
+		}
 
 		if (leadingWhitespace.startsWith("\t")) {
 			return line.substring(1);
@@ -258,7 +272,9 @@ function handleClosingBrace(
 	const lineBeforeCursor = textValue.substring(lineStart, selectionStart);
 
 	// Check if line only contains whitespace
-	if (!/^\s*$/.test(lineBeforeCursor) || lineBeforeCursor.length === 0) return;
+	if (!/^\s*$/.test(lineBeforeCursor) || lineBeforeCursor.length === 0) {
+		return;
+	}
 
 	event.preventDefault();
 

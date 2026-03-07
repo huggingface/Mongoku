@@ -1,13 +1,16 @@
+import { resolve as resolvePath } from "$app/paths";
 import { contextStore } from "$lib/server/contextStore";
 import { logger } from "$lib/server/logger";
+import { getOAuthConfig, verifySession } from "$lib/server/oauth";
 import type { Handle, HandleServerError } from "@sveltejs/kit";
 import { MongoError } from "mongodb";
 
-// Bigger than the default 10, helpful with MongoDB errors
 Error.stackTraceLimit = 100;
 
 export const handle: Handle = async ({ event, resolve }) => {
+	const oauthConfig = await getOAuthConfig();
 	const authBasic = process.env.MONGOKU_AUTH_BASIC;
+
 	event.locals.requestId = event.request.headers.get("X-Request-ID") || crypto.randomUUID();
 
 	event.setHeaders({
@@ -17,30 +20,50 @@ export const handle: Handle = async ({ event, resolve }) => {
 	return contextStore.run(event, async () => {
 		const startTime = performance.now();
 
-		if (authBasic) {
+		if (oauthConfig) {
+			const isAuthRoute = event.url.pathname.startsWith(resolvePath("/auth/" as any));
+
+			if (!isAuthRoute) {
+				const sessionCookie = event.cookies.get("mongoku_session");
+				const session = sessionCookie ? verifySession(oauthConfig, sessionCookie) : null;
+
+				if (!session) {
+					const acceptsHtml = event.request.headers.get("accept")?.includes("text/html");
+					logger.logRequest(acceptsHtml ? 302 : 401, performance.now() - startTime);
+
+					if (acceptsHtml) {
+						return new Response(null, {
+							status: 302,
+							headers: { Location: resolvePath("/auth/login") },
+						});
+					}
+
+					return new Response(JSON.stringify({ message: "Session expired" }), {
+						status: 401,
+						headers: { "Content-Type": "application/json" },
+					});
+				}
+
+				event.locals.user = { sub: session.sub, name: session.name, email: session.email };
+			}
+		} else if (authBasic) {
 			const [username, password] = authBasic.split(":");
 			const basicAuth = event.request.headers.get("Authorization");
 			if (
 				!basicAuth?.toLowerCase().startsWith("basic ") ||
 				basicAuth.slice("basic ".length) !== Buffer.from(`${username}:${password}`).toString("base64")
 			) {
-				const response = new Response("Unauthorized", {
-					status: 401,
-					headers: {
-						"WWW-Authenticate": "Basic",
-					},
-				});
-
-				// Log unauthorized request
 				logger.logRequest(401, performance.now() - startTime);
 
-				return response;
+				return new Response("Unauthorized", {
+					status: 401,
+					headers: { "WWW-Authenticate": "Basic" },
+				});
 			}
 		}
 
 		const response = await resolve(event);
 
-		// Log successful request
 		logger.logRequest(response.status, performance.now() - startTime);
 
 		return response;
@@ -48,10 +71,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 };
 
 export const handleError: HandleServerError = ({ error }) => {
-	// Log the error server-side
 	logger.error(error);
 
-	// Handle MongoDB errors specifically
 	if (error instanceof MongoError) {
 		return {
 			message: error.message,
@@ -59,14 +80,12 @@ export const handleError: HandleServerError = ({ error }) => {
 		};
 	}
 
-	// Handle standard errors
 	if (error instanceof Error) {
 		return {
 			message: error.message,
 		};
 	}
 
-	// Fallback for unknown error types
 	return {
 		message: "An unexpected error occurred",
 	};

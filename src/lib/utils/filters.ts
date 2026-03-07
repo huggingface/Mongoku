@@ -1,9 +1,19 @@
 export function formatBytes(bytes: number): string {
-	if (bytes === 0) return "0 B";
-	if (bytes < 1000) return bytes + " B";
-	if (bytes < 1000000) return (bytes / 1000).toFixed(2) + " kB";
-	if (bytes < 1000000000) return (bytes / 1000000).toFixed(2) + " MB";
-	if (bytes < 1000000000000) return (bytes / 1000000000).toFixed(2) + " GB";
+	if (bytes === 0) {
+		return "0 B";
+	}
+	if (bytes < 1000) {
+		return bytes + " B";
+	}
+	if (bytes < 1000000) {
+		return (bytes / 1000).toFixed(2) + " kB";
+	}
+	if (bytes < 1000000000) {
+		return (bytes / 1000000).toFixed(2) + " MB";
+	}
+	if (bytes < 1000000000000) {
+		return (bytes / 1000000000).toFixed(2) + " GB";
+	}
 	return (bytes / 1000000000000).toFixed(2) + " TB";
 }
 
