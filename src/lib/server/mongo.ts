@@ -322,7 +322,8 @@ class MongoConnections {
 	}
 
 	async removeServer(name: string) {
-		const clientId = this.clientIds.get(name) || this.clientIds.get(`${name}:27017`);
+		const clientKey = this.clientIds.has(name) ? name : `${name}:27017`;
+		const clientId = this.clientIds.get(clientKey);
 		if (!clientId) {
 			throw new Error(`Server not found: ${name}`);
 		}
@@ -334,7 +335,7 @@ class MongoConnections {
 			?.close()
 			.catch((err) => logger.error(`Error closing client ${name}:`, err));
 		this.clients.delete(clientId);
-		this.clientIds.delete(name);
+		this.clientIds.delete(clientKey);
 	}
 
 	async reconnectClient(id: string) {
