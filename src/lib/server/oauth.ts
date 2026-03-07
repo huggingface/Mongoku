@@ -33,7 +33,22 @@ interface TokenResponse {
 	scope?: string;
 }
 
+const DEFAULT_SESSION_DURATION = 86400;
+
 let cachedConfig: OAuthConfig | null | undefined;
+
+function parseSessionDuration(rawDuration: string | undefined): number {
+	if (!rawDuration) {
+		return DEFAULT_SESSION_DURATION;
+	}
+
+	const parsed = Number(rawDuration);
+	if (!Number.isInteger(parsed) || parsed <= 0) {
+		return DEFAULT_SESSION_DURATION;
+	}
+
+	return parsed;
+}
 
 async function fetchOpenIDConfiguration(issuerUrl: string): Promise<OpenIDConfiguration> {
 	const wellKnown = issuerUrl.replace(/\/+$/, "") + "/.well-known/openid-configuration";
@@ -98,7 +113,7 @@ export async function getOAuthConfig(): Promise<OAuthConfig | null> {
 		tokenUrl: oidc.token_endpoint,
 		scopes: process.env.MONGOKU_OAUTH_SCOPES ?? "openid profile email",
 		sessionSecret,
-		sessionDuration: parseInt(process.env.MONGOKU_OAUTH_SESSION_DURATION ?? "86400", 10),
+		sessionDuration: parseSessionDuration(process.env.MONGOKU_OAUTH_SESSION_DURATION),
 		allowedSubs,
 	};
 
@@ -195,9 +210,14 @@ export function createSessionCookie(
 	config: OAuthConfig,
 	user: { sub?: string; name?: string; email?: string },
 ): string {
+	const sessionDuration =
+		Number.isInteger(config.sessionDuration) && config.sessionDuration > 0
+			? config.sessionDuration
+			: DEFAULT_SESSION_DURATION;
+
 	const payload: SessionPayload = {
 		...user,
-		exp: Math.floor(Date.now() / 1000) + config.sessionDuration,
+		exp: Math.floor(Date.now() / 1000) + sessionDuration,
 	};
 	const payloadStr = Buffer.from(JSON.stringify(payload)).toString("base64url");
 	const signature = createHmac("sha256", config.sessionSecret).update(payloadStr).digest("base64url");
@@ -223,6 +243,9 @@ export function verifySession(config: OAuthConfig, cookie: string): SessionPaylo
 
 	try {
 		const payload: SessionPayload = JSON.parse(Buffer.from(payloadStr, "base64url").toString());
+		if (!Number.isFinite(payload.exp)) {
+			return null;
+		}
 		if (payload.exp < Math.floor(Date.now() / 1000)) {
 			return null;
 		}
