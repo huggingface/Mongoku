@@ -25,5 +25,5 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	cookies.set("mongoku_pkce_verifier", codeVerifier, cookieOptions(url, 300));
 	cookies.set("mongoku_pkce_state", state, cookieOptions(url, 300));
 
-	redirect(302, buildAuthorizationUrl(config, callbackUrl, codeChallenge, state));
+	redirect(302, buildAuthorizationUrl(config, url.origin, callbackUrl, codeChallenge, state));
 };

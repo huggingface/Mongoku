@@ -180,8 +180,11 @@ MONGOKU_AUTH_BASIC=user:password
 
 # OAuth2 client ID (setting this enables OAuth)
 MONGOKU_OAUTH_CLIENT_ID=my-client-id
-# OAuth2 client secret (optional — some providers require it even with PKCE)
-MONGOKU_OAUTH_CLIENT_SECRET=my-client-secret
+# Use "__CIMD__" for automatic client ID discovery.
+# In that mode, Mongoku serves the metadata document at:
+#   {origin}{base_path}/.well-known/cimd.json
+# and uses that URL as the OAuth client_id.
+# MONGOKU_OAUTH_CLIENT_ID=__CIMD__
 # OpenID Connect issuer URL (endpoints are discovered via .well-known/openid-configuration)
 MONGOKU_OAUTH_ISSUER_URL=https://idp.example.com
 # Secret for signing session cookies (any random string, keep it secret)

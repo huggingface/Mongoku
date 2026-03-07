@@ -22,8 +22,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 		if (oauthConfig) {
 			const isAuthRoute = event.url.pathname.startsWith(resolvePath("/auth/" as unknown as "/auth/login"));
+			const isCimdRoute = event.url.pathname === resolvePath("/.well-known/cimd.json");
 
-			if (!isAuthRoute) {
+			if (!isAuthRoute && !isCimdRoute) {
 				const sessionCookie = event.cookies.get("mongoku_session");
 				const session = sessionCookie ? verifySession(oauthConfig, sessionCookie) : null;
 

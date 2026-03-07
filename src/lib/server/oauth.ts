@@ -3,7 +3,6 @@ import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypt
 
 export interface OAuthConfig {
 	clientId: string;
-	clientSecret?: string;
 	issuerUrl: string;
 	authorizationUrl: string;
 	tokenUrl: string;
@@ -34,6 +33,7 @@ interface TokenResponse {
 }
 
 const DEFAULT_SESSION_DURATION = 86400;
+export const OAUTH_CIMD_CLIENT_ID = "__CIMD__";
 
 let cachedConfig: OAuthConfig | null | undefined;
 
@@ -107,7 +107,6 @@ export async function getOAuthConfig(): Promise<OAuthConfig | null> {
 
 	cachedConfig = {
 		clientId,
-		clientSecret: process.env.MONGOKU_OAUTH_CLIENT_SECRET,
 		issuerUrl,
 		authorizationUrl: oidc.authorization_endpoint,
 		tokenUrl: oidc.token_endpoint,
@@ -118,6 +117,14 @@ export async function getOAuthConfig(): Promise<OAuthConfig | null> {
 	};
 
 	return cachedConfig;
+}
+
+function resolveOAuthClientId(config: OAuthConfig, origin: string): string {
+	if (config.clientId !== OAUTH_CIMD_CLIENT_ID) {
+		return config.clientId;
+	}
+
+	return new URL(resolve("/.well-known/cimd.json"), origin).toString();
 }
 
 function base64url(buffer: Buffer): string {
@@ -138,12 +145,13 @@ export function generateState(): string {
 
 export function buildAuthorizationUrl(
 	config: OAuthConfig,
+	origin: string,
 	callbackUrl: string,
 	codeChallenge: string,
 	state: string,
 ): string {
 	const url = new URL(config.authorizationUrl);
-	url.searchParams.set("client_id", config.clientId);
+	url.searchParams.set("client_id", resolveOAuthClientId(config, origin));
 	url.searchParams.set("response_type", "code");
 	url.searchParams.set("redirect_uri", callbackUrl);
 	url.searchParams.set("scope", config.scopes);
@@ -155,6 +163,7 @@ export function buildAuthorizationUrl(
 
 export async function exchangeCode(
 	config: OAuthConfig,
+	origin: string,
 	code: string,
 	codeVerifier: string,
 	callbackUrl: string,
@@ -163,13 +172,9 @@ export async function exchangeCode(
 		grant_type: "authorization_code",
 		code,
 		redirect_uri: callbackUrl,
-		client_id: config.clientId,
+		client_id: resolveOAuthClientId(config, origin),
 		code_verifier: codeVerifier,
 	});
-
-	if (config.clientSecret) {
-		body.set("client_secret", config.clientSecret);
-	}
 
 	const response = await fetch(config.tokenUrl, {
 		method: "POST",

@@ -40,7 +40,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	cookies.delete("mongoku_pkce_state", cookieOptions(url));
 	cookies.delete("mongoku_pkce_verifier", cookieOptions(url));
 
-	const tokens = await exchangeCode(config, code, storedVerifier, getCallbackUrl(url.origin));
+	const tokens = await exchangeCode(config, url.origin, code, storedVerifier, getCallbackUrl(url.origin));
 
 	let user: { sub?: string; name?: string; email?: string } = {};
 	if (tokens.id_token) {
