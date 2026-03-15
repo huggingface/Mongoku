@@ -1,5 +1,6 @@
 import { base } from "$app/paths";
 import {
+	checkRequiredClaim,
 	cookieOptions,
 	createSessionCookie,
 	exchangeCode,
@@ -43,12 +44,17 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	const tokens = await exchangeCode(config, url.origin, code, storedVerifier, getCallbackUrl(url.origin));
 
 	let user: { sub?: string; name?: string; email?: string } = {};
+	let claims: Record<string, unknown> = {};
 	if (tokens.id_token) {
-		user = extractUserFromIdToken(tokens.id_token);
+		({ user, claims } = extractUserFromIdToken(tokens.id_token));
 	}
 
 	if (config.allowedSubs && (!user.sub || !config.allowedSubs.has(user.sub))) {
 		error(403, "Your account is not authorized to access this application");
+	}
+
+	if (config.requiredClaim && !checkRequiredClaim(claims, config.requiredClaim)) {
+		error(403, `Required claim not satisfied: ${config.requiredClaim.field}=${config.requiredClaim.value}`);
 	}
 
 	cookies.set("mongoku_session", createSessionCookie(config, user), cookieOptions(url, config.sessionDuration));

@@ -2,6 +2,11 @@ import { base } from "$app/paths";
 import { env } from "$env/dynamic/private";
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
+export interface RequiredClaim {
+	field: string;
+	value: string;
+}
+
 export interface OAuthConfig {
 	clientId: string;
 	issuerUrl: string;
@@ -11,6 +16,7 @@ export interface OAuthConfig {
 	sessionSecret: string;
 	sessionDuration: number;
 	allowedSubs?: Set<string>;
+	requiredClaim?: RequiredClaim;
 }
 
 export interface SessionPayload {
@@ -106,6 +112,19 @@ export async function getOAuthConfig(): Promise<OAuthConfig | null> {
 			)
 		: undefined;
 
+	const requiredClaimRaw = env.MONGOKU_OAUTH_REQUIRED_CLAIM;
+	let requiredClaim: RequiredClaim | undefined;
+	if (requiredClaimRaw) {
+		const eqIndex = requiredClaimRaw.indexOf("=");
+		if (eqIndex <= 0) {
+			throw new Error('MONGOKU_OAUTH_REQUIRED_CLAIM must be in the format "field=value" (e.g. "authority=admin")');
+		}
+		requiredClaim = {
+			field: requiredClaimRaw.slice(0, eqIndex),
+			value: requiredClaimRaw.slice(eqIndex + 1),
+		};
+	}
+
 	cachedConfig = {
 		clientId,
 		issuerUrl,
@@ -115,6 +134,7 @@ export async function getOAuthConfig(): Promise<OAuthConfig | null> {
 		sessionSecret,
 		sessionDuration: parseSessionDuration(env.MONGOKU_OAUTH_SESSION_DURATION),
 		allowedSubs,
+		requiredClaim,
 	};
 
 	return cachedConfig;
@@ -191,25 +211,41 @@ export async function exchangeCode(
 	return response.json();
 }
 
+export interface IdTokenResult {
+	user: { sub?: string; name?: string; email?: string };
+	claims: Record<string, unknown>;
+}
+
 /**
  * Extract user info from an OIDC id_token (JWT) without cryptographic verification.
  * This is safe because the token was obtained directly from the token endpoint over HTTPS.
  */
-export function extractUserFromIdToken(idToken: string): { sub?: string; name?: string; email?: string } {
+export function extractUserFromIdToken(idToken: string): IdTokenResult {
 	try {
 		const parts = idToken.split(".");
 		if (parts.length !== 3) {
-			return {};
+			return { user: {}, claims: {} };
 		}
-		const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString());
+		const claims = JSON.parse(Buffer.from(parts[1], "base64url").toString());
 		return {
-			sub: payload.sub,
-			name: payload.name || payload.preferred_username,
-			email: payload.email,
+			user: {
+				sub: claims.sub,
+				name: claims.name || claims.preferred_username,
+				email: claims.email,
+			},
+			claims,
 		};
 	} catch {
-		return {};
+		return { user: {}, claims: {} };
 	}
+}
+
+export function checkRequiredClaim(claims: Record<string, unknown>, required: RequiredClaim): boolean {
+	const actual = claims[required.field];
+	if (Array.isArray(actual)) {
+		return actual.includes(required.value);
+	}
+	return String(actual) === required.value;
 }
 
 export function createSessionCookie(

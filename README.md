@@ -196,6 +196,9 @@ MONGOKU_OAUTH_SESSION_DURATION=86400
 # Restrict access to specific users by their "sub" claim (comma-separated)
 # When set, only users whose sub is in this list can log in
 MONGOKU_OAUTH_ALLOWED_SUBS=user-id-1,user-id-2
+# Require a specific claim in the ID token (format: field=value)
+# If the claim is an array, checks that the value is included
+MONGOKU_OAUTH_REQUIRED_CLAIM=authority=admin
 
 # Enable structured logging (JSON output)
 # When enabled, all logs are output as JSON with timestamp, level, and request context
