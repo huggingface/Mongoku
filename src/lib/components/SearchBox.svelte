@@ -170,7 +170,12 @@
 
 		// Initialize appropriate default values
 		if (newMode === "aggregation" && !params.query?.trimStart().startsWith("[")) {
-			params.query = "[]";
+			const trimmed = params.query?.trim();
+			if (trimmed && trimmed !== "{}" && trimmed !== "") {
+				params.query = `[{ $match: ${trimmed} }]`;
+			} else {
+				params.query = "[]";
+			}
 		} else if (newMode === "query" && params.query?.trimStart().startsWith("[")) {
 			params.query = "{}";
 		} else if (newMode === "distinct") {
