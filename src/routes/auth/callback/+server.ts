@@ -1,5 +1,6 @@
 import { base } from "$app/paths";
 import {
+	OAUTH_RETURN_COOKIE,
 	checkRequiredClaim,
 	cookieOptions,
 	createSessionCookie,
@@ -7,6 +8,7 @@ import {
 	extractUserFromIdToken,
 	getCallbackUrl,
 	getOAuthConfig,
+	sanitizeOAuthReturnPath,
 } from "$lib/server/oauth";
 import { error, redirect } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
@@ -59,5 +61,9 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 
 	cookies.set("mongoku_session", createSessionCookie(config, user), cookieOptions(url, config.sessionDuration));
 
-	redirect(302, `${base}/`);
+	const returnCookie = cookies.get(OAUTH_RETURN_COOKIE);
+	cookies.delete(OAUTH_RETURN_COOKIE, cookieOptions(url));
+	const afterLogin = sanitizeOAuthReturnPath(url, returnCookie) ?? `${base}/`;
+
+	redirect(302, afterLogin);
 };

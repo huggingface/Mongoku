@@ -301,6 +301,65 @@ export function getCallbackUrl(origin: string): string {
 	return `${origin}${base}/auth/callback`;
 }
 
+const OAUTH_AUTH_PREFIX = `${base}/auth`;
+
+/**
+ * Validates a post-login redirect target: same origin as the request, under the app base path,
+ * and not an OAuth route (avoids redirect loops). Returns pathname + search, or null to use the default home redirect.
+ */
+export function sanitizeOAuthReturnPath(requestUrl: URL, raw: string | null | undefined): string | null {
+	if (raw == null || raw === "") {
+		return null;
+	}
+
+	const trimmed = raw.trim();
+	if (trimmed.startsWith("//")) {
+		return null;
+	}
+
+	let pathWithSearch: string;
+	if (/^https?:\/\//i.test(trimmed)) {
+		let parsed: URL;
+		try {
+			parsed = new URL(trimmed);
+		} catch {
+			return null;
+		}
+		if (parsed.origin !== requestUrl.origin) {
+			return null;
+		}
+		pathWithSearch = parsed.pathname + parsed.search;
+	} else if (trimmed.startsWith("/")) {
+		try {
+			const parsed = new URL(trimmed, requestUrl.origin);
+			if (parsed.origin !== requestUrl.origin) {
+				return null;
+			}
+			pathWithSearch = parsed.pathname + parsed.search;
+		} catch {
+			return null;
+		}
+	} else {
+		return null;
+	}
+
+	if (base !== "") {
+		if (pathWithSearch !== base && !pathWithSearch.startsWith(`${base}/`)) {
+			return null;
+		}
+	} else if (!pathWithSearch.startsWith("/")) {
+		return null;
+	}
+
+	if (pathWithSearch === OAUTH_AUTH_PREFIX || pathWithSearch.startsWith(`${OAUTH_AUTH_PREFIX}/`)) {
+		return null;
+	}
+
+	return pathWithSearch;
+}
+
+export const OAUTH_RETURN_COOKIE = "mongoku_oauth_return";
+
 export function cookieOptions(url: URL, maxAge?: number) {
 	return {
 		httpOnly: true,

@@ -34,9 +34,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 					logger.logRequest(acceptsHtml ? 302 : 401, performance.now() - startTime);
 
 					if (acceptsHtml) {
+						const returnTo = `${event.url.pathname}${event.url.search}`;
+						const loginUrl = `${base}/auth/login?return=${encodeURIComponent(returnTo)}`;
 						return new Response(null, {
 							status: 302,
-							headers: { Location: `${base}/auth/login` },
+							headers: { Location: loginUrl },
 						});
 					}
 
