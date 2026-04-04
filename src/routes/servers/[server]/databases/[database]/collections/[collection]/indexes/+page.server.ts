@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ params, depends }) => {
 			);
 
 			// Get index usage statistics
-			let indexStats: Record<string, { ops: number; since: Date; building: boolean }> = {};
+			let indexStats: Record<string, { ops: number; since: Date }> = {};
 			try {
 				const statsResult = await collection.aggregate([{ $indexStats: {} }]).toArray();
 
@@ -34,13 +34,40 @@ export const load: PageServerLoad = async ({ params, depends }) => {
 						{
 							ops: stat.accesses?.ops || 0,
 							since: stat.accesses?.since || new Date(),
-							building: stat.building || false,
 						},
 					]),
 				);
 			} catch (err) {
 				logger.error("Error fetching index stats:", err);
-				// Continue without stats if unavailable
+			}
+
+			// Detect in-progress index builds via currentOp
+			const buildingIndexes: Record<string, { done: number; total: number; pct: number; key?: IndexKey }> = {};
+			try {
+				const currentOp = await client.db("admin").command({
+					currentOp: true,
+					"command.createIndexes": params.collection,
+					$or: [{ "command.$db": params.database }, { ns: `${params.database}.${params.collection}` }],
+				});
+
+				for (const op of currentOp.inprog || []) {
+					const indexes: Array<{ name?: string; key?: IndexKey }> = op.command?.indexes || [];
+					const progress = op.progress as { done: number; total: number } | undefined;
+					const pct = progress && progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
+
+					for (const idx of indexes) {
+						if (idx.name) {
+							buildingIndexes[idx.name] = {
+								done: progress?.done ?? 0,
+								total: progress?.total ?? 0,
+								pct,
+								key: idx.key,
+							};
+						}
+					}
+				}
+			} catch (err) {
+				logger.error("Error fetching currentOp for building indexes:", err);
 			}
 
 			// Get index sizes from collection stats
@@ -68,11 +95,12 @@ export const load: PageServerLoad = async ({ params, depends }) => {
 				// Continue without sizes if unavailable
 			}
 
-			// Merge index definitions with stats and sizes
+			// Merge index definitions with stats, sizes, and building progress
 			const indexesWithStats = indexList.map((index) => ({
 				...index,
 				stats: index.name ? indexStats[index.name] || null : null,
 				size: index.name ? indexSizes[index.name] || 0 : 0,
+				building: index.name ? buildingIndexes[index.name] || null : null,
 			}));
 
 			// Encode to handle MongoDB types like ObjectId, etc.

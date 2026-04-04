@@ -496,8 +496,18 @@
 									</td>
 									<td>
 										<div class="flex flex-wrap gap-2">
-											{#if index.stats?.building}
-												<span class="badge badge-building">building</span>
+											{#if index.building}
+												<span
+													class="badge badge-building"
+													title={index.building.pct > 0
+														? `${index.building.pct}% (${index.building.done.toLocaleString()} / ${index.building.total.toLocaleString()})`
+														: "Building…"}
+													style={index.building.pct > 0
+														? `background: linear-gradient(to right, hsl(45, 100%, 45%) ${index.building.pct}%, hsl(45, 100%, 75%) ${index.building.pct}%)`
+														: ""}
+												>
+													building
+												</span>
 											{/if}
 											{#if index.hidden}
 												<span class="badge badge-hidden">hidden</span>
@@ -511,7 +521,7 @@
 											{#if index.partialFilterExpression}
 												<span class="badge badge-partial">partial</span>
 											{/if}
-											{#if !index.stats?.building && !index.hidden && !index.unique && !index.sparse && !index.partialFilterExpression}
+											{#if !index.building && !index.hidden && !index.unique && !index.sparse && !index.partialFilterExpression}
 												<span style="color: var(--text-darker)">-</span>
 											{/if}
 										</div>
