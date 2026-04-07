@@ -1,4 +1,4 @@
-import { Binary, ObjectId } from "mongodb";
+import { Binary, Decimal128, ObjectId } from "mongodb";
 
 export default class JsonEncoder {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -32,6 +32,12 @@ export default class JsonEncoder {
 				$subType: obj.sub_type,
 			};
 		}
+		if (obj instanceof Decimal128) {
+			return {
+				$type: "Decimal128",
+				$value: obj.toString(),
+			};
+		}
 		if (Array.isArray(obj)) {
 			return [...obj.map(JsonEncoder.encode)];
 		}
@@ -57,6 +63,9 @@ export default class JsonEncoder {
 		}
 		if (obj && obj.$type === "Binary") {
 			return new Binary(Buffer.from(obj.$value, "base64"), obj.$subType);
+		}
+		if (obj && obj.$type === "Decimal128") {
+			return Decimal128.fromString(obj.$value);
 		}
 		if (Array.isArray(obj)) {
 			return [...obj.map(JsonEncoder.decode)];
