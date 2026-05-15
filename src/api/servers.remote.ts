@@ -6,6 +6,7 @@ import { logger } from "$lib/server/logger";
 import { getMongo } from "$lib/server/mongo";
 import { isEmptyObject } from "$lib/utils/isEmptyObject";
 import { parseJSON } from "$lib/utils/jsonParser";
+import { auditSchemaCompliance, getCollectionSchema } from "$lib/server/schema";
 import { error } from "@sveltejs/kit";
 import { ObjectId, ReadPreference, type Document } from "mongodb";
 import { z } from "zod";
@@ -1036,6 +1037,98 @@ export const countDocumentsByTimeRange = query(
 			logger.error(`Error counting documents for ${days} days:`, err);
 			const errorMsg = err instanceof Error ? err.message : String(err);
 			return { count: null, error: errorMsg };
+		}
+	},
+);
+
+// Fetch the JSON Schema validator configuration for a collection
+export const getCollectionSchemaInfo = query(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		collection: z.string(),
+	}),
+	async ({ server, database, collection }) => {
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+
+		try {
+			const schemaInfo = await getCollectionSchema(client, database, collection);
+
+			return {
+				data: schemaInfo,
+				error: null,
+			};
+		} catch (err) {
+			logger.error("Error fetching collection schema:", err);
+			return {
+				data: {
+					hasSchema: false,
+					validator: null,
+					validationLevel: null,
+					validationAction: null,
+				},
+				error: `Failed to fetch schema: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
+	},
+);
+
+// Audit schema compliance for a collection
+export const auditSchema = query(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		collection: z.string(),
+		readPreferenceMode: z.string().optional(),
+		readPreferenceTags: z.string().optional(),
+	}),
+	async ({ server, database, collection, readPreferenceMode, readPreferenceTags }) => {
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+
+		try {
+			// Build read preference if requested
+			let readPreference: ReadPreference | undefined;
+			if (readPreferenceMode) {
+				let tags: Array<Record<string, string>> | undefined;
+				if (readPreferenceTags) {
+					try {
+						const parsed = parseJSON(readPreferenceTags);
+						if (Array.isArray(parsed)) {
+							tags = parsed as Array<Record<string, string>>;
+						} else if (parsed && typeof parsed === "object") {
+							tags = [parsed as Record<string, string>];
+						}
+					} catch {
+						// Ignore invalid tags
+					}
+				}
+				readPreference = tags
+					? new ReadPreference(
+							readPreferenceMode as "primary" | "primaryPreferred" | "secondary" | "secondaryPreferred" | "nearest",
+							tags,
+						)
+					: new ReadPreference(
+							readPreferenceMode as "primary" | "primaryPreferred" | "secondary" | "secondaryPreferred" | "nearest",
+						);
+			}
+
+			const result = await auditSchemaCompliance(client, database, collection, {
+				readPreference,
+				maxTimeMS: mongo.getQueryTimeout(),
+			});
+
+			return {
+				data: JsonEncoder.encode(result),
+				error: null,
+			};
+		} catch (err) {
+			logger.error("Error auditing schema compliance:", err);
+			return {
+				data: null,
+				error: `Failed to audit schema: ${err instanceof Error ? err.message : String(err)}`,
+			};
 		}
 	},
 );

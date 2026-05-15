@@ -131,7 +131,7 @@ export interface CachedIndex {
 	key: IndexKey;
 }
 
-class MongoClientWithMappings extends MongoClient {
+export class MongoClientWithMappings extends MongoClient {
 	url: string;
 	mappings: Record<string, Record<string, Mappings>> = {};
 	indexes: Record<string, Record<string, CachedIndex[]>> = {};
