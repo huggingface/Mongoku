@@ -138,7 +138,8 @@ function bsonSchemaToStandard(schema: any): any {
 			}
 			out.type = bson;
 		} else {
-			// Multiple types — use anyOf
+			// Multiple types — use anyOf. Don't return early; still need to recurse
+			// into properties/items/etc. for any object types in the union.
 			out.anyOf = mapped.map((t) => {
 				if (t === "objectId") {
 					return { type: "object", required: ["$oid"], properties: { $oid: { type: "string" } } };
@@ -148,7 +149,6 @@ function bsonSchemaToStandard(schema: any): any {
 				}
 				return { type: t };
 			});
-			return out;
 		}
 		// binData, regex, timestamp, etc. — drop the type so zod uses z.any()
 	}
@@ -184,6 +184,8 @@ function bsonSchemaToStandard(schema: any): any {
  *
  *   ObjectId  →  { $oid: "...hex..." }
  *   Date      →  { $date: "...ISO..." }
+ *   Decimal128 →  { $numberDecimal: "...string..." }
+ *   Long      →  { $numberLong: "...string..." }
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeBsonValue(value: any): any {
@@ -196,8 +198,17 @@ function normalizeBsonValue(value: any): any {
 	if (value instanceof Date) {
 		return { $date: value.toISOString() };
 	}
+	// ObjectId
 	if (value.constructor?.name === "ObjectId" && typeof value.toHexString === "function") {
 		return { $oid: value.toHexString() };
+	}
+	// Decimal128
+	if (value.constructor?.name === "Decimal128" && typeof value.toString === "function") {
+		return { $numberDecimal: value.toString() };
+	}
+	// Long
+	if (value.constructor?.name === "Long" && typeof value.toString === "function") {
+		return { $numberLong: value.toString() };
 	}
 	if (Array.isArray(value)) {
 		return value.map(normalizeBsonValue);
