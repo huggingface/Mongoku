@@ -85,11 +85,14 @@ const STANDARD_TYPES = new Set(["string", "number", "integer", "boolean", "objec
  * Convert a MongoDB $jsonSchema (which uses `bsonType` instead of `type`) into
  * standard JSON Schema Draft-07 that zod's `fromJSONSchema` can enforce.
  *
- * MongoDB-specific type names (objectId, date, binData, decimal, etc.) are
- * mapped to their closest standard equivalent or stripped so zod doesn't throw
- * "Unsupported type". The MongoDB aggregation already identified these docs as
- * non-matching — this conversion is only used to produce better error messages,
- * so a slight loss of type precision on these exotic types is acceptable.
+ * MongoDB-specific types are mapped to EJSON wrapper shapes so zod can
+ * perform precise structural validation:
+ *   bsonType: "objectId"  →  { type: "object", required: ["$oid"], properties: { $oid: { type: "string" } } }
+ *   bsonType: "date"      →  { type: "object", required: ["$date"], properties: { $date: { type: "string" } } }
+ *
+ * Documents are likewise normalized via `normalizeBsonValue()` so ObjectId
+ * instances become `{ $oid: "hex" }` and Date instances become `{ $date: "ISO" }`
+ * before validation.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function bsonSchemaToStandard(schema: any): any {
@@ -100,11 +103,19 @@ function bsonSchemaToStandard(schema: any): any {
 	if (out.bsonType) {
 		const bson = out.bsonType as string;
 		delete out.bsonType;
-		// Map MongoDB-only types to standard equivalents.
-		// objectId / date are objects in JS; decimal maps to number.
-		if (bson === "objectId" || bson === "date") {
+		if (bson === "objectId") {
 			out.type = "object";
-		} else if (bson === "decimal") {
+			out.required = ["$oid"];
+			out.properties = { $oid: { type: "string" } };
+			return out; // don't recurse into the synthetic $oid property
+		}
+		if (bson === "date") {
+			out.type = "object";
+			out.required = ["$date"];
+			out.properties = { $date: { type: "string" } };
+			return out;
+		}
+		if (bson === "decimal") {
 			out.type = "number";
 		} else if (STANDARD_TYPES.has(bson)) {
 			out.type = bson;
@@ -137,6 +148,38 @@ function bsonSchemaToStandard(schema: any): any {
 }
 
 /**
+ * Recursively normalise BSON types in a document to their EJSON wrapper
+ * representations so zod can structurally validate them against a schema
+ * that has been converted to expect those wrappers.
+ *
+ *   ObjectId  →  { $oid: "...hex..." }
+ *   Date      →  { $date: "...ISO..." }
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeBsonValue(value: any): any {
+	if (value === null || value === undefined) {
+		return value;
+	}
+	if (typeof value !== "object") {
+		return value;
+	}
+	if (value instanceof Date) {
+		return { $date: value.toISOString() };
+	}
+	if (value.constructor?.name === "ObjectId" && typeof value.toHexString === "function") {
+		return { $oid: value.toHexString() };
+	}
+	if (Array.isArray(value)) {
+		return value.map(normalizeBsonValue);
+	}
+	const out: Record<string, unknown> = {};
+	for (const [k, v] of Object.entries(value)) {
+		out[k] = normalizeBsonValue(v);
+	}
+	return out;
+}
+
+/**
  * Validate a single document against a $jsonSchema and return human-readable
  * failure messages for each violated constraint.
  *
@@ -149,7 +192,8 @@ function validateDocument(schema: Record<string, unknown>, doc: any): string[] {
 	try {
 		const standardSchema = bsonSchemaToStandard(schema);
 		const validator = z.fromJSONSchema(standardSchema);
-		const result = validator.safeParse(doc);
+		const normalized = normalizeBsonValue(doc);
+		const result = validator.safeParse(normalized);
 		if (result.success) {
 			return [];
 		}
