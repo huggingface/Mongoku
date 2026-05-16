@@ -286,10 +286,6 @@
 												err.docId && typeof err.docId === "object" && "$value" in (err.docId as Record<string, unknown>)
 													? String((err.docId as Record<string, unknown>).$value)
 													: String(err.docId)}
-											{@const idType =
-												err.docId && typeof err.docId === "object" && "$type" in (err.docId as Record<string, unknown>)
-													? "." + (err.docId as Record<string, unknown>).$type
-													: ""}
 											<div class="flex items-start gap-2">
 												<span
 													class="text-xs font-mono font-medium shrink-0 mt-0.5"
@@ -300,16 +296,15 @@
 													<a
 														href="/servers/{encodeURIComponent(data.server)}/databases/{encodeURIComponent(
 															data.database,
-														)}/collections/{encodeURIComponent(data.collection)}/documents?query={encodeURIComponent(
-															JSON.stringify({ _id: err.docId }),
+														)}/collections/{encodeURIComponent(data.collection)}/documents/{encodeURIComponent(
+															idDisplay,
 														)}"
 														class="underline"
 														style="color: var(--link);"
 													>
 														{idDisplay}
 													</a>
-													<!-- eslint-enable svelte/no-navigation-without-resolve -->
-													{idType}:
+													<!-- eslint-enable svelte/no-navigation-without-resolve -->:
 												</span>
 												<div class="flex-1 min-w-0">
 													<pre
