@@ -81,6 +81,17 @@ function extractJsonSchema(validator: Record<string, unknown>): Record<string, u
 /** Standard JSON Schema type names that zod's fromJSONSchema supports. */
 const STANDARD_TYPES = new Set(["string", "number", "integer", "boolean", "object", "array", "null"]);
 
+/** Map MongoDB bsonType aliases to standard JSON Schema types. */
+const BSON_TYPE_MAP: Record<string, string> = {
+	int: "integer",
+	long: "integer",
+	double: "number",
+	bool: "boolean",
+	decimal: "number",
+	objectId: "objectId",
+	date: "date",
+};
+
 /**
  * Convert a MongoDB $jsonSchema (which uses `bsonType` instead of `type`) into
  * standard JSON Schema Draft-07 that zod's `fromJSONSchema` can enforce.
@@ -93,6 +104,8 @@ const STANDARD_TYPES = new Set(["string", "number", "integer", "boolean", "objec
  * Documents are likewise normalized via `normalizeBsonValue()` so ObjectId
  * instances become `{ $oid: "hex" }` and Date instances become `{ $date: "ISO" }`
  * before validation.
+ *
+ * Supports bsonType as a string or array (e.g., `["string", "null"]` for nullable).
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function bsonSchemaToStandard(schema: any): any {
@@ -101,24 +114,42 @@ function bsonSchemaToStandard(schema: any): any {
 	}
 	const out: Record<string, unknown> = { ...schema };
 	if (out.bsonType) {
-		const bson = out.bsonType as string;
+		const bsonTypeVal = out.bsonType;
 		delete out.bsonType;
-		if (bson === "objectId") {
-			out.type = "object";
-			out.required = ["$oid"];
-			out.properties = { $oid: { type: "string" } };
-			return out; // don't recurse into the synthetic $oid property
-		}
-		if (bson === "date") {
-			out.type = "object";
-			out.required = ["$date"];
-			out.properties = { $date: { type: "string" } };
-			return out;
-		}
-		if (bson === "decimal") {
-			out.type = "number";
-		} else if (STANDARD_TYPES.has(bson)) {
+		// Handle array of types (nullable fields): bsonType: ["string", "null"]
+		const types: string[] = Array.isArray(bsonTypeVal) ? bsonTypeVal : [bsonTypeVal as string];
+		const mapped = types
+			.map((t) => BSON_TYPE_MAP[t] ?? (STANDARD_TYPES.has(t) ? t : null))
+			.filter((t): t is string => t !== null);
+		if (mapped.length === 0) {
+			// All types were unknown (binData, regex, etc.) — drop type constraint
+		} else if (mapped.length === 1) {
+			const bson = mapped[0];
+			if (bson === "objectId") {
+				out.type = "object";
+				out.required = ["$oid"];
+				out.properties = { $oid: { type: "string" } };
+				return out;
+			}
+			if (bson === "date") {
+				out.type = "object";
+				out.required = ["$date"];
+				out.properties = { $date: { type: "string" } };
+				return out;
+			}
 			out.type = bson;
+		} else {
+			// Multiple types — use anyOf
+			out.anyOf = mapped.map((t) => {
+				if (t === "objectId") {
+					return { type: "object", required: ["$oid"], properties: { $oid: { type: "string" } } };
+				}
+				if (t === "date") {
+					return { type: "object", required: ["$date"], properties: { $date: { type: "string" } } };
+				}
+				return { type: t };
+			});
+			return out;
 		}
 		// binData, regex, timestamp, etc. — drop the type so zod uses z.any()
 	}
