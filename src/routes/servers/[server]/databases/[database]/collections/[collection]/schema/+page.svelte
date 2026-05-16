@@ -16,6 +16,35 @@
 
 	let schemaInfo = $derived(data.schemaInfo);
 
+	// Format a document _id for display + navigation. Composite _ids like
+	// `{ game: "...", version: 1 }` aren't reachable from the document detail
+	// route (which only accepts a scalar string / ObjectId), so we return
+	// `navigable: null` for those and the caller renders plain text instead
+	// of a broken link.
+	function formatDocId(docId: unknown): { display: string; navigable: string | null } {
+		if (docId === null || docId === undefined) {
+			return { display: "", navigable: null };
+		}
+		if (typeof docId === "string" || typeof docId === "number") {
+			return { display: String(docId), navigable: String(docId) };
+		}
+		if (typeof docId === "object") {
+			const obj = docId as Record<string, unknown>;
+			// EJSON wrapper from JsonEncoder, e.g. { $type: "ObjectId", $value: "..." }
+			if ("$value" in obj && (typeof obj.$value === "string" || typeof obj.$value === "number")) {
+				const v = String(obj.$value);
+				return { display: v, navigable: v };
+			}
+			// Composite key — render as `k1: v1 · k2: v2`, not navigable
+			const entries = Object.entries(obj).filter(([k]) => k !== "$type");
+			if (entries.length > 0) {
+				const display = entries.map(([k, v]) => `${k}: ${typeof v === "object" ? JSON.stringify(v) : v}`).join(" · ");
+				return { display, navigable: null };
+			}
+		}
+		return { display: String(docId), navigable: null };
+	}
+
 	let complianceColor = $derived.by(() => {
 		if (!auditResult) {
 			return "var(--text)";
@@ -282,27 +311,26 @@
 										<!-- Error header with doc link -->
 										<div class="px-4 py-3 border-b border-red-500/10">
 											{#if err.docId}
-												{@const idDisplay =
-													err.docId &&
-													typeof err.docId === "object" &&
-													"$value" in (err.docId as Record<string, unknown>)
-														? String((err.docId as Record<string, unknown>).$value)
-														: String(err.docId)}
+												{@const idInfo = formatDocId(err.docId)}
 												<div class="flex items-center gap-2">
 													<span class="text-xs font-medium" style="color: var(--text-secondary);">Document:</span>
-													<!-- eslint-disable svelte/no-navigation-without-resolve -->
-													<a
-														href="/servers/{encodeURIComponent(data.server)}/databases/{encodeURIComponent(
-															data.database,
-														)}/collections/{encodeURIComponent(data.collection)}/documents/{encodeURIComponent(
-															idDisplay,
-														)}"
-														class="text-xs font-mono underline hover:no-underline"
-														style="color: var(--link);"
-													>
-														{idDisplay}
-													</a>
-													<!-- eslint-enable svelte/no-navigation-without-resolve -->
+													{#if idInfo.navigable !== null}
+														<!-- eslint-disable svelte/no-navigation-without-resolve -->
+														<a
+															href="/servers/{encodeURIComponent(data.server)}/databases/{encodeURIComponent(
+																data.database,
+															)}/collections/{encodeURIComponent(data.collection)}/documents/{encodeURIComponent(
+																idInfo.navigable,
+															)}"
+															class="text-xs font-mono underline hover:no-underline"
+															style="color: var(--link);"
+														>
+															{idInfo.display}
+														</a>
+														<!-- eslint-enable svelte/no-navigation-without-resolve -->
+													{:else}
+														<span class="text-xs font-mono" style="color: var(--text);">{idInfo.display}</span>
+													{/if}
 												</div>
 											{/if}
 										</div>

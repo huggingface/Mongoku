@@ -221,6 +221,55 @@ function normalizeBsonValue(value: any): any {
 }
 
 /**
+ * BSON numeric types that have no faithful representation in JavaScript:
+ * MongoDB distinguishes int/long/double/decimal at the storage layer, but
+ * when a document is returned through the Node driver they all surface as
+ * `number` (or wrapped Long/Decimal128 for ranges that don't fit).
+ *
+ * If a validator constrains a field to one of these, our zod-based audit
+ * cannot reliably detect violations — so we use this to produce a more
+ * helpful fallback message when we know specific feedback isn't possible.
+ */
+const PRECISE_BSON_NUMERIC_TYPES = new Set(["int", "long", "double", "decimal"]);
+
+/** Walk the schema tree and check whether any field uses a precise BSON numeric type. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function schemaUsesPreciseBsonTypes(schema: any): boolean {
+	if (typeof schema !== "object" || schema === null) {
+		return false;
+	}
+	if (schema.bsonType) {
+		const types = Array.isArray(schema.bsonType) ? schema.bsonType : [schema.bsonType];
+		if (types.some((t: unknown) => typeof t === "string" && PRECISE_BSON_NUMERIC_TYPES.has(t))) {
+			return true;
+		}
+	}
+	for (const key of ["properties", "patternProperties"]) {
+		const props = schema[key];
+		if (props && typeof props === "object") {
+			for (const v of Object.values(props)) {
+				if (schemaUsesPreciseBsonTypes(v)) {
+					return true;
+				}
+			}
+		}
+	}
+	for (const key of ["items", "additionalProperties", "additionalItems"]) {
+		const v = schema[key];
+		if (v && typeof v === "object" && schemaUsesPreciseBsonTypes(v)) {
+			return true;
+		}
+	}
+	for (const key of ["oneOf", "anyOf", "allOf"]) {
+		const arr = schema[key];
+		if (Array.isArray(arr) && arr.some((v) => schemaUsesPreciseBsonTypes(v))) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
  * Validate a single document against a $jsonSchema and return human-readable
  * failure messages for each violated constraint.
  *
@@ -337,10 +386,17 @@ export async function auditSchemaCompliance(
 
 	// Compare each non-matching doc against individual $jsonSchema constraints
 	// to produce specific error messages rather than a generic "does not match".
+	// When zod can't pinpoint the failure (returns no issues), it usually means
+	// the violation is a BSON-specific type distinction that isn't visible from
+	// the JS value alone (e.g. `bsonType: "double"` where the doc has an int).
+	const fallbackMessage = schemaUsesPreciseBsonTypes(jsonSchema)
+		? "The validator uses BSON-specific numeric types (int/long/double/decimal) which cannot be distinguished from a JavaScript value alone — try inspecting the document directly in MongoDB."
+		: "Failed to detect validation error";
+
 	const errors: SchemaAuditResult["errors"] = sampleDocs.map((doc) => {
 		const failures = validateDocument(jsonSchema, doc);
 		return {
-			message: failures.length > 0 ? failures.join("; ") : "Document does not match schema",
+			message: failures.length > 0 ? failures.join("; ") : fallbackMessage,
 			docId: doc._id,
 			document: doc,
 		};

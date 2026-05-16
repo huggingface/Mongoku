@@ -48,6 +48,22 @@
 		return null;
 	}
 
+	// Human-readable display for an _id, including composite keys like
+	// `{ game: "gaia-project", version: 1 }` which getIdValue rejects.
+	function formatIdDisplay(val: any): string {
+		const scalar = getIdValue(val);
+		if (scalar !== null) {
+			return scalar;
+		}
+		if (val && typeof val === "object") {
+			const entries = Object.entries(val).filter(([k]) => k !== "$type");
+			if (entries.length > 0) {
+				return entries.map(([k, v]) => `${k}: ${typeof v === "object" ? JSON.stringify(v) : v}`).join(" · ");
+			}
+		}
+		return String(val);
+	}
+
 	// Check if a key path has a mapping
 	function isKeyMapped(path: string): boolean {
 		return !!mappings?.[path] && (Array.isArray(mappings[path]) ? mappings[path].length > 0 : true);
@@ -195,18 +211,25 @@
 
 {#snippet title()}
 	{#if json._id}
-		{@const idValue = json._id.$value ?? json._id}
+		{@const navigableId = getIdValue(json._id)}
+		{@const idDisplay = formatIdDisplay(json._id)}
 		<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 min-w-0 flex-1">
 			<h2 class="truncate">
-				<a
-					class="text-[15px] sm:text-base font-semibold hover:underline no-underline"
-					style="color: var(--text); text-decoration-color: var(--link);"
-					href={resolve(
-						`/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(collection)}/documents/${idValue}`,
-					)}
-				>
-					{idValue}
-				</a>
+				{#if navigableId !== null}
+					<a
+						class="text-[15px] sm:text-base font-semibold hover:underline no-underline"
+						style="color: var(--text); text-decoration-color: var(--link);"
+						href={resolve(
+							`/servers/${encodeURIComponent(server)}/databases/${encodeURIComponent(database)}/collections/${encodeURIComponent(collection)}/documents/${encodeURIComponent(navigableId)}`,
+						)}
+					>
+						{idDisplay}
+					</a>
+				{:else}
+					<span class="text-[15px] sm:text-base font-semibold" style="color: var(--text);">
+						{idDisplay}
+					</span>
+				{/if}
 			</h2>
 			{#if json._id.$value}
 				{@const timestamp = getTimestampFromObjectId(json._id.$value)}
