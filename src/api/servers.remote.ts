@@ -1061,7 +1061,7 @@ export const auditSchema = query(
 				let tags: Array<Record<string, string>> | undefined;
 				if (readPreferenceTags) {
 					try {
-						const parsed = parseJSON(readPreferenceTags);
+						const parsed = parseJSON(readPreferenceTags, { allowArray: true });
 						if (Array.isArray(parsed)) {
 							tags = parsed as Array<Record<string, string>>;
 						} else if (parsed && typeof parsed === "object") {

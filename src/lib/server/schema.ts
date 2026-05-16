@@ -1,5 +1,4 @@
 import type { MongoClientWithMappings } from "$lib/server/mongo";
-import JsonEncoder from "$lib/server/JsonEncoder";
 import { ReadPreference } from "mongodb";
 import { z } from "zod";
 
@@ -331,8 +330,8 @@ export async function auditSchemaCompliance(
 		const failures = validateDocument(jsonSchema, doc);
 		return {
 			message: failures.length > 0 ? failures.join("; ") : "Document does not match schema",
-			docId: JsonEncoder.encode(doc._id),
-			document: JsonEncoder.encode(doc),
+			docId: doc._id,
+			document: doc,
 		};
 	});
 
