@@ -280,7 +280,7 @@
 								class="rounded-lg border border-red-500/20 bg-red-500/5 divide-y divide-red-500/10 max-h-96 overflow-auto"
 							>
 								{#each auditResult.errors as err, i (`err-${i}`)}
-									<div class="p-3">
+									<div class="p-3 hover:bg-red-500/5 transition-colors">
 										{#if err.docId}
 											{@const idDisplay =
 												err.docId && typeof err.docId === "object" && "$value" in (err.docId as Record<string, unknown>)
@@ -290,27 +290,54 @@
 												err.docId && typeof err.docId === "object" && "$type" in (err.docId as Record<string, unknown>)
 													? "." + (err.docId as Record<string, unknown>).$type
 													: ""}
-											<span class="text-xs font-mono font-medium" style="color: var(--text-secondary);">
-												Doc
-												<!-- eslint-disable svelte/no-navigation-without-resolve -->
-												<a
-													href="/servers/{encodeURIComponent(data.server)}/databases/{encodeURIComponent(
-														data.database,
-													)}/collections/{encodeURIComponent(data.collection)}/documents?query={encodeURIComponent(
-														JSON.stringify({ _id: err.docId }),
-													)}"
-													class="underline"
-													style="color: var(--link);"
+											<div class="flex items-start gap-2">
+												<span
+													class="text-xs font-mono font-medium shrink-0 mt-0.5"
+													style="color: var(--text-secondary);"
 												>
-													{idDisplay}
-												</a>
-												<!-- eslint-enable svelte/no-navigation-without-resolve -->
-												{idType}:
-											</span>
+													Doc
+													<!-- eslint-disable svelte/no-navigation-without-resolve -->
+													<a
+														href="/servers/{encodeURIComponent(data.server)}/databases/{encodeURIComponent(
+															data.database,
+														)}/collections/{encodeURIComponent(data.collection)}/documents?query={encodeURIComponent(
+															JSON.stringify({ _id: err.docId }),
+														)}"
+														class="underline"
+														style="color: var(--link);"
+													>
+														{idDisplay}
+													</a>
+													<!-- eslint-enable svelte/no-navigation-without-resolve -->
+													{idType}:
+												</span>
+												<div class="flex-1 min-w-0">
+													<pre
+														class="text-xs whitespace-pre-wrap font-mono"
+														style="color: var(--error);">{err.message}</pre>
+												</div>
+											</div>
+										{:else}
+											<pre
+												class="text-xs whitespace-pre-wrap font-mono"
+												style="color: var(--error);">{err.message}</pre>
 										{/if}
-										<pre
-											class="text-xs mt-1 whitespace-pre-wrap font-mono"
-											style="color: var(--text);">{err.message}</pre>
+										{#if err.document}
+											<details class="mt-2 ml-8">
+												<summary class="cursor-pointer text-xs font-medium" style="color: var(--text-darker);"
+													>Show document</summary
+												>
+												<div class="mt-2 rounded border border-[var(--border-color)] overflow-hidden text-xs">
+													<PrettyJson
+														json={err.document as unknown as Record<string, unknown>}
+														autoCollapse={true}
+														server={data.server}
+														database={data.database}
+														collection={data.collection}
+													/>
+												</div>
+											</details>
+										{/if}
 									</div>
 								{/each}
 							</div>

@@ -1,6 +1,7 @@
 import type { MongoClientWithMappings } from "$lib/server/mongo";
 import JsonEncoder from "$lib/server/JsonEncoder";
 import { ReadPreference } from "mongodb";
+import { z } from "zod";
 
 export interface CollectionSchemaInfo {
 	hasSchema: boolean;
@@ -14,7 +15,12 @@ export interface SchemaAuditResult {
 	nInvalidDocuments: number;
 	nValidDocuments: number;
 	compliancePct: number;
-	errors: Array<{ message: string; docId?: unknown }>;
+	errors: Array<{
+		message: string;
+		docId?: unknown;
+		/** The full document that failed validation (encoded via JsonEncoder) */
+		document?: unknown;
+	}>;
 	warnings: string[];
 	hasSchema: boolean;
 	tookMs: number;
@@ -70,6 +76,87 @@ function extractJsonSchema(validator: Record<string, unknown>): Record<string, u
 		}
 	}
 	return null;
+}
+
+/** Standard JSON Schema type names that zod's fromJSONSchema supports. */
+const STANDARD_TYPES = new Set(["string", "number", "integer", "boolean", "object", "array", "null"]);
+
+/**
+ * Convert a MongoDB $jsonSchema (which uses `bsonType` instead of `type`) into
+ * standard JSON Schema Draft-07 that zod's `fromJSONSchema` can enforce.
+ *
+ * MongoDB-specific type names (objectId, date, binData, decimal, etc.) are
+ * mapped to their closest standard equivalent or stripped so zod doesn't throw
+ * "Unsupported type". The MongoDB aggregation already identified these docs as
+ * non-matching — this conversion is only used to produce better error messages,
+ * so a slight loss of type precision on these exotic types is acceptable.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function bsonSchemaToStandard(schema: any): any {
+	if (typeof schema !== "object" || schema === null) {
+		return schema;
+	}
+	const out: Record<string, unknown> = { ...schema };
+	if (out.bsonType) {
+		const bson = out.bsonType as string;
+		delete out.bsonType;
+		// Map MongoDB-only types to standard equivalents.
+		// objectId / date are objects in JS; decimal maps to number.
+		if (bson === "objectId" || bson === "date") {
+			out.type = "object";
+		} else if (bson === "decimal") {
+			out.type = "number";
+		} else if (STANDARD_TYPES.has(bson)) {
+			out.type = bson;
+		}
+		// binData, regex, timestamp, etc. — drop the type so zod uses z.any()
+	}
+	if (out.properties) {
+		out.properties = Object.fromEntries(
+			Object.entries(out.properties as Record<string, unknown>).map(([k, v]) => [k, bsonSchemaToStandard(v)]),
+		);
+	}
+	if (out.additionalProperties && typeof out.additionalProperties === "object") {
+		out.additionalProperties = bsonSchemaToStandard(out.additionalProperties);
+	}
+	if (Array.isArray(out.oneOf)) {
+		out.oneOf = (out.oneOf as Array<unknown>).map((v) => bsonSchemaToStandard(v));
+	}
+	if (Array.isArray(out.anyOf)) {
+		out.anyOf = (out.anyOf as Array<unknown>).map((v) => bsonSchemaToStandard(v));
+	}
+	if (Array.isArray(out.allOf)) {
+		out.allOf = (out.allOf as Array<unknown>).map((v) => bsonSchemaToStandard(v));
+	}
+	if (out.items) {
+		out.items = Array.isArray(out.items)
+			? (out.items as Array<unknown>).map((v) => bsonSchemaToStandard(v))
+			: bsonSchemaToStandard(out.items);
+	}
+	return out;
+}
+
+/**
+ * Validate a single document against a $jsonSchema and return human-readable
+ * failure messages for each violated constraint.
+ *
+ * Converts the MongoDB bsonType schema to standard JSON Schema, then uses
+ * zod's z.fromJSONSchema() which handles nested schemas, oneOf/anyOf,
+ * patternProperties, and all other JSON Schema keywords.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function validateDocument(schema: Record<string, unknown>, doc: any): string[] {
+	try {
+		const standardSchema = bsonSchemaToStandard(schema);
+		const validator = z.fromJSONSchema(standardSchema);
+		const result = validator.safeParse(doc);
+		if (result.success) {
+			return [];
+		}
+		return [z.prettifyError(result.error)];
+	} catch {
+		return ["document does not match schema (could not parse schema with zod)"];
+	}
 }
 
 /**
@@ -163,10 +250,16 @@ export async function auditSchemaCompliance(
 		.aggregate([{ $match: { $nor: [{ $jsonSchema: jsonSchema }] } }, { $limit: 20 }], aggOptions)
 		.toArray();
 
-	const errors: SchemaAuditResult["errors"] = sampleDocs.map((doc) => ({
-		message: "Document does not match schema",
-		docId: JsonEncoder.encode(doc._id),
-	}));
+	// Compare each non-matching doc against individual $jsonSchema constraints
+	// to produce specific error messages rather than a generic "does not match".
+	const errors: SchemaAuditResult["errors"] = sampleDocs.map((doc) => {
+		const failures = validateDocument(jsonSchema, doc);
+		return {
+			message: failures.length > 0 ? failures.join("; ") : "Document does not match schema",
+			docId: JsonEncoder.encode(doc._id),
+			document: JsonEncoder.encode(doc),
+		};
+	});
 
 	const tookMs = Math.round(performance.now() - start);
 
