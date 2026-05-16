@@ -92,6 +92,57 @@ const BSON_TYPE_MAP: Record<string, string> = {
 };
 
 /**
+ * JSON Schema keywords that, when present, give the schema actual semantics.
+ * If none of these are set, the schema is `z.any()`-equivalent under zod's
+ * `fromJSONSchema`, which means it silently accepts `undefined` even when
+ * the parent's `required` list includes the property.
+ */
+const CONSTRAINT_KEYWORDS = [
+	"type",
+	"bsonType",
+	"enum",
+	"const",
+	"anyOf",
+	"oneOf",
+	"allOf",
+	"$ref",
+	"properties",
+	"patternProperties",
+	"additionalProperties",
+	"items",
+	"prefixItems",
+	"additionalItems",
+	"not",
+	"required",
+	"propertyNames",
+];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function isEffectivelyAnySchema(schema: any): boolean {
+	if (typeof schema !== "object" || schema === null) {
+		return false;
+	}
+	return !CONSTRAINT_KEYWORDS.some((k) => schema[k] !== undefined);
+}
+
+/**
+ * Replacement for empty `{}` sub-schemas under a required property: a union
+ * of every JSON-representable type. This lets the value be anything (mirroring
+ * the original "any" intent) while still rejecting `undefined`, so the parent
+ * object's `required` check fires when the field is missing.
+ */
+const ANY_NON_UNDEFINED_SCHEMA = {
+	anyOf: [
+		{ type: "string" },
+		{ type: "number" },
+		{ type: "boolean" },
+		{ type: "object" },
+		{ type: "array" },
+		{ type: "null" },
+	],
+};
+
+/**
  * Convert a MongoDB $jsonSchema (which uses `bsonType` instead of `type`) into
  * standard JSON Schema Draft-07 that zod's `fromJSONSchema` can enforce.
  *
@@ -153,8 +204,19 @@ function bsonSchemaToStandard(schema: any): any {
 		// binData, regex, timestamp, etc. — drop the type so zod uses z.any()
 	}
 	if (out.properties) {
+		const requiredKeys = new Set(Array.isArray(out.required) ? (out.required as string[]) : []);
 		out.properties = Object.fromEntries(
-			Object.entries(out.properties as Record<string, unknown>).map(([k, v]) => [k, bsonSchemaToStandard(v)]),
+			Object.entries(out.properties as Record<string, unknown>).map(([k, v]) => {
+				const converted = bsonSchemaToStandard(v);
+				// If a required property has no real constraints, zod's
+				// fromJSONSchema collapses it to `z.any()` — which silently
+				// accepts `undefined` and defeats the `required` check.
+				// Replace with an explicit any-of-any-non-undefined union.
+				if (requiredKeys.has(k) && isEffectivelyAnySchema(converted)) {
+					return [k, ANY_NON_UNDEFINED_SCHEMA];
+				}
+				return [k, converted];
+			}),
 		);
 	}
 	if (out.additionalProperties && typeof out.additionalProperties === "object") {
