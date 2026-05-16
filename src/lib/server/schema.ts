@@ -1,4 +1,5 @@
 import type { MongoClientWithMappings } from "$lib/server/mongo";
+import JsonEncoder from "$lib/server/JsonEncoder";
 import { ReadPreference } from "mongodb";
 
 export interface CollectionSchemaInfo {
@@ -13,7 +14,7 @@ export interface SchemaAuditResult {
 	nInvalidDocuments: number;
 	nValidDocuments: number;
 	compliancePct: number;
-	errors: Array<{ message: string; docId?: string }>;
+	errors: Array<{ message: string; docId?: unknown }>;
 	warnings: string[];
 	hasSchema: boolean;
 	tookMs: number;
@@ -130,7 +131,7 @@ export async function auditSchemaCompliance(
 		aggOptions.maxTimeMS = opts.maxTimeMS;
 	}
 
-	const total = await coll.countDocuments({});
+	const total = await coll.countDocuments({}, aggOptions);
 
 	// Count non-matching documents.
 	// $nor + $jsonSchema identifies docs that don't conform.
@@ -164,7 +165,7 @@ export async function auditSchemaCompliance(
 
 	const errors: SchemaAuditResult["errors"] = sampleDocs.map((doc) => ({
 		message: "Document does not match schema",
-		docId: String(doc._id),
+		docId: JsonEncoder.encode(doc._id),
 	}));
 
 	const tookMs = Math.round(performance.now() - start);

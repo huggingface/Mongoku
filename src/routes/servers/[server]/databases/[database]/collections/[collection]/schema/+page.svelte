@@ -279,9 +279,17 @@
 							<div
 								class="rounded-lg border border-red-500/20 bg-red-500/5 divide-y divide-red-500/10 max-h-96 overflow-auto"
 							>
-								{#each auditResult.errors as err (err.docId ?? err.message)}
+								{#each auditResult.errors as err, i (`err-${i}`)}
 									<div class="p-3">
 										{#if err.docId}
+											{@const idDisplay =
+												err.docId && typeof err.docId === "object" && "$value" in (err.docId as Record<string, unknown>)
+													? String((err.docId as Record<string, unknown>).$value)
+													: String(err.docId)}
+											{@const idType =
+												err.docId && typeof err.docId === "object" && "$type" in (err.docId as Record<string, unknown>)
+													? "." + (err.docId as Record<string, unknown>).$type
+													: ""}
 											<span class="text-xs font-mono font-medium" style="color: var(--text-secondary);">
 												Doc
 												<!-- eslint-disable svelte/no-navigation-without-resolve -->
@@ -294,9 +302,10 @@
 													class="underline"
 													style="color: var(--link);"
 												>
-													{err.docId}
+													{idDisplay}
 												</a>
-												<!-- eslint-enable svelte/no-navigation-without-resolve -->:
+												<!-- eslint-enable svelte/no-navigation-without-resolve -->
+												{idType}:
 											</span>
 										{/if}
 										<pre
