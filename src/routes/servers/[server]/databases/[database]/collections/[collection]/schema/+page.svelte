@@ -45,6 +45,24 @@
 		return { display: String(docId), navigable: null };
 	}
 
+	// Render the compliance percentage compactly. We *floor* to two decimals
+	// (rather than rounding to nearest) so that e.g. 99.9999% never renders as
+	// "100%" — only an exact 100 should show as 100. Decimals are hidden when
+	// they're both zero.
+	function formatPct(pct: number): string {
+		if (!Number.isFinite(pct)) {
+			return String(pct);
+		}
+		if (pct >= 100) {
+			return "100";
+		}
+		if (pct <= 0) {
+			return "0";
+		}
+		const truncated = Math.floor(pct * 100) / 100;
+		return Number.isInteger(truncated) ? truncated.toFixed(0) : truncated.toString();
+	}
+
 	let complianceColor = $derived.by(() => {
 		if (!auditResult) {
 			return "var(--text)";
@@ -78,9 +96,15 @@
 			} else {
 				auditResult = result.data;
 				if (result.data?.hasSchema) {
-					notificationStore.notifySuccess(
-						`Audit complete: ${result.data.compliancePct}% of ${result.data.nrecords.toLocaleString()} documents match the schema`,
-					);
+					const summary = `Audit complete: ${formatPct(result.data.compliancePct)}% of ${result.data.nrecords.toLocaleString()} documents match the schema`;
+					// Match the on-page progress-bar bands: 100% green, ≥90% amber, otherwise red.
+					if (result.data.compliancePct === 100) {
+						notificationStore.notifySuccess(summary);
+					} else if (result.data.compliancePct >= 90) {
+						notificationStore.notify(summary, "info");
+					} else {
+						notificationStore.notifyError(summary);
+					}
 				}
 			}
 		} catch (err) {
@@ -262,7 +286,7 @@
 						<div class="flex justify-between items-center mb-2">
 							<span class="text-sm font-medium" style="color: var(--text);">Compliance</span>
 							<span class="text-sm font-bold" style="color: {complianceColor};">
-								{auditResult.compliancePct}%
+								{formatPct(auditResult.compliancePct)}%
 							</span>
 						</div>
 						<div class="w-full h-3 rounded-full bg-[var(--color-3)] overflow-hidden">

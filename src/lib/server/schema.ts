@@ -439,7 +439,7 @@ export async function auditSchemaCompliance(
 
 	const nInvalidDocuments = nonMatchingResult;
 	const nValidDocuments = total - nInvalidDocuments;
-	const compliancePct = total > 0 ? Math.round((nValidDocuments / total) * 10000) / 100 : 100;
+	const compliancePct = total > 0 ? (nValidDocuments * 100) / total : 100;
 
 	// Sample non-matching documents (up to 20)
 	const sampleDocs = await coll
