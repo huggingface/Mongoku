@@ -5,6 +5,7 @@ export const load = async (data) => {
 			{ key: "documents", label: "Documents" },
 			{ key: "indexes", label: "Indexes" },
 			{ key: "mappings", label: "Mappings" },
+			{ key: "schema", label: "Schema" },
 		],
 	};
 };

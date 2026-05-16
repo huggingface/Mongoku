@@ -98,6 +98,9 @@
 		"*.{js,ts,svelte}": [
 			"eslint --fix",
 			"prettier --write"
+		],
+		"*.yml": [
+			"prettier --write"
 		]
 	},
 	"packageManager": "pnpm@10.11.0"
