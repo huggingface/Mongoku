@@ -332,27 +332,43 @@ function schemaUsesPreciseBsonTypes(schema: any): boolean {
 }
 
 /**
- * Validate a single document against a $jsonSchema and return human-readable
- * failure messages for each violated constraint.
+ * Build a reusable per-document validator from a MongoDB `$jsonSchema`.
  *
- * Converts the MongoDB bsonType schema to standard JSON Schema, then uses
- * zod's z.fromJSONSchema() which handles nested schemas, oneOf/anyOf,
- * patternProperties, and all other JSON Schema keywords.
+ * The conversion + `z.fromJSONSchema` compilation is non-trivial for nested
+ * schemas, so we do it once per audit run and reuse the resulting closure
+ * for every sampled document.
+ *
+ * Returns a function that, given a raw MongoDB document, returns an array of
+ * human-readable failure messages (empty if the doc matches the schema, or a
+ * single fallback message if the validator itself couldn't be built).
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function validateDocument(schema: Record<string, unknown>, doc: any): string[] {
+function buildDocumentValidator(schema: Record<string, unknown>): (doc: any) => string[] {
+	let validator: ReturnType<typeof z.fromJSONSchema> | null = null;
 	try {
 		const standardSchema = bsonSchemaToStandard(schema);
-		const validator = z.fromJSONSchema(standardSchema);
-		const normalized = normalizeBsonValue(doc);
-		const result = validator.safeParse(normalized);
-		if (result.success) {
-			return [];
-		}
-		return [z.prettifyError(result.error)];
+		validator = z.fromJSONSchema(standardSchema);
 	} catch {
-		return ["document does not match schema (could not parse schema with zod)"];
+		// Conversion / compilation failed — every doc will get the fallback.
+		validator = null;
 	}
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	return (doc: any): string[] => {
+		if (!validator) {
+			return ["document does not match schema (could not parse schema with zod)"];
+		}
+		try {
+			const normalized = normalizeBsonValue(doc);
+			const result = validator.safeParse(normalized);
+			if (result.success) {
+				return [];
+			}
+			return [z.prettifyError(result.error)];
+		} catch {
+			return ["document does not match schema (could not parse schema with zod)"];
+		}
+	};
 }
 
 /**
@@ -455,8 +471,12 @@ export async function auditSchemaCompliance(
 		? "The validator uses BSON-specific numeric types (int/long/double/decimal) which cannot be distinguished from a JavaScript value alone — try inspecting the document directly in MongoDB."
 		: "Failed to detect validation error";
 
+	// Build the per-document validator once: the schema is identical across
+	// every sample, so there's no need to re-run bsonSchemaToStandard /
+	// z.fromJSONSchema for each doc.
+	const validateOne = buildDocumentValidator(jsonSchema);
 	const errors: SchemaAuditResult["errors"] = sampleDocs.map((doc) => {
-		const failures = validateDocument(jsonSchema, doc);
+		const failures = validateOne(doc);
 		return {
 			message: failures.length > 0 ? failures.join("; ") : fallbackMessage,
 			docId: doc._id,

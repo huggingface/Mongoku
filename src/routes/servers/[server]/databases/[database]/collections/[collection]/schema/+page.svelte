@@ -16,11 +16,11 @@
 
 	let schemaInfo = $derived(data.schemaInfo);
 
-	// Format a document _id for display + navigation. Composite _ids like
-	// `{ game: "...", version: 1 }` aren't reachable from the document detail
-	// route (which only accepts a scalar string / ObjectId), so we return
-	// `navigable: null` for those and the caller renders plain text instead
-	// of a broken link.
+	// Format a document _id for display + navigation. The document-detail
+	// route only resolves scalar strings and 24-hex ObjectIds, so we only mark
+	// IDs as `navigable` when we know the detail page can open them; everything
+	// else (composite keys, Date / Binary / Decimal128 EJSON wrappers, …)
+	// renders as plain text rather than a broken link.
 	function formatDocId(docId: unknown): { display: string; navigable: string | null } {
 		if (docId === null || docId === undefined) {
 			return { display: "", navigable: null };
@@ -30,12 +30,17 @@
 		}
 		if (typeof docId === "object") {
 			const obj = docId as Record<string, unknown>;
-			// EJSON wrapper from JsonEncoder, e.g. { $type: "ObjectId", $value: "..." }
-			if ("$value" in obj && (typeof obj.$value === "string" || typeof obj.$value === "number")) {
+			// EJSON wrapper from JsonEncoder, e.g. { $type: "ObjectId", $value: "..." }.
+			// Only ObjectId (and untyped scalar wrappers) are routable on the
+			// document detail page — Date / Binary / Decimal128 / etc. are not.
+			const hasScalarValue = "$value" in obj && (typeof obj.$value === "string" || typeof obj.$value === "number");
+			const isRoutableType = obj.$type === undefined || obj.$type === "ObjectId";
+			if (hasScalarValue && isRoutableType) {
 				const v = String(obj.$value);
 				return { display: v, navigable: v };
 			}
-			// Composite key — render as `k1: v1 · k2: v2`, not navigable
+			// Composite key (or non-routable EJSON wrapper) — render as
+			// `k1: v1 · k2: v2`, not navigable.
 			const entries = Object.entries(obj).filter(([k]) => k !== "$type");
 			if (entries.length > 0) {
 				const display = entries.map(([k, v]) => `${k}: ${typeof v === "object" ? JSON.stringify(v) : v}`).join(" · ");
