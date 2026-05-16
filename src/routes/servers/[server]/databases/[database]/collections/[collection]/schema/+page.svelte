@@ -273,25 +273,23 @@
 					<!-- Validation errors -->
 					{#if auditResult.errors.length > 0}
 						<div class="mt-4">
-							<h4 class="text-sm font-semibold mb-2" style="color: var(--error);">
+							<h4 class="text-sm font-semibold mb-3" style="color: var(--error);">
 								Validation Errors ({auditResult.errors.length} sampled)
 							</h4>
-							<div
-								class="rounded-lg border border-red-500/20 bg-red-500/5 divide-y divide-red-500/10 max-h-96 overflow-auto"
-							>
+							<div class="space-y-3 max-h-96 overflow-auto pr-2">
 								{#each auditResult.errors as err, i (`err-${i}`)}
-									<div class="p-3 hover:bg-red-500/5 transition-colors">
-										{#if err.docId}
-											{@const idDisplay =
-												err.docId && typeof err.docId === "object" && "$value" in (err.docId as Record<string, unknown>)
-													? String((err.docId as Record<string, unknown>).$value)
-													: String(err.docId)}
-											<div class="flex items-start gap-2">
-												<span
-													class="text-xs font-mono font-medium shrink-0 mt-0.5"
-													style="color: var(--text-secondary);"
-												>
-													Doc
+									<div class="rounded-lg border border-red-500/20 bg-red-500/5 overflow-hidden">
+										<!-- Error header with doc link -->
+										<div class="px-4 py-3 border-b border-red-500/10">
+											{#if err.docId}
+												{@const idDisplay =
+													err.docId &&
+													typeof err.docId === "object" &&
+													"$value" in (err.docId as Record<string, unknown>)
+														? String((err.docId as Record<string, unknown>).$value)
+														: String(err.docId)}
+												<div class="flex items-center gap-2">
+													<span class="text-xs font-medium" style="color: var(--text-secondary);">Document:</span>
 													<!-- eslint-disable svelte/no-navigation-without-resolve -->
 													<a
 														href="/servers/{encodeURIComponent(data.server)}/databases/{encodeURIComponent(
@@ -299,39 +297,51 @@
 														)}/collections/{encodeURIComponent(data.collection)}/documents/{encodeURIComponent(
 															idDisplay,
 														)}"
-														class="underline"
+														class="text-xs font-mono underline hover:no-underline"
 														style="color: var(--link);"
 													>
 														{idDisplay}
 													</a>
-													<!-- eslint-enable svelte/no-navigation-without-resolve -->:
-												</span>
-												<div class="flex-1 min-w-0">
-													<pre
-														class="text-xs whitespace-pre-wrap font-mono"
-														style="color: var(--error);">{err.message}</pre>
+													<!-- eslint-enable svelte/no-navigation-without-resolve -->
 												</div>
+											{/if}
+										</div>
+
+										<!-- Error details -->
+										<div class="p-4">
+											<div class="space-y-2">
+												{#each err.message.split("; ") as errorMsg, j (`${i}-${j}`)}
+													<div class="flex items-start gap-2">
+														<span class="text-red-400 mt-0.5">•</span>
+														<pre
+															class="text-xs whitespace-pre-wrap font-mono flex-1"
+															style="color: var(--error);">{errorMsg}</pre>
+													</div>
+												{/each}
 											</div>
-										{:else}
-											<pre
-												class="text-xs whitespace-pre-wrap font-mono"
-												style="color: var(--error);">{err.message}</pre>
-										{/if}
+										</div>
+
+										<!-- Document viewer -->
 										{#if err.document}
-											<details class="mt-2 ml-8">
-												<summary class="cursor-pointer text-xs font-medium" style="color: var(--text-darker);"
-													>Show document</summary
-												>
-												<div class="mt-2 rounded border border-[var(--border-color)] overflow-hidden text-xs">
-													<PrettyJson
-														json={err.document as unknown as Record<string, unknown>}
-														autoCollapse={true}
-														server={data.server}
-														database={data.database}
-														collection={data.collection}
-													/>
-												</div>
-											</details>
+											<div class="px-4 pb-4">
+												<details class="rounded border border-[var(--border-color)] overflow-hidden">
+													<summary
+														class="cursor-pointer px-3 py-2 text-xs font-medium bg-[var(--color-1)] hover:bg-[var(--color-2)] transition-colors"
+														style="color: var(--text-secondary);"
+													>
+														View full document
+													</summary>
+													<div class="p-3 border-t border-[var(--border-color)] bg-[var(--color-1)]">
+														<PrettyJson
+															json={err.document as unknown as Record<string, unknown>}
+															autoCollapse={true}
+															server={data.server}
+															database={data.database}
+															collection={data.collection}
+														/>
+													</div>
+												</details>
+											</div>
 										{/if}
 									</div>
 								{/each}
