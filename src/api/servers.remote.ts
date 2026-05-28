@@ -1041,8 +1041,8 @@ export const countDocumentsByTimeRange = query(
 	},
 );
 
-// Audit schema compliance for a collection
-export const auditSchema = query(
+// Audit schema compliance for a collection. Triggered manually so command instead of query
+export const auditSchema = command(
 	z.object({
 		server: z.string(),
 		database: z.string(),
