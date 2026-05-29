@@ -1,6 +1,5 @@
 import { logger } from "$lib/server/logger";
 import { getMongo } from "$lib/server/mongo";
-import type { DatabaseStats } from "$lib/types";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async () => {
@@ -14,26 +13,11 @@ export const load: PageServerLoad = async () => {
 				const adminDb = client.db("test").admin();
 				const results = await adminDb.listDatabases();
 				const filteredDatabases = mongo.filterDatabases(results.databases);
-				const collectionsCount = await Promise.all(
-					filteredDatabases.map(async (d) => {
-						const db = client.db(d.name);
-						const dbStats: Pick<DatabaseStats, "collections"> = await (db.stats() as Promise<DatabaseStats>).catch(
-							() => {
-								logger.error(`Error getting stats for database ${d.name} on server ${name}`);
-								return {
-									collections: 0,
-								};
-							},
-						);
-						return dbStats.collections;
-					}),
-				);
 
 				return {
-					databases: filteredDatabases.map((d, index) => ({
+					databases: filteredDatabases.map((d) => ({
 						name: d.name,
 						size: d.sizeOnDisk ?? 0,
-						collections: collectionsCount[index],
 					})),
 					size: results.totalSize ?? 0,
 				};
