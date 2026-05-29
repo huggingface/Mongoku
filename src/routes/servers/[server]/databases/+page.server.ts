@@ -1,6 +1,6 @@
 import { logger } from "$lib/server/logger";
-import { getCollectionJson, getMongo } from "$lib/server/mongo";
-import type { CollectionJSON, DatabaseStats } from "$lib/types";
+import { getMongo } from "$lib/server/mongo";
+import type { DatabaseStats } from "$lib/types";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -32,12 +32,6 @@ export const load: PageServerLoad = async ({ params }) => {
 					};
 				});
 
-			const collectionsJson = db
-				.listCollections()
-				.toArray()
-				.then((c) => c.sort((a, b) => a.name.localeCompare(b.name)))
-				.then((c) => Promise.all(c.map((c) => getCollectionJson(db.collection(c.name), c.type))));
-
 			return {
 				name: db.databaseName,
 				size: d.sizeOnDisk ?? 0,
@@ -47,7 +41,6 @@ export const load: PageServerLoad = async ({ params }) => {
 				totalIndexSize: dbStats.indexSize,
 				empty: d.empty ?? true,
 				nCollections: dbStats.collections,
-				collections: collectionsJson.catch(() => [] as CollectionJSON[]),
 			};
 		}),
 	);

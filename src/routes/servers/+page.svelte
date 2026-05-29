@@ -151,12 +151,10 @@
 									<TooltipTable
 										columns={[
 											{ header: "Database", key: "name" },
-											{ header: "Collections", key: "collections" },
 											{ header: "Size", key: "size" },
 										]}
 										rows={details.databases.map((db) => ({
 											name: db.name,
-											collections: db.collections,
 											size: formatBytes(db.size),
 										}))}
 									>

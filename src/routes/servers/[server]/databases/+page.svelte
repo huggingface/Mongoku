@@ -76,22 +76,7 @@
 							</a>
 						</td>
 						<td>
-							{#await database.collections}
-								{database.nCollections}
-							{:then collections}
-								<TooltipTable
-									columns={[
-										{ header: "Collection", key: "name", align: "left" },
-										{ header: "Size", key: "size", align: "right" },
-									]}
-									rows={collections.map((collection) => ({
-										name: collection.name,
-										size: formatBytes(collection.size),
-									}))}
-								>
-									{database.nCollections}
-								</TooltipTable>
-							{/await}
+							{database.nCollections}
 						</td>
 						<td>
 							{#if database.size !== undefined}
