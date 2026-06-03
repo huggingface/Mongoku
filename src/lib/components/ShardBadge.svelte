@@ -13,19 +13,20 @@
 	const { shardKey, href, showKey = true }: Props = $props();
 
 	const formatted = $derived(formatShardKey(shardKey));
+	const tooltip = $derived(`Shard key: ${formatted}`);
 </script>
 
 {#if href}
 	<!-- href is passed in already resolved by the caller -->
 	<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-	<a class="shard-badge" {href} title={`Sharded on ${formatted}`}>
+	<a class="shard-badge" {href} title={tooltip}>
 		sharded
 		{#if showKey}
 			<span class="shard-key font-mono">{formatted}</span>
 		{/if}
 	</a>
 {:else}
-	<span class="shard-badge" title={`Sharded on ${formatted}`}>
+	<span class="shard-badge" title={tooltip}>
 		sharded
 		{#if showKey}
 			<span class="shard-key font-mono">{formatted}</span>

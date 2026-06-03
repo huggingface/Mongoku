@@ -106,6 +106,7 @@
 								{#if shardKeys[collection.name]}
 									<ShardBadge
 										shardKey={shardKeys[collection.name]}
+										showKey={false}
 										href={resolve(
 											`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(
 												data.database,
