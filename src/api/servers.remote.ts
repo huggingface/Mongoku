@@ -3,6 +3,7 @@ import { env } from "$env/dynamic/private";
 import { validateAggregationPipeline } from "$lib/server/aggregation";
 import JsonEncoder from "$lib/server/JsonEncoder";
 import { logger } from "$lib/server/logger";
+import { sanitizeMongoUri } from "$lib/server/connectionString";
 import { getMongo } from "$lib/server/mongo";
 import { isEmptyObject } from "$lib/utils/isEmptyObject";
 import { parseJSON } from "$lib/utils/jsonParser";
@@ -17,19 +18,9 @@ function checkReadOnly() {
 	}
 }
 
-// Sanitize MongoDB connection string by removing credentials
+// Sanitize MongoDB connection string by removing credentials (multi-host safe)
 function sanitizeMongoUrl(url: string): string {
-	try {
-		const urlObj = new URL(url.startsWith("mongodb") ? url : `mongodb://${url}`);
-		if (urlObj.username || urlObj.password) {
-			urlObj.username = "***";
-			urlObj.password = "***";
-		}
-		return urlObj.toString();
-	} catch {
-		// If URL parsing fails, just mask the whole thing
-		return "***";
-	}
+	return sanitizeMongoUri(url.startsWith("mongodb") ? url : `mongodb://${url}`);
 }
 
 // Add a new server

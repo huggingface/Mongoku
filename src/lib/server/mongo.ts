@@ -4,7 +4,7 @@ import type { CollectionJSON, CollectionMappings, Mappings, ShardingInfo } from 
 import type { ShardKey } from "$lib/utils/shardKey";
 import { resolveSrv } from "dns/promises";
 import { MongoClient, ReadPreference, type Collection } from "mongodb";
-import { URL } from "url";
+import { buildDirectConnectionUri, mongoHostKey, parseMongoUri } from "./connectionString";
 import { HostsManager } from "./HostsManager";
 
 export async function getCollectionJson(
@@ -96,33 +96,29 @@ export async function getCollectionJson(
  * Handles both mongodb:// and mongodb+srv:// formats
  */
 export async function extractNodesFromConnectionString(connectionString: string): Promise<string[]> {
-	const url = new URL(connectionString);
+	const parsed = parseMongoUri(connectionString);
 
-	if (url.protocol === "mongodb+srv:") {
-		// For SRV, resolve DNS records
-		const hostname = url.hostname;
+	if (parsed.protocol === "mongodb+srv:") {
+		// For SRV, resolve DNS records (a single hostname, no port)
+		const hostname = parsed.hosts[0]?.split(":")[0];
+		if (!hostname) {
+			throw new Error("No hostname found in SRV connection string");
+		}
 		const srvRecords = await resolveSrv(`_mongodb._tcp.${hostname}`);
 		return srvRecords
 			.sort((a, b) => a.priority - b.priority || b.weight - a.weight)
 			.map((record) => `${record.name}:${record.port}`)
 			.sort();
 	}
-	if (url.protocol === "mongodb:") {
-		// For standard mongodb://, extract hosts from the connection string
-		// Format: mongodb://[username:password@]host1[:port1][,host2[:port2],...]/[database][?options]
-		const hostsString = url.host;
-		if (!hostsString) {
+	if (parsed.protocol === "mongodb:") {
+		// For standard mongodb://, the hosts are the comma-separated list, e.g.
+		// mongodb://[user:pass@]host1[:port1][,host2[:port2],...]/[db][?options]
+		if (parsed.hosts.length === 0) {
 			throw new Error("No hosts found in connection string");
 		}
-
-		// Split by comma to get all hosts and sort lexically
-		return hostsString
-			.split(",")
-			.map((host) => host.trim())
-			.filter((host) => host.length > 0)
-			.sort();
+		return [...parsed.hosts].sort();
 	}
-	throw new TypeError(`Unsupported protocol: ${url.protocol}`);
+	throw new TypeError(`Unsupported protocol: ${parsed.protocol}`);
 }
 
 export type IndexKey = Record<string, 1 | -1 | string>;
@@ -251,8 +247,7 @@ class MongoConnections {
 		for (const host of hosts) {
 			const urlStr = host.path.startsWith("mongodb") ? host.path : `mongodb://${host.path}`;
 			try {
-				const url = new URL(urlStr);
-				const hostname = url.host || host.path;
+				const hostname = mongoHostKey(urlStr) || host.path;
 
 				if (!this.clients.has(hostname)) {
 					const client = new MongoClientWithMappings(urlStr, host._id, hostname, this.readPreference);
@@ -306,8 +301,7 @@ class MongoConnections {
 		// Add the new server client
 		const urlStr = hostPath.startsWith("mongodb") ? hostPath : `mongodb://${hostPath}`;
 		try {
-			const url = new URL(urlStr);
-			const hostname = url.host || hostPath;
+			const hostname = mongoHostKey(urlStr) || hostPath;
 
 			if (!this.clients.has(hostname)) {
 				const client = new MongoClientWithMappings(urlStr, id, hostname, this.readPreference);
@@ -372,25 +366,16 @@ class MongoConnections {
 		collection: string,
 	): Promise<Record<string, { ops: number; since: Date; host: string }>> {
 		const client = this.getClient(serverId);
-		const url = new URL(client.url);
 
-		// Build direct connection URL
-		// Keep credentials and other params, but set the host to the specific node
-		const directUrl = new URL(url.toString());
-		directUrl.protocol = "mongodb:";
-		directUrl.host = node;
-		directUrl.searchParams.set("directConnection", "true");
-
-		// Keep TLS if it was in the original URL
-		if (url.searchParams.has("tls") || url.searchParams.has("ssl") || url.protocol === "mongodb+srv:") {
-			directUrl.searchParams.set("tls", "true");
-		}
+		// Build a single-host direct-connection URI (multi-host safe), keeping
+		// credentials, TLS and other options from the original connection string.
+		const directUri = buildDirectConnectionUri(client.url, node);
 
 		// Create a temporary client for this specific node
 		let nodeClient: MongoClient | null = null;
 		// todo: use await using when possible
 		try {
-			nodeClient = new MongoClient(directUrl.toString());
+			nodeClient = new MongoClient(directUri);
 			await nodeClient.connect();
 
 			const coll = nodeClient.db(database).collection(collection);

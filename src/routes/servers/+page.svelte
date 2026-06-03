@@ -137,7 +137,7 @@
 										{serverName(server.name)}
 									</span>
 								{:else}
-									<a href={resolve(`/servers/${encodeURIComponent(serverName(server.name))}/databases`)}>
+									<a href={resolve(`/servers/${encodeURIComponent(server.name)}/databases`)}>
 										{serverName(server.name)}
 									</a>
 								{/if}
