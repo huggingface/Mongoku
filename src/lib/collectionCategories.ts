@@ -8,11 +8,17 @@
 export interface CollectionCategory {
 	key: string;
 	label: string;
+	/**
+	 * Primary tabs (Documents / Indexes) are shown at full weight; secondary
+	 * tabs are visually de-emphasized and rendered after a divider. Defaults to
+	 * secondary when omitted.
+	 */
+	primary?: boolean;
 }
 
 export const COLLECTION_CATEGORIES: CollectionCategory[] = [
-	{ key: "documents", label: "Documents" },
-	{ key: "indexes", label: "Indexes" },
+	{ key: "documents", label: "Documents", primary: true },
+	{ key: "indexes", label: "Indexes", primary: true },
 	{ key: "sharding", label: "Sharding" },
 	{ key: "mappings", label: "Mappings" },
 	{ key: "schema", label: "Schema" },
