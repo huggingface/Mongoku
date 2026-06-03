@@ -4,14 +4,26 @@
 	import { resolve } from "$app/paths";
 	import Modal from "$lib/components/Modal.svelte";
 	import Panel from "$lib/components/Panel.svelte";
+	import ShardBadge from "$lib/components/ShardBadge.svelte";
 	import TooltipTable from "$lib/components/TooltipTable.svelte";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import { formatBytes, formatNumber } from "$lib/utils/filters";
+	import type { ShardKey } from "$lib/utils/shardKey";
 	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
 
 	type Collection = PageData["collections"][number];
+
+	let shardKeys = $state<Record<string, ShardKey>>({});
+
+	$effect(() => {
+		// Silently ignore failures (e.g. no read access to the config database):
+		// the load already degrades to {}, and this just leaves badges off.
+		data.shardKeys.then((keys) => {
+			shardKeys = keys;
+		});
+	});
 
 	let showDropModal = $state(false);
 	let collectionToDrop = $state<Collection | null>(null);
@@ -67,15 +79,27 @@
 				{#each data.collections as collection (collection.name)}
 					<tr class="group">
 						<td>
-							<a
-								href={resolve(
-									`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(
-										data.database,
-									)}/collections/${encodeURIComponent(collection.name)}/documents`,
-								)}
-							>
-								{collection.name}
-							</a>
+							<div class="flex items-center gap-2">
+								<a
+									href={resolve(
+										`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(
+											data.database,
+										)}/collections/${encodeURIComponent(collection.name)}/documents`,
+									)}
+								>
+									{collection.name}
+								</a>
+								{#if shardKeys[collection.name]}
+									<ShardBadge
+										shardKey={shardKeys[collection.name]}
+										href={resolve(
+											`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(
+												data.database,
+											)}/collections/${encodeURIComponent(collection.name)}/sharding`,
+										)}
+									/>
+								{/if}
+							</div>
 						</td>
 						<td>
 							{#await collection.details}

@@ -1,6 +1,7 @@
 import { env } from "$env/dynamic/private";
 import { logger } from "$lib/server/logger";
-import type { CollectionJSON, CollectionMappings, Mappings } from "$lib/types";
+import type { CollectionJSON, CollectionMappings, Mappings, ShardingInfo } from "$lib/types";
+import type { ShardKey } from "$lib/utils/shardKey";
 import { resolveSrv } from "dns/promises";
 import { MongoClient, ReadPreference, type Collection } from "mongodb";
 import { URL } from "url";
@@ -412,6 +413,191 @@ class MongoConnections {
 				await nodeClient.close();
 			}
 		}
+	}
+
+	/**
+	 * Return the shard key for every sharded collection in a database, in a single
+	 * query against `config.collections`. Read-only.
+	 *
+	 * Returns a map of collectionName -> shard key. Collections that are not
+	 * sharded (or on non-sharded clusters) are simply absent from the map.
+	 * Designed to be cheap enough to call once for a whole collection list.
+	 */
+	async getDatabaseShardKeys(serverId: string, database: string): Promise<Record<string, ShardKey>> {
+		const client = this.getClient(serverId);
+		const configDb = client.db("config");
+		const result: Record<string, ShardKey> = {};
+
+		try {
+			// _id of config.collections is the namespace "db.coll".
+			// Match all namespaces in this database via a prefix regex.
+			const prefix = `${database}.`;
+			const docs = (await configDb
+				.collection("collections")
+				.find({
+					_id: { $regex: `^${prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}` },
+				} as unknown as Record<string, unknown>)
+				.project({ _id: 1, key: 1, dropped: 1 })
+				.toArray()) as unknown as Array<{
+				_id: string;
+				key?: ShardKey;
+				dropped?: boolean;
+			}>;
+
+			for (const doc of docs) {
+				if (doc.dropped || !doc.key) {
+					continue;
+				}
+				const name = doc._id.slice(prefix.length);
+				result[name] = doc.key;
+			}
+		} catch (err) {
+			logger.error("Error reading config.collections for shard keys:", err);
+		}
+
+		return result;
+	}
+
+	/**
+	 * Gather sharding information for a collection.
+	 *
+	 * Everything here is read-only: it reads the `config` database
+	 * (config.collections / config.chunks / config.shards) and runs `$collStats`.
+	 * On a non-sharded (standalone / replica set) deployment, the `config`
+	 * collections won't exist and we return `shardingEnabled: false`.
+	 */
+	async getShardingInfo(serverId: string, database: string, collection: string): Promise<ShardingInfo> {
+		const client = this.getClient(serverId);
+		const ns = `${database}.${collection}`;
+
+		const info: ShardingInfo = {
+			shardingEnabled: false,
+			sharded: false,
+			shardKey: null,
+			hashed: false,
+			unique: false,
+			totalChunks: 0,
+			shards: [],
+			balancerEnabled: true,
+			warning: null,
+		};
+
+		const configDb = client.db("config");
+
+		// Detect whether this is a sharded cluster at all by looking for the
+		// config.shards collection. On a plain replica set this throws / is empty.
+		let shardDocs: Array<{ _id: string; host: string }> = [];
+		try {
+			shardDocs = (await configDb.collection("shards").find({}).toArray()) as unknown as Array<{
+				_id: string;
+				host: string;
+			}>;
+		} catch (err) {
+			logger.error("Error reading config.shards (not a sharded cluster?):", err);
+			return info; // shardingEnabled stays false
+		}
+
+		if (shardDocs.length === 0) {
+			// No shards => not connected through mongos / not a sharded cluster.
+			return info;
+		}
+
+		info.shardingEnabled = true;
+
+		// Look up this collection's sharding metadata.
+		// In MongoDB the _id of config.collections is the namespace "db.coll".
+		type CollConfig = {
+			_id: string;
+			key?: Record<string, 1 | -1 | string>;
+			unique?: boolean;
+			dropped?: boolean;
+			noBalance?: boolean;
+			uuid?: unknown;
+		};
+		let collConfig: CollConfig | null = null;
+		try {
+			collConfig = (await configDb
+				.collection("collections")
+				.findOne({ _id: ns } as unknown as Record<string, unknown>)) as CollConfig | null;
+		} catch (err) {
+			logger.error("Error reading config.collections:", err);
+			info.warning = "Could not read config.collections";
+		}
+
+		// Per-shard storage/document stats from $collStats (works whether sharded or not).
+		const perShard = new Map<string, { documents: number | null; size: number | null }>();
+		try {
+			const statsResults = await client
+				.db(database)
+				.collection(collection)
+				.aggregate([{ $collStats: { storageStats: {} } }])
+				.toArray();
+			for (const stat of statsResults) {
+				const shardId = (stat.shard as string) || shardDocs[0]?._id || "unknown";
+				perShard.set(shardId, {
+					documents: (stat.storageStats?.count as number) ?? null,
+					size: (stat.storageStats?.size as number) ?? null,
+				});
+			}
+		} catch (err) {
+			logger.error("Error reading $collStats for sharding info:", err);
+		}
+
+		if (collConfig && !collConfig.dropped && collConfig.key) {
+			info.sharded = true;
+			info.shardKey = collConfig.key;
+			info.hashed = Object.values(collConfig.key).some((v) => v === "hashed");
+			info.unique = !!collConfig.unique;
+			info.balancerEnabled = !collConfig.noBalance;
+
+			// Count chunks per shard for this namespace.
+			// Newer MongoDB keys config.chunks by `uuid`, older ones by `ns`.
+			try {
+				let chunkFilter: Record<string, unknown> = { ns };
+				if (collConfig.uuid !== undefined) {
+					chunkFilter = { uuid: collConfig.uuid };
+				}
+				const chunkCounts = await configDb
+					.collection("chunks")
+					.aggregate([{ $match: chunkFilter }, { $group: { _id: "$shard", count: { $sum: 1 } } }])
+					.toArray();
+				const chunkMap = new Map<string, number>(chunkCounts.map((c) => [c._id as string, c.count as number]));
+				info.totalChunks = chunkCounts.reduce((acc, c) => acc + (c.count as number), 0);
+
+				info.shards = shardDocs.map((shard) => ({
+					shardId: shard._id,
+					host: shard.host,
+					chunks: chunkMap.get(shard._id) ?? 0,
+					documents: perShard.get(shard._id)?.documents ?? null,
+					size: perShard.get(shard._id)?.size ?? null,
+				}));
+			} catch (err) {
+				logger.error("Error reading config.chunks:", err);
+				info.warning = "Could not read chunk distribution";
+				info.shards = shardDocs.map((shard) => ({
+					shardId: shard._id,
+					host: shard.host,
+					chunks: 0,
+					documents: perShard.get(shard._id)?.documents ?? null,
+					size: perShard.get(shard._id)?.size ?? null,
+				}));
+			}
+		} else {
+			// Unsharded collection on a sharded cluster: it lives on its primary shard.
+			info.sharded = false;
+			info.shards = [...perShard.entries()].map(([shardId, stats]) => {
+				const shard = shardDocs.find((s) => s._id === shardId);
+				return {
+					shardId,
+					host: shard?.host ?? shardId,
+					chunks: 0,
+					documents: stats.documents,
+					size: stats.size,
+				};
+			});
+		}
+
+		return info;
 	}
 }
 

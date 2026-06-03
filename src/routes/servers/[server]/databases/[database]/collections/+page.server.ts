@@ -13,7 +13,12 @@ export const load: PageServerLoad = async ({ params }) => {
 		details: getCollectionJson(db.collection(c.name), c.type).catch(() => null),
 	}));
 
+	// Single read against config.collections for the whole DB. Streamed so the
+	// table renders immediately and the badges fill in when this resolves.
+	const shardKeys = mongo.getDatabaseShardKeys(params.server, params.database).catch(() => ({}));
+
 	return {
 		collections: collectionsWithDetails,
+		shardKeys,
 	};
 };
