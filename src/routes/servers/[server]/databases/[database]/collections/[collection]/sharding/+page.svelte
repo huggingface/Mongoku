@@ -2,19 +2,8 @@
 	import Panel from "$lib/components/Panel.svelte";
 	import { formatBytes, formatNumber } from "$lib/utils/filters";
 	import { formatShardKey } from "$lib/utils/shardKey";
-	import type { ShardingInfo } from "$lib/types";
 
 	const { data } = $props();
-
-	let resolved = $state<{ data: ShardingInfo | null; error: string | null } | null>(null);
-
-	$effect(() => {
-		data.sharding.then((result) => {
-			resolved = result;
-		});
-	});
-
-	const shardingData = $derived(resolved ?? null);
 
 	function pct(value: number, total: number): number {
 		if (total <= 0) {
@@ -40,8 +29,7 @@
 	<Panel title="Sharding">
 		<div class="loading p-4">Loading sharding info...</div>
 	</Panel>
-{:then}
-	{@const result = shardingData}
+{:then result}
 	{#if !result || result.error}
 		<Panel title="Sharding">
 			<div class="p-4">
