@@ -57,6 +57,40 @@ export interface CollectionJSON {
 	}>;
 }
 
+/**
+ * Sharding information for a collection, gathered from the `config` database
+ * and `$collStats`. All queries are read-only.
+ */
+export interface ShardingInfo {
+	/** Whether the cluster is a sharded cluster (mongos) at all. */
+	shardingEnabled: boolean;
+	/** Whether this specific collection is sharded. */
+	sharded: boolean;
+	/** The shard key, e.g. { userId: 1, _id: "hashed" }. Null if unsharded. */
+	shardKey: Record<string, 1 | -1 | string> | null;
+	/** Whether the shard key uses hashed sharding. */
+	hashed: boolean;
+	/** Whether the collection uses unique shard key. */
+	unique: boolean;
+	/** Total number of chunks across all shards. */
+	totalChunks: number;
+	/** The list of all shards known to the cluster. */
+	shards: Array<{
+		shardId: string;
+		host: string;
+		/** Number of chunks for this collection on this shard. */
+		chunks: number;
+		/** Number of documents for this collection on this shard (from $collStats). */
+		documents: number | null;
+		/** Storage size in bytes for this collection on this shard. */
+		size: number | null;
+	}>;
+	/** Whether balancing is currently enabled for the collection (noBalance flag). */
+	balancerEnabled: boolean;
+	/** Any non-fatal error/warning encountered while gathering info. */
+	warning: string | null;
+}
+
 export const ALLOWED_AGGREGATION_STAGES = new Set([
 	"$addFields",
 	"$bucket",

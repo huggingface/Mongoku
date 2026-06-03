@@ -1,3 +1,5 @@
+import { mongoDisplayName } from "$lib/utils/mongoUri";
+
 export function formatBytes(bytes: number): string {
 	if (bytes === 0) {
 		return "0 B";
@@ -22,14 +24,10 @@ export function formatNumber(num: number): string {
 }
 
 export function serverName(name: string): string {
-	// Extract hostname from MongoDB connection string
+	// Extract a short, friendly hostname from a MongoDB connection string.
+	// Multi-host safe (mongos / replica-set URIs won't produce giant names).
 	if (name.startsWith("mongodb://") || name.startsWith("mongodb+srv://")) {
-		try {
-			const url = new URL(name);
-			return url.hostname;
-		} catch {
-			return name;
-		}
+		return mongoDisplayName(name);
 	}
 	return name;
 }

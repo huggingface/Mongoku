@@ -4,14 +4,40 @@
 	import { resolve } from "$app/paths";
 	import Modal from "$lib/components/Modal.svelte";
 	import Panel from "$lib/components/Panel.svelte";
+	import ShardBadge from "$lib/components/ShardBadge.svelte";
 	import TooltipTable from "$lib/components/TooltipTable.svelte";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
 	import { formatBytes, formatNumber } from "$lib/utils/filters";
+	import type { ShardKey } from "$lib/utils/shardKey";
 	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
 
 	type Collection = PageData["collections"][number];
+
+	// Resolve the streamed shard keys, guarding against out-of-order responses:
+	// when navigating between databases, a slow previous request must not
+	// overwrite the current one. We key on the promise identity (reassigned by
+	// the loader on each navigation) and drop any result from a stale promise.
+	let shardKeys = $state<Record<string, ShardKey>>({});
+
+	$effect(() => {
+		const promise = data.shardKeys;
+		// Reset immediately so badges from the previous database disappear while
+		// the new request is in flight.
+		shardKeys = {};
+		let cancelled = false;
+		// Silently ignore failures (e.g. no read access to the config database):
+		// the load already degrades to {}, and this just leaves badges off.
+		promise.then((keys) => {
+			if (!cancelled) {
+				shardKeys = keys;
+			}
+		});
+		return () => {
+			cancelled = true;
+		};
+	});
 
 	let showDropModal = $state(false);
 	let collectionToDrop = $state<Collection | null>(null);
@@ -67,15 +93,27 @@
 				{#each data.collections as collection (collection.name)}
 					<tr class="group">
 						<td>
-							<a
-								href={resolve(
-									`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(
-										data.database,
-									)}/collections/${encodeURIComponent(collection.name)}/documents`,
-								)}
-							>
-								{collection.name}
-							</a>
+							<div class="flex items-center gap-2">
+								<a
+									href={resolve(
+										`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(
+											data.database,
+										)}/collections/${encodeURIComponent(collection.name)}/documents`,
+									)}
+								>
+									{collection.name}
+								</a>
+								{#if shardKeys[collection.name]}
+									<ShardBadge
+										shardKey={shardKeys[collection.name]}
+										href={resolve(
+											`/servers/${encodeURIComponent(data.server)}/databases/${encodeURIComponent(
+												data.database,
+											)}/collections/${encodeURIComponent(collection.name)}/sharding`,
+										)}
+									/>
+								{/if}
+							</div>
 						</td>
 						<td>
 							{#await collection.details}
