@@ -7,10 +7,20 @@
 
 	const { class: className }: { class: string } = $props();
 
+	// Build the collection path WITHOUT base; resolve() adds base exactly once below.
+	// (page.url.pathname already contains base, so deriving from it double-prefixed the links.)
+	// params are always present when this component renders (collection routes only),
+	// but they are typed as optional on the shared layout, hence the `?? ""` fallbacks.
+	const collectionPath = $derived(
+		`/servers/${encodeURIComponent(page.params.server ?? "")}` +
+			`/databases/${encodeURIComponent(page.params.database ?? "")}` +
+			`/collections/${encodeURIComponent(page.params.collection ?? "")}`,
+	);
+
 	const categories = $derived(
 		((page.data.categories ?? []) as CollectionCategory[]).map((x) => ({
 			...x,
-			href: page.url.pathname.split("/").slice(0, -1).join("/") + "/" + x.key,
+			href: `${collectionPath}/${x.key}`,
 		})),
 	);
 	const currentPath = $derived(page.url.pathname.split("/").pop());
