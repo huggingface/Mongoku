@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { auditSchema } from "$api/servers.remote";
+	import { resolve } from "$app/paths";
 	import Panel from "$lib/components/Panel.svelte";
 	import PrettyJson from "$lib/components/PrettyJson.svelte";
 	import { notificationStore } from "$lib/stores/notifications.svelte";
@@ -344,19 +345,21 @@
 												<div class="flex items-center gap-2">
 													<span class="text-xs font-medium" style="color: var(--text-secondary);">Document:</span>
 													{#if idInfo.navigable !== null}
-														<!-- eslint-disable svelte/no-navigation-without-resolve -->
+														<!-- resolve() is typed against the route table, so the dynamic path needs a cast -->
+														<!-- eslint-disable @typescript-eslint/no-explicit-any -->
 														<a
-															href="/servers/{encodeURIComponent(data.server)}/databases/{encodeURIComponent(
-																data.database,
-															)}/collections/{encodeURIComponent(data.collection)}/documents/{encodeURIComponent(
-																idInfo.navigable,
-															)}"
+															href={resolve(
+																(`/servers/${encodeURIComponent(data.server)}` +
+																	`/databases/${encodeURIComponent(data.database)}` +
+																	`/collections/${encodeURIComponent(data.collection)}` +
+																	`/documents/${encodeURIComponent(idInfo.navigable)}`) as any,
+															)}
 															class="text-xs font-mono underline hover:no-underline"
 															style="color: var(--link);"
 														>
 															{idInfo.display}
 														</a>
-														<!-- eslint-enable svelte/no-navigation-without-resolve -->
+														<!-- eslint-enable @typescript-eslint/no-explicit-any -->
 													{:else}
 														<span class="text-xs font-mono" style="color: var(--text);">{idInfo.display}</span>
 													{/if}
