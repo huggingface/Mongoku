@@ -3,6 +3,7 @@
 		createUser as createUserCommand,
 		dropUser as dropUserCommand,
 		grantRolesToUser as grantRolesToUserCommand,
+		listUsers,
 		revokeRolesFromUser as revokeRolesFromUserCommand,
 		updateUserPassword as updateUserPasswordCommand,
 	} from "$api/servers.remote";
@@ -206,6 +207,25 @@
 		inheritedPrivileges = null;
 	}
 
+	// Re-fetch the open modal user's resolved privileges after a role change so
+	// the "Resolved Privileges" panel reflects the new effective permissions.
+	async function refreshModalPrivileges() {
+		if (!rolesUser) {
+			return;
+		}
+		try {
+			const res = await listUsers({ server: data.server });
+			const match = (res.data ?? []).find(
+				(u: { user: string; db: string }) => u.user === rolesUser && u.db === rolesUserDb,
+			);
+			if (match?.inheritedPrivileges !== undefined) {
+				inheritedPrivileges = match.inheritedPrivileges;
+			}
+		} catch {
+			// non-fatal: the modal just keeps its previous privileges snapshot
+		}
+	}
+
 	async function removeRole(role: { role: string; db: string }) {
 		if (!rolesUser || updatingRoles) {
 			return;
@@ -225,6 +245,7 @@
 			notificationStore.notifySuccess(`Revoked ${role.role}@${role.db} from ${rolesUser}`);
 			resolvedUsers = null;
 			await invalidate("app:users");
+			await refreshModalPrivileges();
 		} catch (error) {
 			notificationStore.notifyError(error, "Failed to revoke role");
 		} finally {
@@ -257,6 +278,7 @@
 			notificationStore.notifySuccess(`Granted ${role.role}@${role.db} to ${rolesUser}`);
 			resolvedUsers = null;
 			await invalidate("app:users");
+			await refreshModalPrivileges();
 		} catch (error) {
 			notificationStore.notifyError(error, "Failed to grant role");
 		} finally {
