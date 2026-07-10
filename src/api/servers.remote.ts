@@ -1094,10 +1094,12 @@ export const auditSchema = command(
 // ────────────────────────────────────────────────────────────────────────────
 // User management
 // ────────────────────────────────────────────────────────────────────────────
-// The MongoDB `usersInfo` / `rolesInfo` / `createUser` / `dropUser` /
-// `grantRolesToUser` / `revokeRolesFromUser` / `updateUser` commands only ever
-// run against the **admin** database. Each command below resolves the server's
-// MongoClient and issues the command against `client.db("admin")`.
+// MongoDB identifies a user by (user, db). `usersInfo: 1` against the admin
+// database lists every user on the cluster (regardless of the db they were
+// created on), and each returned document carries its own `db` field.
+// The mutating commands (dropUser / grantRolesToUser / revokeRolesFromUser /
+// updateUser) must run against the database the user lives on, so every
+// command below accepts a `db` argument and issues `client.db(db).command(...)`.
 
 /**
  * Role reference as accepted by MongoDB role-management commands.
@@ -1111,19 +1113,41 @@ const roleRefSchema = z.union([
 	}),
 ]);
 
-// List all users on the admin database, with their roles and privileges.
+// List all users on the cluster, with their resolved privileges.
 export const listUsers = query(z.object({ server: z.string() }), async ({ server }) => {
 	logger.log("listUsers called with payload:", { server });
 	const mongo = await getMongo();
 	const client = mongo.getClient(server);
 	const admin = client.db("admin");
 	try {
-		// usersInfo: 1 returns all users in the current db (admin).
-		// showPrivileges: true adds a `inheritedPrivileges` array per user
-		// and resolves the privilege docs for each inherited role.
-		const result = await admin.command({ usersInfo: 1, showPrivileges: true });
+		// `usersInfo: 1` lists all users in the current db (admin) — which on a
+		// cluster means every user. `showPrivileges: true` is NOT allowed with a
+		// non-exact (all-users) query unless the caller has grantRole privileges,
+		// so we list first, then fetch each user's resolved privileges via an
+		// exact-match query (which MongoDB always permits).
+		const result = await admin.command({ usersInfo: 1 });
+		const users = (result.users ?? []) as Array<{ user: string; db: string }>;
+
+		const usersWithPrivs = await Promise.all(
+			users.map(async (u) => {
+				try {
+					const info = await admin.command({
+						usersInfo: { user: u.user, db: u.db },
+						showPrivileges: true,
+					});
+					const detail = (info.users ?? [])[0] ?? {};
+					return { ...u, ...detail };
+				} catch (err) {
+					// Privilege resolution failed for this user — keep the base record
+					logger.error(`Error getting privileges for user ${u.user}:`, err);
+					return u;
+				}
+			}),
+		);
+
 		return {
-			data: JsonEncoder.encode(result.users ?? []),
+			// JSON round-trip strips MongoDB special types for safe transport
+			data: JSON.parse(JSON.stringify(JsonEncoder.encode(usersWithPrivs))),
 			error: null as string | null,
 		};
 	} catch (err) {
@@ -1147,7 +1171,7 @@ export const listRoles = query(z.object({ server: z.string() }), async ({ server
 		// showPrivileges: true resolves the full privilege list for each role.
 		const result = await admin.command({ rolesInfo: 1, showBuiltinRoles: true, showPrivileges: true });
 		return {
-			data: JsonEncoder.encode(result.roles ?? []),
+			data: JSON.parse(JSON.stringify(JsonEncoder.encode(result.roles ?? []))),
 			error: null as string | null,
 		};
 	} catch (err) {
@@ -1159,24 +1183,26 @@ export const listRoles = query(z.object({ server: z.string() }), async ({ server
 	}
 });
 
-// Create a new user on the admin database.
+// Create a new user. The user is created on the `db` it should live on
+// (defaults to "admin" when omitted).
 export const createUser = command(
 	z.object({
 		server: z.string(),
 		username: z.string(),
 		password: z.string(),
+		db: z.string().default("admin"),
 		roles: z.array(roleRefSchema).default([]),
 	}),
-	async ({ server, username, password, roles }) => {
-		logger.log("createUser called with payload:", { server, username, roles });
+	async ({ server, username, password, db, roles }) => {
+		logger.log("createUser called with payload:", { server, username, db, roles });
 		checkReadOnly();
 		const mongo = await getMongo();
 		const client = mongo.getClient(server);
-		const admin = client.db("admin");
+		const targetDb = client.db(db);
 		try {
 			// Decode role refs so {$type:...} markers (not expected here, but safe) are handled.
 			const decodedRoles = JsonEncoder.decode(roles);
-			await admin.command({
+			await targetDb.command({
 				createUser: username,
 				pwd: password,
 				roles: decodedRoles,
@@ -1192,20 +1218,21 @@ export const createUser = command(
 	},
 );
 
-// Drop an existing user from the admin database.
+// Drop an existing user. Runs against the db the user lives on.
 export const dropUser = command(
 	z.object({
 		server: z.string(),
 		username: z.string(),
+		db: z.string().default("admin"),
 	}),
-	async ({ server, username }) => {
-		logger.log("dropUser called with payload:", { server, username });
+	async ({ server, username, db }) => {
+		logger.log("dropUser called with payload:", { server, username, db });
 		checkReadOnly();
 		const mongo = await getMongo();
 		const client = mongo.getClient(server);
-		const admin = client.db("admin");
+		const targetDb = client.db(db);
 		try {
-			await admin.command({ dropUser: username });
+			await targetDb.command({ dropUser: username });
 			return { ok: true, error: null as string | null };
 		} catch (err) {
 			logger.error("Error dropping user:", err);
@@ -1217,22 +1244,23 @@ export const dropUser = command(
 	},
 );
 
-// Grant roles to an existing user.
+// Grant roles to an existing user. Runs against the db the user lives on.
 export const grantRolesToUser = command(
 	z.object({
 		server: z.string(),
 		username: z.string(),
+		db: z.string().default("admin"),
 		roles: z.array(roleRefSchema),
 	}),
-	async ({ server, username, roles }) => {
-		logger.log("grantRolesToUser called with payload:", { server, username, roles });
+	async ({ server, username, db, roles }) => {
+		logger.log("grantRolesToUser called with payload:", { server, username, db, roles });
 		checkReadOnly();
 		const mongo = await getMongo();
 		const client = mongo.getClient(server);
-		const admin = client.db("admin");
+		const targetDb = client.db(db);
 		try {
 			const decodedRoles = JsonEncoder.decode(roles);
-			await admin.command({
+			await targetDb.command({
 				grantRolesToUser: username,
 				roles: decodedRoles,
 			});
@@ -1247,22 +1275,23 @@ export const grantRolesToUser = command(
 	},
 );
 
-// Revoke roles from an existing user.
+// Revoke roles from an existing user. Runs against the db the user lives on.
 export const revokeRolesFromUser = command(
 	z.object({
 		server: z.string(),
 		username: z.string(),
+		db: z.string().default("admin"),
 		roles: z.array(roleRefSchema),
 	}),
-	async ({ server, username, roles }) => {
-		logger.log("revokeRolesFromUser called with payload:", { server, username, roles });
+	async ({ server, username, db, roles }) => {
+		logger.log("revokeRolesFromUser called with payload:", { server, username, db, roles });
 		checkReadOnly();
 		const mongo = await getMongo();
 		const client = mongo.getClient(server);
-		const admin = client.db("admin");
+		const targetDb = client.db(db);
 		try {
 			const decodedRoles = JsonEncoder.decode(roles);
-			await admin.command({
+			await targetDb.command({
 				revokeRolesFromUser: username,
 				roles: decodedRoles,
 			});
@@ -1277,21 +1306,22 @@ export const revokeRolesFromUser = command(
 	},
 );
 
-// Reset a user's password.
+// Reset a user's password. Runs against the db the user lives on.
 export const updateUserPassword = command(
 	z.object({
 		server: z.string(),
 		username: z.string(),
+		db: z.string().default("admin"),
 		password: z.string(),
 	}),
-	async ({ server, username, password }) => {
-		logger.log("updateUserPassword called with payload:", { server, username });
+	async ({ server, username, db, password }) => {
+		logger.log("updateUserPassword called with payload:", { server, username, db });
 		checkReadOnly();
 		const mongo = await getMongo();
 		const client = mongo.getClient(server);
-		const admin = client.db("admin");
+		const targetDb = client.db(db);
 		try {
-			await admin.command({
+			await targetDb.command({
 				updateUser: username,
 				pwd: password,
 			});

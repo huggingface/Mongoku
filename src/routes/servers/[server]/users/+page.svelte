@@ -31,23 +31,33 @@
 	let resolvedRoles = $state<RolesResult | null>(null);
 	let resolvedDatabases = $state<DatabasesResult | null>(null);
 
+	// Token guards: only the latest promise's result is accepted, so a stale
+	// in-flight promise from a previous server / invalidate can't overwrite
+	// fresher data.
+	let usersToken = 0;
+	let rolesToken = 0;
+	let databasesToken = 0;
+
 	$effect(() => {
+		const token = ++usersToken;
 		data.users.then((r) => {
-			if (!resolvedUsers) {
+			if (token === usersToken) {
 				resolvedUsers = r;
 			}
 		});
 	});
 	$effect(() => {
+		const token = ++rolesToken;
 		data.roles.then((r) => {
-			if (!resolvedRoles) {
+			if (token === rolesToken) {
 				resolvedRoles = r;
 			}
 		});
 	});
 	$effect(() => {
+		const token = ++databasesToken;
 		data.databases.then((r) => {
-			if (!resolvedDatabases) {
+			if (token === databasesToken) {
 				resolvedDatabases = r;
 			}
 		});
@@ -60,6 +70,7 @@
 	let creatingUser = $state(false);
 	let newUsername = $state("");
 	let newPassword = $state("");
+	let newUserDb = $state("admin");
 	let newRole = $state("read");
 	let newRoleDb = $state("admin");
 	let newRoles = $state<Array<{ role: string; db: string }>>([]);
@@ -67,6 +78,7 @@
 	function openCreateModal() {
 		newUsername = "";
 		newPassword = "";
+		newUserDb = "admin";
 		newRole = "read";
 		newRoleDb = "admin";
 		newRoles = [];
@@ -96,6 +108,7 @@
 				server: data.server,
 				username: newUsername,
 				password: newPassword,
+				db: newUserDb,
 				roles,
 			});
 			if (result.error) {
@@ -103,9 +116,9 @@
 			}
 			notificationStore.notifySuccess(`User "${newUsername}" created successfully`);
 			showCreateModal = false;
-			await invalidate("app:users");
+			// Clear the cached result so the streaming promise re-resolves fresh data
 			resolvedUsers = null;
-			resolvedDatabases = null;
+			await invalidate("app:users");
 		} catch (error) {
 			notificationStore.notifyError(error, "Failed to create user");
 		} finally {
@@ -115,12 +128,18 @@
 
 	// ── Drop user modal ───────────────────────────────────────────────────
 	let showDropModal = $state(false);
-	let userToDrop = $state<string | null>(null);
+	let userToDrop = $state<{ user: string; db: string } | null>(null);
 	let droppingUser = $state(false);
+	// keyed by `${user}@${db}` so two users with the same name on different dbs
+	// don't share loading state
 	const operatingUsers = new SvelteSet<string>();
 
-	function openDropModal(username: string) {
-		userToDrop = username;
+	function userKey(u: string, db: string): string {
+		return `${u}@${db}`;
+	}
+
+	function openDropModal(user: { user: string; db: string }) {
+		userToDrop = user;
 		showDropModal = true;
 	}
 
@@ -133,29 +152,31 @@
 		if (!userToDrop) {
 			return;
 		}
-		const username = userToDrop;
+		const { user: username, db } = userToDrop;
+		const key = userKey(username, db);
 		droppingUser = true;
-		operatingUsers.add(username);
+		operatingUsers.add(key);
 		try {
-			const result = await dropUserCommand({ server: data.server, username });
+			const result = await dropUserCommand({ server: data.server, username, db });
 			if (result.error) {
 				throw new Error(result.error);
 			}
 			notificationStore.notifySuccess(`User "${username}" dropped successfully`);
 			closeDropModal();
-			await invalidate("app:users");
 			resolvedUsers = null;
+			await invalidate("app:users");
 		} catch (error) {
 			notificationStore.notifyError(error, "Failed to drop user");
 		} finally {
 			droppingUser = false;
-			operatingUsers.delete(username);
+			operatingUsers.delete(key);
 		}
 	}
 
 	// ── Edit roles modal ──────────────────────────────────────────────────
 	let showRolesModal = $state(false);
 	let rolesUser = $state<string | null>(null);
+	let rolesUserDb = $state<string>("admin");
 	let currentRoles = $state<Array<{ role: string; db: string }>>([]);
 	let inheritedPrivileges = $state<unknown>(null);
 	let addRoleName = $state("read");
@@ -169,6 +190,7 @@
 		inheritedPrivileges?: unknown;
 	}) {
 		rolesUser = user.user;
+		rolesUserDb = user.db;
 		currentRoles = user.roles.map((r) => ({ role: r.role, db: r.db }));
 		inheritedPrivileges = user.inheritedPrivileges ?? null;
 		addRoleName = "read";
@@ -179,6 +201,7 @@
 	function closeRolesModal() {
 		showRolesModal = false;
 		rolesUser = null;
+		rolesUserDb = "admin";
 		currentRoles = [];
 		inheritedPrivileges = null;
 	}
@@ -192,6 +215,7 @@
 			const result = await revokeRolesFromUserCommand({
 				server: data.server,
 				username: rolesUser,
+				db: rolesUserDb,
 				roles: [role],
 			});
 			if (result.error) {
@@ -199,8 +223,8 @@
 			}
 			currentRoles = currentRoles.filter((r) => !(r.role === role.role && r.db === role.db));
 			notificationStore.notifySuccess(`Revoked ${role.role}@${role.db} from ${rolesUser}`);
-			await invalidate("app:users");
 			resolvedUsers = null;
+			await invalidate("app:users");
 		} catch (error) {
 			notificationStore.notifyError(error, "Failed to revoke role");
 		} finally {
@@ -223,6 +247,7 @@
 			const result = await grantRolesToUserCommand({
 				server: data.server,
 				username: rolesUser,
+				db: rolesUserDb,
 				roles: [role],
 			});
 			if (result.error) {
@@ -230,8 +255,8 @@
 			}
 			currentRoles = [...currentRoles, role];
 			notificationStore.notifySuccess(`Granted ${role.role}@${role.db} to ${rolesUser}`);
-			await invalidate("app:users");
 			resolvedUsers = null;
+			await invalidate("app:users");
 		} catch (error) {
 			notificationStore.notifyError(error, "Failed to grant role");
 		} finally {
@@ -241,12 +266,12 @@
 
 	// ── Reset password modal ──────────────────────────────────────────────
 	let showPasswordModal = $state(false);
-	let passwordUser = $state<string | null>(null);
+	let passwordUser = $state<{ user: string; db: string } | null>(null);
 	let newPasswordValue = $state("");
 	let updatingPassword = $state(false);
 
-	function openPasswordModal(username: string) {
-		passwordUser = username;
+	function openPasswordModal(user: { user: string; db: string }) {
+		passwordUser = user;
 		newPasswordValue = "";
 		showPasswordModal = true;
 	}
@@ -261,17 +286,19 @@
 		if (!passwordUser || !newPasswordValue) {
 			return;
 		}
+		const { user: username, db } = passwordUser;
 		updatingPassword = true;
 		try {
 			const result = await updateUserPasswordCommand({
 				server: data.server,
-				username: passwordUser,
+				username,
+				db,
 				password: newPasswordValue,
 			});
 			if (result.error) {
 				throw new Error(result.error);
 			}
-			notificationStore.notifySuccess(`Password updated for "${passwordUser}"`);
+			notificationStore.notifySuccess(`Password updated for "${username}"`);
 			closePasswordModal();
 		} catch (error) {
 			notificationStore.notifyError(error, "Failed to update password");
@@ -407,8 +434,8 @@
 							</tr>
 						</thead>
 						<tbody>
-							{#each res.data as user (user.user)}
-								{@const isLoading = operatingUsers.has(user.user)}
+							{#each res.data as user (userKey(user.user, user.db))}
+								{@const isLoading = operatingUsers.has(userKey(user.user, user.db))}
 								<tr class="group" class:opacity-50={isLoading}>
 									<td class="name-cell">
 										<span class="font-mono text-sm">{user.user}</span>
@@ -474,14 +501,14 @@
 												</button>
 												<button
 													class="btn btn-outline-light px-2 py-1 text-xs whitespace-nowrap"
-													onclick={() => openPasswordModal(user.user)}
+													onclick={() => openPasswordModal(user)}
 													disabled={isLoading}
 												>
 													Password
 												</button>
 												<button
 													class="btn btn-outline-danger px-2 py-1 text-xs whitespace-nowrap"
-													onclick={() => openDropModal(user.user)}
+													onclick={() => openDropModal(user)}
 													disabled={isLoading}
 												>
 													Drop
@@ -529,6 +556,24 @@
 				class="w-full p-2 rounded border border-[var(--border-color)] bg-[var(--color-1)] text-sm focus:outline-none focus:ring-2"
 				style="color: var(--text); --tw-ring-color: var(--link);"
 			/>
+		</div>
+		<div>
+			<label for="new-user-db" class="block text-sm font-semibold mb-2" style="color: var(--text);">
+				Authentication Database
+			</label>
+			<p class="text-xs mb-2" style="color: var(--text-darker);">
+				The database the user is created on. Usually <code>admin</code>.
+			</p>
+			<select
+				id="new-user-db"
+				bind:value={newUserDb}
+				class="w-full p-2 rounded border border-[var(--border-color)] bg-[var(--color-1)] text-sm"
+				style="color: var(--text);"
+			>
+				{#each databaseNames as db (db)}
+					<option value={db}>{db}</option>
+				{/each}
+			</select>
 		</div>
 		<div>
 			<div class="block text-sm font-semibold mb-2" style="color: var(--text);">Roles</div>
@@ -587,7 +632,9 @@
 <!-- Drop user modal -->
 <Modal show={showDropModal} onclose={closeDropModal} title="Drop User">
 	<p>
-		Are you sure you want to drop the user <strong>{userToDrop}</strong>? This action cannot be undone.
+		Are you sure you want to drop the user <strong>{userToDrop?.user}</strong>
+		{#if userToDrop?.db && userToDrop.db !== "admin"}
+			on <strong>{userToDrop.db}</strong>{/if}? This action cannot be undone.
 	</p>
 	<p class="text-sm mt-2" style="color: var(--text-darker);">
 		The user will lose all access to the database. They can be recreated, but their credentials cannot be recovered.
@@ -670,7 +717,7 @@
 </Modal>
 
 <!-- Reset password modal -->
-<Modal show={showPasswordModal} onclose={closePasswordModal} title={`Reset Password — ${passwordUser ?? ""}`}>
+<Modal show={showPasswordModal} onclose={closePasswordModal} title={`Reset Password — ${passwordUser?.user ?? ""}`}>
 	<div class="space-y-4">
 		<div>
 			<label for="new-pwd" class="block text-sm font-semibold mb-2" style="color: var(--text);">
