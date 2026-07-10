@@ -1120,12 +1120,12 @@ export const listUsers = query(z.object({ server: z.string() }), async ({ server
 	const client = mongo.getClient(server);
 	const admin = client.db("admin");
 	try {
-		// `usersInfo: 1` lists all users in the current db (admin) — which on a
-		// cluster means every user. `showPrivileges: true` is NOT allowed with a
-		// non-exact (all-users) query unless the caller has grantRole privileges,
-		// so we list first, then fetch each user's resolved privileges via an
-		// exact-match query (which MongoDB always permits).
-		const result = await admin.command({ usersInfo: 1 });
+		// `{ forAllDBs: true }` lists users on every authentication database
+		// cluster-wide (not just admin). `showPrivileges: true` is NOT allowed
+		// with a non-exact (all-users) query unless the caller has grantRole
+		// privileges, so we list first, then fetch each user's resolved
+		// privileges via an exact-match query (which MongoDB always permits).
+		const result = await admin.command({ usersInfo: { forAllDBs: true } });
 		const users = (result.users ?? []) as Array<{ user: string; db: string }>;
 
 		const usersWithPrivs = await Promise.all(

@@ -9,15 +9,17 @@ export const load: PageServerLoad = async ({ params, depends }) => {
 	const client = mongo.getClient(params.server);
 	const admin = client.db("admin");
 
-	// Fetch all users. `showPrivileges: true` requires exact-match usersInfo
-	// queries (MongoDB rejects `usersInfo: 1` + `showPrivileges` unless the
-	// connected user has grantRole on the db). So we list all users first
-	// (which always returns each user's direct `roles`), then fetch each
-	// user's resolved privileges via an exact-match query. The per-user fetch
-	// is non-fatal — if it fails we still show the user with their roles.
+	// Fetch all users across *every* authentication database. `usersInfo: 1`
+	// only returns users defined on the current db (admin); users created on
+	// other databases would be invisible. `{ forAllDBs: true }` lists users on
+	// all databases cluster-wide. `showPrivileges: true` is not allowed with a
+	// non-exact (all-users) query unless the caller has grantRole privileges,
+	// so we list first, then fetch each user's resolved privileges via an
+	// exact-match query (always permitted). The per-user fetch is non-fatal —
+	// if it fails we still show the user with their roles.
 	const usersPromise = (async () => {
 		try {
-			const result = await admin.command({ usersInfo: 1 });
+			const result = await admin.command({ usersInfo: { forAllDBs: true } });
 			const users = (result.users ?? []) as Array<{ user: string; db: string }>;
 
 			const usersWithPrivs = await Promise.all(
