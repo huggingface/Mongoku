@@ -18,15 +18,18 @@
 
 	const readOnly = $derived(data.readOnly);
 
-	// Resolve the streamed promises once so we can mutate the local copy after
-	// grant/revoke without re-fetching from the server every time.
-	type User = PageData["users"] extends Promise<infer U> ? U : never;
-	type Role = PageData["roles"] extends Promise<infer R> ? R : never;
-	type Database = PageData["databases"] extends Promise<infer D> ? D : never;
+	// Each streamed promise resolves to { data, error }. We unwrap into local
+	// state so we can optimistically update after grant/revoke without a full
+	// re-fetch, and so rendering never holds onto the unresolved promise.
+	type UsersResult = PageData["users"] extends Promise<infer U> ? U : never;
+	type RolesResult = PageData["roles"] extends Promise<infer R> ? R : never;
+	type DatabasesResult = PageData["databases"] extends Promise<infer D> ? D : never;
 
-	let resolvedUsers = $state<User | null>(null);
-	let resolvedRoles = $state<Role | null>(null);
-	let resolvedDatabases = $state<Database | null>(null);
+	type RoleDoc = RolesResult extends { data: infer R } ? R : never;
+
+	let resolvedUsers = $state<UsersResult | null>(null);
+	let resolvedRoles = $state<RolesResult | null>(null);
+	let resolvedDatabases = $state<DatabasesResult | null>(null);
 
 	$effect(() => {
 		data.users.then((r) => {
@@ -50,8 +53,7 @@
 		});
 	});
 
-	const usersData = $derived(resolvedUsers ?? data.users);
-	const rolesData = $derived(resolvedRoles ?? data.roles);
+	const usersResult = $derived(resolvedUsers ?? data.users);
 
 	// ── Create user modal ──────────────────────────────────────────────────
 	let showCreateModal = $state(false);
@@ -279,13 +281,16 @@
 	}
 
 	// Available role names (deduped, sorted) from the roles list for the dropdowns.
+	// These only render inside modals, which open after data has resolved, so
+	// deriving from the resolved state (null until loaded) is safe.
 	const availableRoleNames = $derived.by(() => {
-		const roles = rolesData;
-		if (!roles || roles instanceof Error) {
+		const res = resolvedRoles;
+		const roles = res?.data;
+		if (!res || res.error || !Array.isArray(roles)) {
 			return ["read", "readWrite", "dbAdmin", "userAdmin", "clusterAdmin"].sort();
 		}
 		const names: Record<string, true> = {};
-		for (const r of roles) {
+		for (const r of roles as RoleDoc[]) {
 			if (r?.role) {
 				names[r.role] = true;
 			}
@@ -295,8 +300,9 @@
 
 	// Database names for the role-target dropdown.
 	const databaseNames = $derived.by(() => {
-		const dbs = resolvedDatabases;
-		if (!dbs || dbs instanceof Error || !Array.isArray(dbs)) {
+		const res = resolvedDatabases;
+		const dbs = res?.data;
+		if (!res || res.error || !Array.isArray(dbs)) {
 			return ["admin"];
 		}
 		const names = (dbs as unknown[]).filter((d): d is string => typeof d === "string");
@@ -344,15 +350,15 @@
 	}
 </script>
 
-{#await usersData}
+{#await usersResult}
 	<Panel title="Users">
 		<div class="loading">Loading users...</div>
 	</Panel>
-{:then result}
-	{#if result instanceof Error}
+{:then res}
+	{#if res.error}
 		<Panel title="Users">
 			<div class="p-4">
-				<p class="error">Error loading users: {result.message}</p>
+				<p class="error">Error loading users: {res.error}</p>
 				<p class="text-sm mt-2" style="color: var(--text-darker);">
 					User management requires the connected MongoDB user to have the <code>userAdmin</code> or
 					<code>userAdminAnyDatabase</code> role (or equivalent) on the <code>admin</code> database.
@@ -381,7 +387,7 @@
 			{/if}
 		</div>
 
-		{#if result.length === 0}
+		{#if res.data.length === 0}
 			<Panel title="Users">
 				<div class="text-center p-4" style="color: var(--text-darker)">No users found</div>
 			</Panel>
@@ -401,7 +407,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							{#each result as user (user.user)}
+							{#each res.data as user (user.user)}
 								{@const isLoading = operatingUsers.has(user.user)}
 								<tr class="group" class:opacity-50={isLoading}>
 									<td class="name-cell">
@@ -458,23 +464,23 @@
 									</td>
 									{#if !readOnly}
 										<td>
-											<div class="flex gap-2 hidden group-hover:flex -my-2">
+											<div class="flex gap-1.5 items-center justify-end whitespace-nowrap hidden group-hover:flex">
 												<button
-													class="btn btn-outline-primary btn-sm"
+													class="btn btn-outline-primary px-2 py-1 text-xs whitespace-nowrap"
 													onclick={() => openRolesModal(user)}
 													disabled={isLoading}
 												>
 													Edit Roles
 												</button>
 												<button
-													class="btn btn-outline-light btn-sm"
+													class="btn btn-outline-light px-2 py-1 text-xs whitespace-nowrap"
 													onclick={() => openPasswordModal(user.user)}
 													disabled={isLoading}
 												>
 													Password
 												</button>
 												<button
-													class="btn btn-outline-danger btn-sm"
+													class="btn btn-outline-danger px-2 py-1 text-xs whitespace-nowrap"
 													onclick={() => openDropModal(user.user)}
 													disabled={isLoading}
 												>
@@ -491,12 +497,8 @@
 			</Panel>
 		{/if}
 	{/if}
-{:catch err}
-	<Panel title="Users">
-		<div class="p-4">
-			<p class="error">Error loading users: {err}</p>
-		</div>
-	</Panel>
+{:catch}
+	<!-- promises resolve with {data,error} and never reject; placeholder -->
 {/await}
 
 <!-- Create user modal -->
