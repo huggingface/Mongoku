@@ -1090,3 +1090,248 @@ export const auditSchema = command(
 		}
 	},
 );
+
+// ────────────────────────────────────────────────────────────────────────────
+// User management
+// ────────────────────────────────────────────────────────────────────────────
+// MongoDB identifies a user by (user, db). `usersInfo: 1` against the admin
+// database lists every user on the cluster (regardless of the db they were
+// created on), and each returned document carries its own `db` field.
+// The mutating commands (dropUser / grantRolesToUser / revokeRolesFromUser /
+// updateUser) must run against the database the user lives on, so every
+// command below accepts a `db` argument and issues `client.db(db).command(...)`.
+
+/**
+ * Role reference as accepted by MongoDB role-management commands.
+ * A bare string means "role on the admin db"; an object can target another db.
+ */
+const roleRefSchema = z.union([
+	z.string(),
+	z.object({
+		role: z.string(),
+		db: z.string(),
+	}),
+]);
+
+// List all users on the cluster, with their resolved privileges.
+export const listUsers = query(z.object({ server: z.string() }), async ({ server }) => {
+	logger.log("listUsers called with payload:", { server });
+	const mongo = await getMongo();
+	const client = mongo.getClient(server);
+	const admin = client.db("admin");
+	try {
+		// `{ forAllDBs: true }` lists users on every authentication database
+		// cluster-wide (not just admin). `showPrivileges: true` is NOT allowed
+		// with a non-exact (all-users) query unless the caller has grantRole
+		// privileges, so we list first, then fetch each user's resolved
+		// privileges via an exact-match query (which MongoDB always permits).
+		const result = await admin.command({ usersInfo: { forAllDBs: true } });
+		const users = (result.users ?? []) as Array<{ user: string; db: string }>;
+
+		const usersWithPrivs = await Promise.all(
+			users.map(async (u) => {
+				try {
+					const info = await admin.command({
+						usersInfo: { user: u.user, db: u.db },
+						showPrivileges: true,
+					});
+					const detail = (info.users ?? [])[0] ?? {};
+					return { ...u, ...detail };
+				} catch (err) {
+					// Privilege resolution failed for this user — keep the base record
+					logger.error(`Error getting privileges for user ${u.user}:`, err);
+					return u;
+				}
+			}),
+		);
+
+		return {
+			// JSON round-trip strips MongoDB special types for safe transport
+			data: JSON.parse(JSON.stringify(JsonEncoder.encode(usersWithPrivs))),
+			error: null as string | null,
+		};
+	} catch (err) {
+		logger.error("Error listing users:", err);
+		return {
+			data: [],
+			error: `Failed to list users: ${err instanceof Error ? err.message : String(err)}`,
+		};
+	}
+});
+
+// List all roles on the admin database, including built-in roles.
+export const listRoles = query(z.object({ server: z.string() }), async ({ server }) => {
+	logger.log("listRoles called with payload:", { server });
+	const mongo = await getMongo();
+	const client = mongo.getClient(server);
+	const admin = client.db("admin");
+	try {
+		// rolesInfo: 1 returns all user-defined roles in the current db.
+		// showBuiltinRoles: true also returns the built-in roles (read, readWrite, …).
+		// showPrivileges: true resolves the full privilege list for each role.
+		const result = await admin.command({ rolesInfo: 1, showBuiltinRoles: true, showPrivileges: true });
+		return {
+			data: JSON.parse(JSON.stringify(JsonEncoder.encode(result.roles ?? []))),
+			error: null as string | null,
+		};
+	} catch (err) {
+		logger.error("Error listing roles:", err);
+		return {
+			data: [],
+			error: `Failed to list roles: ${err instanceof Error ? err.message : String(err)}`,
+		};
+	}
+});
+
+// Create a new user. The user is created on the `db` it should live on
+// (defaults to "admin" when omitted).
+export const createUser = command(
+	z.object({
+		server: z.string(),
+		username: z.string(),
+		password: z.string(),
+		db: z.string().default("admin"),
+		roles: z.array(roleRefSchema).default([]),
+	}),
+	async ({ server, username, password, db, roles }) => {
+		logger.log("createUser called with payload:", { server, username, db, roles });
+		checkReadOnly();
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+		const targetDb = client.db(db);
+		try {
+			// Decode role refs so {$type:...} markers (not expected here, but safe) are handled.
+			const decodedRoles = JsonEncoder.decode(roles);
+			await targetDb.command({
+				createUser: username,
+				pwd: password,
+				roles: decodedRoles,
+			});
+			return { ok: true, error: null as string | null };
+		} catch (err) {
+			logger.error("Error creating user:", err);
+			return {
+				ok: false,
+				error: `Failed to create user: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
+	},
+);
+
+// Drop an existing user. Runs against the db the user lives on.
+export const dropUser = command(
+	z.object({
+		server: z.string(),
+		username: z.string(),
+		db: z.string().default("admin"),
+	}),
+	async ({ server, username, db }) => {
+		logger.log("dropUser called with payload:", { server, username, db });
+		checkReadOnly();
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+		const targetDb = client.db(db);
+		try {
+			await targetDb.command({ dropUser: username });
+			return { ok: true, error: null as string | null };
+		} catch (err) {
+			logger.error("Error dropping user:", err);
+			return {
+				ok: false,
+				error: `Failed to drop user: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
+	},
+);
+
+// Grant roles to an existing user. Runs against the db the user lives on.
+export const grantRolesToUser = command(
+	z.object({
+		server: z.string(),
+		username: z.string(),
+		db: z.string().default("admin"),
+		roles: z.array(roleRefSchema),
+	}),
+	async ({ server, username, db, roles }) => {
+		logger.log("grantRolesToUser called with payload:", { server, username, db, roles });
+		checkReadOnly();
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+		const targetDb = client.db(db);
+		try {
+			const decodedRoles = JsonEncoder.decode(roles);
+			await targetDb.command({
+				grantRolesToUser: username,
+				roles: decodedRoles,
+			});
+			return { ok: true, error: null as string | null };
+		} catch (err) {
+			logger.error("Error granting roles to user:", err);
+			return {
+				ok: false,
+				error: `Failed to grant roles: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
+	},
+);
+
+// Revoke roles from an existing user. Runs against the db the user lives on.
+export const revokeRolesFromUser = command(
+	z.object({
+		server: z.string(),
+		username: z.string(),
+		db: z.string().default("admin"),
+		roles: z.array(roleRefSchema),
+	}),
+	async ({ server, username, db, roles }) => {
+		logger.log("revokeRolesFromUser called with payload:", { server, username, db, roles });
+		checkReadOnly();
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+		const targetDb = client.db(db);
+		try {
+			const decodedRoles = JsonEncoder.decode(roles);
+			await targetDb.command({
+				revokeRolesFromUser: username,
+				roles: decodedRoles,
+			});
+			return { ok: true, error: null as string | null };
+		} catch (err) {
+			logger.error("Error revoking roles from user:", err);
+			return {
+				ok: false,
+				error: `Failed to revoke roles: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
+	},
+);
+
+// Reset a user's password. Runs against the db the user lives on.
+export const updateUserPassword = command(
+	z.object({
+		server: z.string(),
+		username: z.string(),
+		db: z.string().default("admin"),
+		password: z.string(),
+	}),
+	async ({ server, username, db, password }) => {
+		logger.log("updateUserPassword called with payload:", { server, username, db });
+		checkReadOnly();
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+		const targetDb = client.db(db);
+		try {
+			await targetDb.command({
+				updateUser: username,
+				pwd: password,
+			});
+			return { ok: true, error: null as string | null };
+		} catch (err) {
+			logger.error("Error updating user password:", err);
+			return {
+				ok: false,
+				error: `Failed to update password: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
+	},
+);

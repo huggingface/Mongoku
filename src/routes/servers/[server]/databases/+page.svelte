@@ -51,6 +51,15 @@
 </script>
 
 <Panel title="Databases on {data.server}">
+	{#snippet actions()}
+		<a
+			href={resolve(`/servers/${encodeURIComponent(data.server)}/users`)}
+			class="btn btn-outline-primary btn-sm"
+			title="Manage MongoDB users & roles"
+		>
+			Users
+		</a>
+	{/snippet}
 	<table class="table">
 		<thead>
 			<tr>
