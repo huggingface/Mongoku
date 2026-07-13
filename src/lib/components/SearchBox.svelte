@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { countDocumentsByTimeRange } from "$api/servers.remote";
 	import { goto } from "$app/navigation";
-	import { resolve } from "$app/paths";
+	import { base, resolve } from "$app/paths";
 	import { page } from "$app/state";
 	import { clickOutside } from "$lib/actions/clickOutside";
 	import { jsonTextarea } from "$lib/actions/jsonTextarea";
@@ -149,15 +149,12 @@
 			return;
 		}
 
+		// page.url.pathname already includes base; strip it so resolve() re-adds it once.
+		const pathWithoutBase = page.url.pathname.slice(base.length);
+
 		await goto(
-			resolve(
-				(page.url.pathname +
-					"?" +
-					[...formData.entries()]
-						.map((e) => encodeURIComponent(e[0]) + "=" + encodeURIComponent(e[1] as string))
-						// eslint-disable-next-line @typescript-eslint/no-explicit-any
-						.join("&")) as any,
-			),
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			resolve((pathWithoutBase + "?" + queryString) as any),
 			{
 				keepFocus: true,
 			},
