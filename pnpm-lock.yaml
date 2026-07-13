@@ -9,22 +9,22 @@ importers:
   .:
     dependencies:
       '@aws-sdk/credential-providers':
-        specifier: ^3.592.0
+        specifier: ^3.1048.0
         version: 3.1048.0
       '@codemirror/commands':
-        specifier: ^6.3.3
+        specifier: ^6.10.3
         version: 6.10.3
       '@codemirror/lang-javascript':
-        specifier: ^6.2.1
+        specifier: ^6.2.5
         version: 6.2.5
       '@codemirror/state':
-        specifier: ^6.4.0
+        specifier: ^6.6.0
         version: 6.6.0
       '@codemirror/theme-one-dark':
-        specifier: ^6.1.2
+        specifier: ^6.1.3
         version: 6.1.3
       '@codemirror/view':
-        specifier: ^6.23.0
+        specifier: ^6.43.0
         version: 6.43.0
       aws4:
         specifier: ^1.13.2
@@ -33,7 +33,7 @@ importers:
         specifier: ^2.4.2
         version: 2.4.2
       codemirror:
-        specifier: ^6.0.1
+        specifier: ^6.0.2
         version: 6.0.2
       commander:
         specifier: ^8.3.0
@@ -42,17 +42,17 @@ importers:
         specifier: ^4.0.1
         version: 4.0.1
       mongodb:
-        specifier: ^6.20.0
+        specifier: ^6.21.0
         version: 6.21.0(@aws-sdk/credential-providers@3.1048.0)(socks@2.8.7)
       zod:
-        specifier: ^4.1.12
+        specifier: ^4.4.3
         version: 4.4.3
     devDependencies:
       '@eslint/compat':
-        specifier: ^1.4.0
+        specifier: ^1.4.1
         version: 1.4.1(eslint@9.39.4(jiti@2.7.0))
       '@eslint/js':
-        specifier: ^9.36.0
+        specifier: ^9.39.4
         version: 9.39.4
       '@fontsource/cuprum':
         specifier: ^5.2.8
@@ -61,43 +61,43 @@ importers:
         specifier: ^5.2.7
         version: 5.2.7
       '@sveltejs/adapter-node':
-        specifier: ^5.3.3
+        specifier: ^5.5.4
         version: 5.5.4(@sveltejs/kit@2.60.1(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.7(@typescript-eslint/types@8.59.3))(vite@7.3.3(@types/node@22.19.19)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.93.2)(tsx@4.20.6)))(svelte@5.55.7(@typescript-eslint/types@8.59.3))(typescript@5.9.3)(vite@7.3.3(@types/node@22.19.19)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.93.2)(tsx@4.20.6)))
       '@sveltejs/kit':
-        specifier: ^2.49.5
+        specifier: ^2.60.1
         version: 2.60.1(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.7(@typescript-eslint/types@8.59.3))(vite@7.3.3(@types/node@22.19.19)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.93.2)(tsx@4.20.6)))(svelte@5.55.7(@typescript-eslint/types@8.59.3))(typescript@5.9.3)(vite@7.3.3(@types/node@22.19.19)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.93.2)(tsx@4.20.6))
       '@sveltejs/vite-plugin-svelte':
-        specifier: ^6.2.0
+        specifier: ^6.2.4
         version: 6.2.4(svelte@5.55.7(@typescript-eslint/types@8.59.3))(vite@7.3.3(@types/node@22.19.19)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.93.2)(tsx@4.20.6))
       '@tailwindcss/vite':
-        specifier: ^4.1.14
+        specifier: ^4.3.0
         version: 4.3.0(vite@7.3.3(@types/node@22.19.19)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.93.2)(tsx@4.20.6))
       '@types/esprima':
         specifier: ^4.0.6
         version: 4.0.6
       '@types/estree':
-        specifier: ^1.0.8
+        specifier: ^1.0.9
         version: 1.0.9
       '@types/node':
-        specifier: ^22
+        specifier: ^22.19.19
         version: 22.19.19
       eslint:
-        specifier: ^9.36.0
+        specifier: ^9.39.4
         version: 9.39.4(jiti@2.7.0)
       eslint-config-prettier:
         specifier: ^10.1.8
         version: 10.1.8(eslint@9.39.4(jiti@2.7.0))
       eslint-plugin-svelte:
-        specifier: ^3.12.4
+        specifier: ^3.17.1
         version: 3.17.1(eslint@9.39.4(jiti@2.7.0))(svelte@5.55.7(@typescript-eslint/types@8.59.3))
       globals:
-        specifier: ^16.4.0
+        specifier: ^16.5.0
         version: 16.5.0
       prettier:
-        specifier: ^3.6.2
+        specifier: ^3.8.3
         version: 3.8.3
       prettier-plugin-svelte:
-        specifier: ^3.4.0
+        specifier: ^3.5.2
         version: 3.5.2(prettier@3.8.3)(svelte@5.55.7(@typescript-eslint/types@8.59.3))
       simple-git-hooks:
         specifier: ^2.13.1
@@ -106,19 +106,19 @@ importers:
         specifier: ^5.55.7
         version: 5.55.7(@typescript-eslint/types@8.59.3)
       svelte-check:
-        specifier: ^4.3.2
+        specifier: ^4.4.8
         version: 4.4.8(picomatch@4.0.3)(svelte@5.55.7(@typescript-eslint/types@8.59.3))(typescript@5.9.3)
       tailwindcss:
-        specifier: ^4.1.14
+        specifier: ^4.3.0
         version: 4.3.0
       typescript:
-        specifier: ^5.9.2
+        specifier: ^5.9.3
         version: 5.9.3
       typescript-eslint:
-        specifier: ^8.44.1
+        specifier: ^8.59.3
         version: 8.59.3(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3)
       vite:
-        specifier: ^7.1.11
+        specifier: ^7.3.3
         version: 7.3.3(@types/node@22.19.19)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.93.2)(tsx@4.20.6)
       vitest:
         specifier: ^3.2.4
@@ -1645,8 +1645,8 @@ packages:
     resolution: {integrity: sha512-f7ccFPK3SXFHpx15UIGyRJ/FJQctuKZ0zVuN3frBo4HnK3cay9VEW0R6yPYFHC0AgqhukPzKjq22t5DmAyqGyw==}
     engines: {node: '>=16'}
 
-  flatted@3.3.3:
-    resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
+  flatted@3.4.2:
+    resolution: {integrity: sha512-PjDse7RzhcPkIJwy5t7KPWQSZ9cAbzQXcafsetQoD7sOJRQlGikNbx7yZp2OotDnJyrDcbyRq3Ttb18iYOqkxA==}
 
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
@@ -3849,10 +3849,10 @@ snapshots:
 
   flat-cache@4.0.1:
     dependencies:
-      flatted: 3.3.3
+      flatted: 3.4.2
       keyv: 4.5.4
 
-  flatted@3.3.3: {}
+  flatted@3.4.2: {}
 
   fsevents@2.3.3:
     optional: true
