@@ -22,6 +22,9 @@ jobs:
   publish:
     runs-on: ubuntu-latest
 
+    outputs:
+      version: ${{ steps.package-version.outputs.version }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -79,9 +82,6 @@ jobs:
       - name: Publish to NPM
         run: pnpm publish --no-git-checks
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
@@ -91,15 +91,17 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build and push Docker image
+      # amd64 only here - the arm64 image is built natively in the publish-arm64
+      # job below, since running the Vite/Tailwind build under QEMU emulation is
+      # known to crash native toolchain binaries (esbuild, @tailwindcss/oxide).
+      # The two per-arch images are merged into multi-arch tags in merge-manifests.
+      - name: Build and push Docker image (amd64)
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
-          tags: |
-            huggingface/mongoku:latest
-            huggingface/mongoku:${{ steps.package-version.outputs.version }}
+          tags: huggingface/mongoku:${{ steps.package-version.outputs.version }}-amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -123,15 +125,13 @@ jobs:
       - name: Publish compat version to NPM
         run: pnpm publish --no-git-checks --tag compat
 
-      - name: Build and push Docker image (compat)
+      - name: Build and push Docker image (compat, amd64)
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
-          tags: |
-            huggingface/mongoku:compat
-            huggingface/mongoku:${{ steps.package-version.outputs.version }}-compat
+          tags: huggingface/mongoku:${{ steps.package-version.outputs.version }}-compat-amd64
           cache-from: type=gha
 
       - name: Restore package.json
@@ -164,3 +164,97 @@ jobs:
       # - run: pnpm publish --no-git-checks .
       #   env:
       #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-arm64:
+    needs: publish
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: v${{ needs.publish.outputs.version }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      # Native arm64 runner - the Dockerfile's build stage (pnpm build via Vite/Tailwind)
+      # runs natively here, avoiding QEMU emulation crashes in native-binary tooling.
+      - name: Build and push Docker image (arm64)
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          platforms: linux/arm64
+          push: true
+          tags: huggingface/mongoku:${{ needs.publish.outputs.version }}-arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Setup pnpm
+        run: npm install -g corepack@latest && corepack enable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.x
+          cache: "pnpm"
+
+      # Same MongoDB driver override as the amd64 compat build, so the compat
+      # image's package.json/lockfile match on both architectures.
+      - name: Add MongoDB driver version 5.9.2 override for compat version
+        run: |
+          node -e "
+          const fs = require('fs');
+          const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+          pkg.version = pkg.version + '-compat';
+          pkg.pnpm = { overrides: { mongodb: '5.9.2' } };
+          fs.writeFileSync('./package.json', JSON.stringify(pkg, null, '\t'));
+          "
+
+      - name: Reinstall dependencies with MongoDB override
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build and push Docker image (compat, arm64)
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          platforms: linux/arm64
+          push: true
+          tags: huggingface/mongoku:${{ needs.publish.outputs.version }}-compat-arm64
+          cache-from: type=gha
+
+  merge-manifests:
+    needs: [publish, publish-arm64]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Create multi-arch manifest
+        run: |
+          docker buildx imagetools create \
+            -t huggingface/mongoku:latest \
+            -t huggingface/mongoku:${{ needs.publish.outputs.version }} \
+            huggingface/mongoku:${{ needs.publish.outputs.version }}-amd64 \
+            huggingface/mongoku:${{ needs.publish.outputs.version }}-arm64
+
+      - name: Create multi-arch manifest (compat)
+        run: |
+          docker buildx imagetools create \
+            -t huggingface/mongoku:compat \
+            -t huggingface/mongoku:${{ needs.publish.outputs.version }}-compat \
+            huggingface/mongoku:${{ needs.publish.outputs.version }}-compat-amd64 \
+            huggingface/mongoku:${{ needs.publish.outputs.version }}-compat-arm64
