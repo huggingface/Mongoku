@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { dropCollection as dropCollectionCommand } from "$api/servers.remote";
+	import {
+		createCollection as createCollectionCommand,
+		dropCollection as dropCollectionCommand,
+	} from "$api/servers.remote";
 	import { invalidateAll } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import Modal from "$lib/components/Modal.svelte";
@@ -75,9 +78,60 @@
 			isDropping = false;
 		}
 	}
+
+	let showCreateModal = $state(false);
+	let creatingCollection = $state(false);
+	let newCollectionName = $state("");
+
+	function openCreateModal() {
+		newCollectionName = "";
+		showCreateModal = true;
+	}
+
+	function closeCreateModal() {
+		showCreateModal = false;
+		creatingCollection = false;
+	}
+
+	async function confirmCreateCollection() {
+		const collection = newCollectionName.trim();
+		if (!collection || creatingCollection) {
+			return;
+		}
+
+		creatingCollection = true;
+		try {
+			await createCollectionCommand({ server: data.server, database: data.database, collection });
+			notificationStore.notifySuccess(`Collection "${collection}" created successfully`);
+			closeCreateModal();
+			await invalidateAll();
+		} catch (error) {
+			notificationStore.notifyError(error, "Failed to create collection");
+			creatingCollection = false;
+		}
+	}
 </script>
 
 <Panel title="{data.database} collections">
+	{#snippet actions()}
+		{#if !data.readOnly}
+			<button class="btn btn-success btn-sm" type="button" onclick={openCreateModal}>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					class="w-4 h-4 inline mr-1"
+				>
+					<path d="M12 5v14M5 12h14" />
+				</svg>
+				Create Collection
+			</button>
+		{/if}
+	{/snippet}
 	<table class="table">
 		<thead>
 			<tr>
@@ -215,6 +269,32 @@
 			{:else}
 				Drop Collection
 			{/if}
+		</button>
+	{/snippet}
+</Modal>
+
+<Modal show={showCreateModal} onclose={closeCreateModal} title="Create Collection">
+	<div>
+		<label for="new-collection-name" class="block text-sm font-semibold mb-2" style="color: var(--text);">
+			Collection Name <span style="color: var(--error);">*</span>
+		</label>
+		<input
+			id="new-collection-name"
+			type="text"
+			bind:value={newCollectionName}
+			placeholder="my_collection"
+			class="w-full p-2 rounded border border-[var(--border-color)] bg-[var(--color-1)] text-sm focus:outline-none focus:ring-2"
+			style="color: var(--text); --tw-ring-color: var(--link);"
+		/>
+	</div>
+	{#snippet footer()}
+		<button class="btn btn-default btn-sm" onclick={closeCreateModal} disabled={creatingCollection}>Cancel</button>
+		<button
+			class="btn btn-success btn-sm"
+			onclick={confirmCreateCollection}
+			disabled={creatingCollection || !newCollectionName.trim()}
+		>
+			{creatingCollection ? "Creating..." : "Create Collection"}
 		</button>
 	{/snippet}
 </Modal>

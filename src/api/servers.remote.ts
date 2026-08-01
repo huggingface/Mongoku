@@ -409,6 +409,28 @@ export const dropIndex = command(
 	},
 );
 
+// Create a collection. If the database does not exist yet, MongoDB creates it
+// implicitly as part of creating its first collection — this is also how
+// "Create Database" in the UI works, since there is no standalone
+// "create database" server command.
+export const createCollection = command(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+		collection: z.string(),
+	}),
+	async ({ server, database, collection }) => {
+		logger.log("createCollection called with payload:", { server, database, collection });
+		checkReadOnly();
+
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+		await client.db(database).createCollection(collection);
+
+		return { ok: true };
+	},
+);
+
 // Drop a collection
 export const dropCollection = command(
 	z.object({
