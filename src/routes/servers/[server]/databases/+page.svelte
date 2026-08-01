@@ -75,6 +75,15 @@
 			return;
 		}
 
+		// A database name collision means the user's intent (create a NEW
+		// database) can't be fulfilled — creating the collection anyway would
+		// silently add it to the existing database while still claiming the
+		// database was created. Reject explicitly instead.
+		if (data.databases?.some((db) => db.name === database)) {
+			notificationStore.notifyError(`Database "${database}" already exists`);
+			return;
+		}
+
 		creatingDatabase = true;
 		try {
 			await createCollectionCommand({ server: data.server, database, collection });

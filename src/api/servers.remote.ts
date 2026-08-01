@@ -425,7 +425,18 @@ export const createCollection = command(
 
 		const mongo = await getMongo();
 		const client = mongo.getClient(server);
-		await client.db(database).createCollection(collection);
+		const db = client.db(database);
+
+		// The `create` command is idempotent for an existing collection with the
+		// same options (MongoDB 7.0+), so it would otherwise silently no-op and
+		// report success. Check explicitly so re-submitting an existing name
+		// surfaces a real error instead of a false "created" toast.
+		const existing = await db.listCollections({ name: collection }, { nameOnly: true }).toArray();
+		if (existing.length > 0) {
+			error(409, `Collection "${collection}" already exists in database "${database}"`);
+		}
+
+		await db.createCollection(collection);
 
 		return { ok: true };
 	},
