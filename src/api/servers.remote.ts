@@ -418,13 +418,27 @@ export const createCollection = command(
 		server: z.string(),
 		database: z.string(),
 		collection: z.string(),
+		// Set by the "Create Database" flow, where `database` is expected to be
+		// new. `data.databases` on the client is filtered by
+		// MONGOKU_EXCLUDE_DATABASES, so an excluded-but-existing name (e.g.
+		// "admin") wouldn't be caught by a client-side check — this must be a
+		// fresh, unfiltered server-side check instead.
+		expectNewDatabase: z.boolean().optional(),
 	}),
-	async ({ server, database, collection }) => {
-		logger.log("createCollection called with payload:", { server, database, collection });
+	async ({ server, database, collection, expectNewDatabase }) => {
+		logger.log("createCollection called with payload:", { server, database, collection, expectNewDatabase });
 		checkReadOnly();
 
 		const mongo = await getMongo();
 		const client = mongo.getClient(server);
+
+		if (expectNewDatabase) {
+			const { databases } = await client.db().admin().listDatabases({ nameOnly: true });
+			if (databases.some((db) => db.name === database)) {
+				error(409, `Database "${database}" already exists`);
+			}
+		}
+
 		const db = client.db(database);
 
 		// The `create` command is idempotent for an existing collection with the

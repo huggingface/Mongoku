@@ -75,18 +75,14 @@
 			return;
 		}
 
-		// A database name collision means the user's intent (create a NEW
-		// database) can't be fulfilled — creating the collection anyway would
-		// silently add it to the existing database while still claiming the
-		// database was created. Reject explicitly instead.
-		if (data.databases?.some((db) => db.name === database)) {
-			notificationStore.notifyError(`Database "${database}" already exists`);
-			return;
-		}
-
 		creatingDatabase = true;
 		try {
-			await createCollectionCommand({ server: data.server, database, collection });
+			// expectNewDatabase: true makes the server reject an already-existing
+			// database name instead of silently adding a collection to it. This
+			// must be checked server-side — data.databases here is filtered by
+			// MONGOKU_EXCLUDE_DATABASES, so it can't reliably tell us a name like
+			// "admin" is already taken.
+			await createCollectionCommand({ server: data.server, database, collection, expectNewDatabase: true });
 			notificationStore.notifySuccess(`Database "${database}" created successfully`);
 			closeCreateModal();
 			await invalidateAll();
