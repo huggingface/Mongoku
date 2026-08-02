@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { dropDatabase as dropDatabaseCommand } from "$api/servers.remote";
+	import {
+		createCollection as createCollectionCommand,
+		dropDatabase as dropDatabaseCommand,
+	} from "$api/servers.remote";
 	import { invalidateAll } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import Modal from "$lib/components/Modal.svelte";
@@ -48,10 +51,67 @@
 			isDropping = false;
 		}
 	}
+
+	let showCreateModal = $state(false);
+	let creatingDatabase = $state(false);
+	let newDatabaseName = $state("");
+	let newCollectionName = $state("");
+
+	function openCreateModal() {
+		newDatabaseName = "";
+		newCollectionName = "";
+		showCreateModal = true;
+	}
+
+	function closeCreateModal() {
+		showCreateModal = false;
+		creatingDatabase = false;
+	}
+
+	async function confirmCreateDatabase() {
+		const database = newDatabaseName.trim();
+		const collection = newCollectionName.trim();
+		if (!database || !collection || creatingDatabase) {
+			return;
+		}
+
+		creatingDatabase = true;
+		try {
+			// expectNewDatabase: true makes the server reject an already-existing
+			// database name instead of silently adding a collection to it. This
+			// must be checked server-side — data.databases here is filtered by
+			// MONGOKU_EXCLUDE_DATABASES, so it can't reliably tell us a name like
+			// "admin" is already taken.
+			await createCollectionCommand({ server: data.server, database, collection, expectNewDatabase: true });
+			notificationStore.notifySuccess(`Database "${database}" created successfully`);
+			closeCreateModal();
+			await invalidateAll();
+		} catch (error) {
+			notificationStore.notifyError(error, "Failed to create database");
+			creatingDatabase = false;
+		}
+	}
 </script>
 
 <Panel title="Databases on {data.server}">
 	{#snippet actions()}
+		{#if !data.readOnly}
+			<button class="btn btn-success btn-sm" type="button" onclick={openCreateModal}>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					class="w-4 h-4 inline mr-1"
+				>
+					<path d="M12 5v14M5 12h14" />
+				</svg>
+				Create Database
+			</button>
+		{/if}
 		<a
 			href={resolve(`/servers/${encodeURIComponent(data.server)}/users`)}
 			class="btn btn-outline-primary btn-sm"
@@ -148,6 +208,50 @@
 			{:else}
 				Drop Database
 			{/if}
+		</button>
+	{/snippet}
+</Modal>
+
+<Modal show={showCreateModal} onclose={closeCreateModal} title="Create Database">
+	<div class="space-y-4">
+		<div>
+			<label for="new-database-name" class="block text-sm font-semibold mb-2" style="color: var(--text);">
+				Database Name <span style="color: var(--error);">*</span>
+			</label>
+			<input
+				id="new-database-name"
+				type="text"
+				bind:value={newDatabaseName}
+				placeholder="my_database"
+				class="w-full p-2 rounded border border-[var(--border-color)] bg-[var(--color-1)] text-sm focus:outline-none focus:ring-2"
+				style="color: var(--text); --tw-ring-color: var(--link);"
+			/>
+		</div>
+		<div>
+			<label for="new-database-collection" class="block text-sm font-semibold mb-2" style="color: var(--text);">
+				Initial Collection Name <span style="color: var(--error);">*</span>
+			</label>
+			<p class="text-xs mb-2" style="color: var(--text-darker);">
+				MongoDB creates a database only once it has at least one collection, so an initial collection is required.
+			</p>
+			<input
+				id="new-database-collection"
+				type="text"
+				bind:value={newCollectionName}
+				placeholder="my_collection"
+				class="w-full p-2 rounded border border-[var(--border-color)] bg-[var(--color-1)] text-sm focus:outline-none focus:ring-2"
+				style="color: var(--text); --tw-ring-color: var(--link);"
+			/>
+		</div>
+	</div>
+	{#snippet footer()}
+		<button class="btn btn-default btn-sm" onclick={closeCreateModal} disabled={creatingDatabase}>Cancel</button>
+		<button
+			class="btn btn-success btn-sm"
+			onclick={confirmCreateDatabase}
+			disabled={creatingDatabase || !newDatabaseName.trim() || !newCollectionName.trim()}
+		>
+			{creatingDatabase ? "Creating..." : "Create Database"}
 		</button>
 	{/snippet}
 </Modal>
