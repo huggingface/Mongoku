@@ -31,10 +31,18 @@
 	let failed = $state(false);
 	let filter = $state("");
 
-	// Reset the cached list when moving to another database or server.
+	// Incremented on every load attempt and on every server/database change; a
+	// response only lands if its token is still current, so a slow request for a
+	// previous server/database can't overwrite freshly-reset state (and wrongly
+	// skip the next refetch).
+	let loadToken = 0;
+
+	// Reset the cached list when moving to another database or server, and
+	// invalidate any in-flight load so its late response is dropped.
 	$effect(() => {
 		void server;
 		void database;
+		loadToken++;
 		open = false;
 		names = null;
 		failed = false;
@@ -51,13 +59,23 @@
 	}
 
 	async function load() {
+		const token = ++loadToken;
+		const s = server;
+		const db = database;
 		try {
 			// `.run()` because we're in an event handler, not a reactive context —
 			// awaiting a `query` directly there throws.
-			const { data } = await listCollections({ server, database }).run();
+			const { data } = await listCollections({ server: s, database: db }).run();
+			// Bail out if the user navigated to another server/database (which
+			// bumps loadToken via the reset effect) while the request was in flight.
+			if (token !== loadToken || s !== server || db !== database) {
+				return;
+			}
 			names = data;
 		} catch {
-			failed = true;
+			if (token === loadToken && s === server && db === database) {
+				failed = true;
+			}
 		}
 	}
 
