@@ -1,6 +1,13 @@
 <script lang="ts">
+	import { page } from "$app/state";
 	import { resolve } from "$app/paths";
+	import CollectionSwitcher from "$lib/components/CollectionSwitcher.svelte";
 	import { breadcrumbs } from "$lib/stores/breadcrumbs.svelte";
+
+	// The breadcrumb that names the current collection is replaced by a
+	// switcher button (the whole crumb is clickable) so the user can hop to
+	// another collection without going back to the collections list.
+	const collectionLabel = $derived(page.params.collection ?? "");
 </script>
 
 {#if breadcrumbs.items.length > 0}
@@ -15,6 +22,9 @@
 				>
 					{crumb.label}
 				</a>
+			{:else if crumb.label === collectionLabel}
+				<!-- The collection crumb is a switcher button; it carries aria-current itself. -->
+				<CollectionSwitcher />
 			{:else}
 				<span aria-current="page" class="px-2 py-1 rounded-md font-medium" style="color: var(--text);">
 					{crumb.label}
