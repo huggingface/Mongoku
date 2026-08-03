@@ -4,10 +4,17 @@
 	import CollectionSwitcher from "$lib/components/CollectionSwitcher.svelte";
 	import { breadcrumbs } from "$lib/stores/breadcrumbs.svelte";
 
-	// The breadcrumb that names the current collection is replaced by a
-	// switcher button (the whole crumb is clickable) so the user can hop to
-	// another collection without going back to the collections list.
-	const collectionLabel = $derived(page.params.collection ?? "");
+	// The breadcrumb for the current collection is replaced by a switcher
+	// button (the whole crumb is clickable) so the user can hop to another
+	// collection without going back to the collections list. We identify it by
+	// its href (…/collections/<name>/documents) rather than its label: matching
+	// on label would also catch a document id that happens to equal the
+	// collection name on document detail pages.
+	const collectionCrumbHref = $derived(
+		page.params.collection ? `/collections/${encodeURIComponent(page.params.collection)}/documents` : "",
+	);
+
+	const isCollectionCrumb = $derived((crumb: { href?: string }) => crumb.href?.endsWith(collectionCrumbHref));
 </script>
 
 {#if breadcrumbs.items.length > 0}
@@ -22,7 +29,7 @@
 				>
 					{crumb.label}
 				</a>
-			{:else if crumb.label === collectionLabel}
+			{:else if isCollectionCrumb(crumb)}
 				<!-- The collection crumb is a switcher button; it carries aria-current itself. -->
 				<CollectionSwitcher />
 			{:else}
