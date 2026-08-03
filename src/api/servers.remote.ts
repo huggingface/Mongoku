@@ -456,6 +456,26 @@ export const createCollection = command(
 	},
 );
 
+// List collection names for the breadcrumb collection switcher. Names only —
+// fetched lazily when the switcher is opened, so collection pages don't pay
+// for it on load.
+export const listCollections = query(
+	z.object({
+		server: z.string(),
+		database: z.string(),
+	}),
+	async ({ server, database }) => {
+		const mongo = await getMongo();
+		const client = mongo.getClient(server);
+		const collections = await client.db(database).listCollections({}, { nameOnly: true }).toArray();
+
+		return {
+			data: collections.map((c) => c.name).sort((a, b) => a.localeCompare(b)),
+			error: null as string | null,
+		};
+	},
+);
+
 // Drop a collection
 export const dropCollection = command(
 	z.object({

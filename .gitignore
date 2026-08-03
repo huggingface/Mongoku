@@ -8,3 +8,4 @@ build
 .mongoku.db
 .pnpm-store
 coverage
+.playwright-mcp
