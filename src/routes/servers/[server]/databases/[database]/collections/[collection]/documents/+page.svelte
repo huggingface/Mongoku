@@ -421,6 +421,7 @@
 	async function handleExplain() {
 		explainLoading = true;
 		try {
+			// `.run()` is required when calling a remote query from an event handler (non-reactive context)
 			const result = await explainQuery({
 				server: data.server,
 				database: data.database,
@@ -432,7 +433,7 @@
 				limit: params.limit,
 				mode: params.mode === "aggregation" ? "aggregation" : "query",
 				verbosity: "executionStats",
-			});
+			}).run();
 
 			if (result.error) {
 				notificationStore.notifyError(result.error);

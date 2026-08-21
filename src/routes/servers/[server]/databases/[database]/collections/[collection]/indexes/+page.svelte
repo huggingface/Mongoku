@@ -244,7 +244,8 @@
 
 		loadingNodes = true;
 		try {
-			const result = await getServerNodes({ server });
+			// `.run()` is required when calling a remote query from imperative code (non-reactive context)
+			const result = await getServerNodes({ server }).run();
 
 			if (result.error) {
 				notificationStore.notifyError(result.error, "Failed to load nodes");
@@ -255,7 +256,7 @@
 					notificationStore.notifySuccess(`Found ${availableNodes.length} node(s)`);
 
 					// Detect which node is the primary
-					const primaryResult = await detectPrimaryNode({ server, database, collection });
+					const primaryResult = await detectPrimaryNode({ server, database, collection }).run();
 					if (!primaryResult.error && primaryResult.data) {
 						primaryNode = primaryResult.data;
 					}
@@ -286,12 +287,13 @@
 		const shouldResetBaseline = selectedNodesChanged || !hasBaseline;
 
 		try {
+			// `.run()` is required when calling a remote query from an event handler (non-reactive context)
 			const result = await getIndexStatsFromNodes({
 				server,
 				database,
 				collection,
 				nodes: selectedNodes,
-			});
+			}).run();
 
 			if (result.error) {
 				notificationStore.notifyError(result.error, "Failed to fetch stats from some nodes");

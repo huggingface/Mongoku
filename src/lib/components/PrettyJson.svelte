@@ -86,12 +86,14 @@
 
 		// Fetch the document - remote function will try all mappings and return first match
 		try {
+			// `.run()` is required here: this is called from an event handler (hover),
+			// outside a reactive context, where awaiting the query directly throws.
 			const result = await fetchMappedDocumentRemote({
 				server,
 				database,
 				mappings: Array.isArray(mappings[path]) ? mappings[path] : [mappings[path]],
 				value,
-			});
+			}).run();
 
 			if (result.error || !result.data || !result.collection) {
 				return { document: null, url: null, collection: null };

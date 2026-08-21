@@ -214,7 +214,8 @@
 			return;
 		}
 		try {
-			const res = await listUsers({ server: data.server });
+			// `.run()` is required when calling a remote query from an event handler (non-reactive context)
+			const res = await listUsers({ server: data.server }).run();
 			const match = (res.data ?? []).find(
 				(u: { user: string; db: string }) => u.user === rolesUser && u.db === rolesUserDb,
 			);

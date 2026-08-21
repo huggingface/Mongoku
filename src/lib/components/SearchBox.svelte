@@ -241,13 +241,14 @@
 		for (let i = 0; i < TIME_RANGES.length; i++) {
 			const range = TIME_RANGES[i];
 			try {
+				// `.run()` is required when calling a remote query from an event handler (non-reactive context)
 				const result = await countDocumentsByTimeRange({
 					server,
 					database,
 					collection,
 					days: range.days,
 					query: currentQuery,
-				});
+				}).run();
 
 				stats[i] = { ...range, count: result.count, error: result.error, loading: false };
 			} catch (err) {
