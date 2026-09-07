@@ -22,6 +22,7 @@
 	import { getShortenedHostnames } from "$lib/utils/hostnames";
 	import { omit } from "$lib/utils/omit.js";
 	import { sum } from "$lib/utils/sum";
+	import { onMount } from "svelte";
 	import type { PageData } from "./$types.js";
 
 	const { data } = $props();
@@ -335,14 +336,17 @@
 		}
 	}
 
-	// Load nodes when the selector is shown
-	$effect(() => {
+	function toggleReplicaSetSelector() {
+		showReplicaSetSelector = !showReplicaSetSelector;
 		if (showReplicaSetSelector && availableNodes.length === 0 && !loadingNodes) {
 			loadNodes();
 		}
-	});
+	}
 
-	// Restore state from URL on mount (only once)
+	// Restore state from URL on mount (only once). This only reads/writes local
+	// state; the remote fetches happen in onMount, because `.run()` is forbidden
+	// inside a reactive/effect context.
+	let fetchStatsAfterLoad = false;
 	$effect(() => {
 		if (!hasLoadedFromUrl) {
 			const url = new URL(page.url);
@@ -354,15 +358,7 @@
 				if (nodes.length > 0) {
 					showReplicaSetSelector = true;
 					selectedNodes = nodes;
-
-					// Auto-fetch if we have nodes in URL
-					if (availableNodes.length === 0) {
-						loadNodes().then(() => {
-							if (nodes.length > 0) {
-								fetchMultiNodeStats(false); // Don't update URL since we're loading from it
-							}
-						});
-					}
+					fetchStatsAfterLoad = true;
 				}
 			}
 
@@ -371,6 +367,20 @@
 			}
 
 			hasLoadedFromUrl = true;
+		}
+	});
+
+	onMount(() => {
+		if (showReplicaSetSelector && availableNodes.length === 0 && !loadingNodes) {
+			if (fetchStatsAfterLoad) {
+				loadNodes().then(() => {
+					if (selectedNodes.length > 0) {
+						fetchMultiNodeStats(false); // Don't update URL since we're loading from it
+					}
+				});
+			} else {
+				loadNodes();
+			}
 		}
 	});
 
@@ -420,7 +430,7 @@
 					Create Index
 				</button>
 			{/if}
-			<button class="btn btn-primary btn-sm" onclick={() => (showReplicaSetSelector = !showReplicaSetSelector)}>
+			<button class="btn btn-primary btn-sm" onclick={toggleReplicaSetSelector}>
 				{showReplicaSetSelector ? "Hide" : "Show"} Multi-Node Usage
 			</button>
 		</div>
