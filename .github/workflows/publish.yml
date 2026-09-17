@@ -1,9 +1,5 @@
 name: Publish to Docker Hub and NPM
 
-permissions:
-  contents: write
-  id-token: write
-  packages: write
 
 on:
   workflow_dispatch:
@@ -18,8 +14,12 @@ on:
           - major
         default: patch
 
+permissions: {}
+
 jobs:
   publish:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
 
     outputs:
@@ -166,6 +166,8 @@ jobs:
       #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-arm64:
+    permissions:
+      contents: read
     needs: publish
     runs-on: ubuntu-24.04-arm
 
@@ -230,6 +232,7 @@ jobs:
           cache-from: type=gha
 
   merge-manifests:
+    permissions: {}
     needs: [publish, publish-arm64]
     runs-on: ubuntu-latest
 
