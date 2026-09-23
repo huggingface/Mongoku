@@ -6,8 +6,12 @@ on:
   pull_request:
     branches: [main, master]
 
+permissions: {}
+
 jobs:
   ci:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
 
     strategy:
