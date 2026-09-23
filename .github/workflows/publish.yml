@@ -68,7 +68,9 @@ jobs:
         run: pnpm build
 
       - name: Bump version
-        run: npm version ${{ inputs.version }} -m "🔖 mongoku@%s"
+        run: npm version ${INPUTS_VERSION} -m "🔖 mongoku@%s"
+        env:
+          INPUTS_VERSION: ${{ inputs.version }}
 
       - name: Get new version
         id: package-version
@@ -250,14 +252,18 @@ jobs:
         run: |
           docker buildx imagetools create \
             -t huggingface/mongoku:latest \
-            -t huggingface/mongoku:${{ needs.publish.outputs.version }} \
-            huggingface/mongoku:${{ needs.publish.outputs.version }}-amd64 \
-            huggingface/mongoku:${{ needs.publish.outputs.version }}-arm64
+            -t huggingface/mongoku:${NEEDS_PUBLISH_OUTPUTS_VERSION} \
+            huggingface/mongoku:${NEEDS_PUBLISH_OUTPUTS_VERSION}-amd64 \
+            huggingface/mongoku:${NEEDS_PUBLISH_OUTPUTS_VERSION}-arm64
+        env:
+          NEEDS_PUBLISH_OUTPUTS_VERSION: ${{ needs.publish.outputs.version }}
 
       - name: Create multi-arch manifest (compat)
         run: |
           docker buildx imagetools create \
             -t huggingface/mongoku:compat \
-            -t huggingface/mongoku:${{ needs.publish.outputs.version }}-compat \
-            huggingface/mongoku:${{ needs.publish.outputs.version }}-compat-amd64 \
-            huggingface/mongoku:${{ needs.publish.outputs.version }}-compat-arm64
+            -t huggingface/mongoku:${NEEDS_PUBLISH_OUTPUTS_VERSION}-compat \
+            huggingface/mongoku:${NEEDS_PUBLISH_OUTPUTS_VERSION}-compat-amd64 \
+            huggingface/mongoku:${NEEDS_PUBLISH_OUTPUTS_VERSION}-compat-arm64
+        env:
+          NEEDS_PUBLISH_OUTPUTS_VERSION: ${{ needs.publish.outputs.version }}
