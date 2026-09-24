@@ -1,6 +1,5 @@
 name: Publish to Docker Hub and NPM
 
-
 on:
   workflow_dispatch:
     inputs:
@@ -20,6 +19,7 @@ jobs:
   publish:
     permissions:
       contents: write
+      id-token: write
     runs-on: ubuntu-latest
 
     outputs:
