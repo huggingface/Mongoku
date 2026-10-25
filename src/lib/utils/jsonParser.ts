@@ -184,7 +184,7 @@ export function serializeForEditing(obj: any, depth = 0): string {
 			return `new Date("${obj.$value}")`;
 		}
 		if (obj.$type === "RegExp") {
-			return `new RegExp("${obj.$value.$pattern}", "${obj.$value.$flags}")`;
+			return `new RegExp(${JSON.stringify(obj.$value.$pattern)}, ${JSON.stringify(obj.$value.$flags)})`;
 		}
 
 		// Handle regular objects
