@@ -47,7 +47,7 @@
 		"commander": "^8.3.0",
 		"esprima": "^4.0.1",
 		"mongodb": "^6.20.0",
-		"zod": "^4.1.12"
+		"zod": "^4.6.6"
 	},
 	"bin": {
 		"mongoku": "./dist/cli.js"
