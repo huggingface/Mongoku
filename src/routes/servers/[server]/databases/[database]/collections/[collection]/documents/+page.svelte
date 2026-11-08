@@ -98,15 +98,17 @@
 		const partial = Boolean(
 			params.project && params.project !== "{}" && Object.keys(parseJSON(params.project) as object).length > 0,
 		);
-		const newId = json?._id?.$value;
-		const oldId = _id?.$value;
+		// _id is an ObjectId wrapper ({ $value }) or a plain string
+		const newId = json?._id?.$value ?? json?._id;
+		const oldId = _id?.$value ?? _id;
 
 		if (newId !== oldId) {
-			notificationStore.notifyError("ObjectId changed. This is not supported, update canceled.");
+			notificationStore.notifyError("_id changed. This is not supported, update canceled.");
 			return;
 		}
 
-		if (!oldId) {
+		if (!oldId || typeof oldId !== "string") {
+			notificationStore.notifyError("Unsupported _id type, update canceled.");
 			return;
 		}
 
@@ -123,7 +125,7 @@
 			if (result.ok) {
 				notificationStore.notifySuccess("Document updated successfully");
 				// Update the document in the list
-				const index = items.findIndex((item) => item._id?.$value === oldId);
+				const index = items.findIndex((item) => (item._id?.$value ?? item._id) === oldId);
 				if (index !== -1) {
 					items[index] = result.update;
 				}
