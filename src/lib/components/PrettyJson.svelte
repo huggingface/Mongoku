@@ -197,6 +197,8 @@
 	}
 
 	function confirmRemove() {
+		// Close the dialog first: in lists keyed by index, this component is reused for the next document
+		removing = false;
 		onremove?.();
 	}
 
@@ -212,7 +214,7 @@
 </script>
 
 {#snippet title()}
-	{#if json._id}
+	{#if json._id || json._id === 0}
 		{@const navigableId = getIdValue(json._id)}
 		{@const idDisplay = formatIdDisplay(json._id)}
 		<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 min-w-0 flex-1">
@@ -275,7 +277,7 @@
 	</div>
 {/snippet}
 
-<Panel class="group relative" title={json._id ? title : undefined} {actions} bind:ref={panelRef}>
+<Panel class="group relative" title={json._id || json._id === 0 ? title : undefined} {actions} bind:ref={panelRef}>
 	<div bind:this={contentContainerRef} class="relative p-4 sm:p-6">
 		<div class="font-mono text-[13px] sm:text-[14px] leading-relaxed whitespace-pre-wrap break-words overflow-x-auto">
 			<JsonValue value={json} {autoCollapse} collapsed={false} {isKeyMapped} {fetchMappedDocument} {mappings} />

@@ -26,7 +26,7 @@
 			return;
 		}
 
-		if (!oldId) {
+		if (!oldId && oldId !== 0) {
 			return;
 		}
 
@@ -36,7 +36,8 @@
 				server: data.server,
 				database: data.database,
 				collection: data.collection,
-				document: oldId,
+				// Numeric ids travel as strings; the server resolves them back to numbers
+				document: typeof oldId === "number" ? String(oldId) : oldId,
 				value: json,
 				partial: false,
 			});
@@ -54,7 +55,7 @@
 
 	async function removeDocument() {
 		const documentId = item?._id?.$value ?? item?._id;
-		if (!documentId) {
+		if (!documentId && documentId !== 0) {
 			return;
 		}
 
@@ -63,7 +64,7 @@
 				server: data.server,
 				database: data.database,
 				collection: data.collection,
-				document: documentId,
+				document: typeof documentId === "number" ? String(documentId) : documentId,
 			});
 
 			notificationStore.notifySuccess("Document removed successfully");
