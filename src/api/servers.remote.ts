@@ -4,6 +4,7 @@ import { validateAggregationPipeline } from "$lib/server/aggregation";
 import JsonEncoder from "$lib/server/JsonEncoder";
 import { logger } from "$lib/server/logger";
 import { sanitizeMongoUri } from "$lib/server/connectionString";
+import { resolveDocumentId } from "$lib/server/documentId";
 import { getMongo } from "$lib/server/mongo";
 import { isEmptyObject } from "$lib/utils/isEmptyObject";
 import { parseJSON } from "$lib/utils/jsonParser";
@@ -66,8 +67,7 @@ export const updateDocument = command(
 		const newValue = JsonEncoder.decode(value);
 
 		// TODO: For now it makes it impossible to remove fields from object with a projection
-		// Todo: handle multiple ID types
-		const _id = /^[0-9a-fA-F]{24}$/.test(document) ? new ObjectId(document) : document;
+		const _id = await resolveDocumentId(coll, document);
 		if (partial) {
 			await coll.updateOne(
 				{
@@ -149,15 +149,13 @@ export const deleteDocument = command(
 
 		const mongo = await getMongo();
 		const client = mongo.getClient(server);
+		const coll = client.db(database).collection(collection);
 
-		const _id = /^[0-9a-fA-F]{24}$/.test(document) ? new ObjectId(document) : document;
+		const _id = await resolveDocumentId(coll, document);
 
-		await client
-			.db(database)
-			.collection(collection)
-			.deleteOne({
-				_id: _id as unknown as ObjectId,
-			});
+		await coll.deleteOne({
+			_id: _id as unknown as ObjectId,
+		});
 
 		if (collection === "mongoku.mappings") {
 			client.clearMappingsCache(database, document);

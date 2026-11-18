@@ -1,3 +1,4 @@
+import { resolveDocumentId } from "$lib/server/documentId";
 import JsonEncoder from "$lib/server/JsonEncoder";
 import { getMongo } from "$lib/server/mongo";
 import { ObjectId } from "mongodb";
@@ -10,9 +11,7 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 
 	let document = null;
 	const obj = await collection.findOne({
-		_id: /^[0-9a-fA-F]{24}$/.test(params.document)
-			? new ObjectId(params.document)
-			: (params.document as unknown as ObjectId),
+		_id: (await resolveDocumentId(collection, params.document)) as ObjectId,
 	});
 
 	document = obj ? JsonEncoder.encode(obj) : null;
